@@ -15,7 +15,13 @@ import { createComplaint, getComplaints, updateComplaintStatus } from '../contro
 import { getMyNotifications, markNotificationAsRead } from '../controllers/notificationController';
 import { getVillageProfile, getNewsList, getNewsBySlug, getAnnouncements, getAgendas } from '../controllers/contentController';
 import { handleAiQuery } from '../controllers/aiController';
-import { handleIncomingWhatsAppMessage, getChatHistory } from '../controllers/whatsappBotController';
+import {
+  handleIncomingWhatsAppMessage,
+  getChatHistory,
+  getBaileysStatus,
+  startBaileysConnection,
+  disconnectBaileysSession,
+} from '../controllers/whatsappBotController';
 
 import { authenticateToken, authorizeRoles, verifyApplicationOwnership } from '../middleware/auth';
 import { authLimiter, waBotLimiter, sanitizeInputMiddleware } from '../middleware/security';
@@ -95,5 +101,10 @@ router.post('/ai/chat', handleAiQuery);
 // ==================== WHATSAPP CONVERSATIONAL BOT ROUTES ====================
 router.post('/whatsapp/bot', waBotLimiter, handleIncomingWhatsAppMessage);
 router.get('/whatsapp/history', waBotLimiter, getChatHistory);
+
+// Real Baileys WhatsApp Engine Endpoints
+router.get('/whatsapp/status', getBaileysStatus);
+router.post('/whatsapp/connect', startBaileysConnection);
+router.post('/whatsapp/disconnect', disconnectBaileysSession);
 
 export default router;

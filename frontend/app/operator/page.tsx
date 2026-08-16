@@ -65,6 +65,69 @@ export default function OperatorDashboardPage() {
   const [assistedServiceId, setAssistedServiceId] = useState('');
   const [assistedNotes, setAssistedNotes] = useState('');
 
+  // Live Baileys WhatsApp Connection State
+  const [showWaQrModal, setShowWaQrModal] = useState(false);
+  const [waStatus, setWaStatus] = useState<any>({
+    status: 'DISCONNECTED',
+    qrCodeDataUrl: null,
+    phoneNumber: null,
+    userName: null,
+  });
+  const [waLoading, setWaLoading] = useState(false);
+
+  useEffect(() => {
+    fetchWaStatus();
+  }, []);
+
+  useEffect(() => {
+    let interval: any = null;
+    if (showWaQrModal || waStatus.status === 'SCAN_QR' || waStatus.status === 'CONNECTING') {
+      interval = setInterval(() => {
+        fetchWaStatus();
+      }, 2500);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [showWaQrModal, waStatus.status]);
+
+  const fetchWaStatus = async () => {
+    try {
+      const res = await api.get('/whatsapp/status');
+      if (res.data.status === 'success') {
+        setWaStatus(res.data.data);
+      }
+    } catch (e) {}
+  };
+
+  const handleStartWaConnection = async () => {
+    setWaLoading(true);
+    setShowWaQrModal(true);
+    try {
+      const res = await api.post('/whatsapp/connect');
+      if (res.data.status === 'success') {
+        setWaStatus(res.data.data);
+      }
+    } catch (e: any) {
+      alert('Gagal menghubungkan WhatsApp: ' + (e.response?.data?.message || e.message));
+    } finally {
+      setWaLoading(false);
+    }
+  };
+
+  const handleDisconnectWa = async () => {
+    if (!confirm('Putuskan koneksi nomor WhatsApp ini?')) return;
+    setWaLoading(true);
+    try {
+      await api.post('/whatsapp/disconnect');
+      fetchWaStatus();
+      alert('Sesi WhatsApp berhasil diputuskan.');
+    } catch (e) {}
+    finally {
+      setWaLoading(false);
+    }
+  };
+
   useEffect(() => {
     const stored = localStorage.getItem('jombe_user');
     if (!stored) {
@@ -207,13 +270,41 @@ export default function OperatorDashboardPage() {
           <p className="text-xs text-emerald-100/90 mt-1">Petugas: <strong>{operator.name}</strong>. Teliti berkas permohonan warga dan verifikasi foto KTP/KK/Usaha sebelum menerbitkan Surat Balasan Resmi.</p>
         </div>
 
-        <button
-          onClick={() => setShowAssistedModal(true)}
-          className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-amber-950 font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 shrink-0 border border-amber-400/40"
-        >
-          <Plus className="w-4 h-4" />
-          Permohonan Bantuan Petugas
-        </button>
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          {/* Real WhatsApp Live Connection Button */}
+          <button
+            onClick={() => {
+              if (waStatus.status === 'CONNECTED') {
+                setShowWaQrModal(true);
+              } else {
+                handleStartWaConnection();
+              }
+            }}
+            className={`px-4 py-3 font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 border ${
+              waStatus.status === 'CONNECTED'
+                ? 'bg-emerald-500 hover:bg-emerald-400 text-emerald-950 border-emerald-300'
+                : 'bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border-emerald-600'
+            }`}
+          >
+            <Phone className="w-4 h-4" />
+            {waStatus.status === 'CONNECTED' ? (
+              <span className="flex items-center gap-1.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-950 animate-pulse"></span>
+                WA Aktif: {waStatus.phoneNumber || 'Terhubung'}
+              </span>
+            ) : (
+              <span>Hubungkan WhatsApp Asli (Scan QR)</span>
+            )}
+          </button>
+
+          <button
+            onClick={() => setShowAssistedModal(true)}
+            className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-amber-950 font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 shrink-0 border border-amber-400/40"
+          >
+            <Plus className="w-4 h-4" />
+            Permohonan Bantuan Petugas
+          </button>
+        </div>
       </div>
 
       {/* Metrics Counter Cards */}
@@ -768,6 +859,99 @@ export default function OperatorDashboardPage() {
                 Tutup Pratinjau Dokumen
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* REAL WHATSAPP LIVE QR SCAN & CONNECTION MODAL            */}
+      {/* ======================================================== */}
+      {showWaQrModal && (
+        <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-start border-b border-slate-100 pb-3">
+              <div>
+                <span className="text-[10px] font-bold uppercase text-emerald-800 tracking-wider">
+                  Koneksi WhatsApp Resmi Desa (Baileys Engine)
+                </span>
+                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                  <Phone className="w-5 h-5 text-emerald-600" />
+                  {waStatus.status === 'CONNECTED' ? 'WhatsApp Terhubung!' : 'Pindai Kode QR WhatsApp'}
+                </h3>
+              </div>
+              <button
+                onClick={() => setShowWaQrModal(false)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* STATUS: CONNECTED */}
+            {waStatus.status === 'CONNECTED' ? (
+              <div className="text-center space-y-4 py-4">
+                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center border-2 border-emerald-300 shadow-xs">
+                  <CheckCircle2 className="w-10 h-10" />
+                </div>
+                <div className="space-y-1">
+                  <h4 className="text-sm font-extrabold text-emerald-950">
+                    Nomor WhatsApp Resmi Siap Melayani
+                  </h4>
+                  <p className="text-xs font-mono font-bold text-slate-700 bg-slate-100 py-1.5 px-3 rounded-xl inline-block border border-slate-200">
+                    📱 +{waStatus.phoneNumber || '628xxxxxxxx'}
+                  </p>
+                  <p className="text-[11px] text-slate-500 pt-1">
+                    Setiap permohonan surat yang masuk ke nomor ini akan otomatis disusun dan surat balasan PDF resmi akan dikirimkan langsung ke WhatsApp warga.
+                  </p>
+                </div>
+
+                <div className="pt-4 border-t border-slate-100 flex gap-2">
+                  <button
+                    onClick={() => setShowWaQrModal(false)}
+                    className="flex-1 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl"
+                  >
+                    Tutup Layar
+                  </button>
+                  <button
+                    onClick={handleDisconnectWa}
+                    className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-colors"
+                  >
+                    Putuskan Sesi
+                  </button>
+                </div>
+              </div>
+            ) : (
+              /* STATUS: SCAN QR / CONNECTING */
+              <div className="space-y-5">
+                {waStatus.qrCodeDataUrl ? (
+                  <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center justify-center space-y-3">
+                    <img
+                      src={waStatus.qrCodeDataUrl}
+                      alt="WhatsApp QR Code"
+                      className="w-56 h-56 rounded-xl border border-slate-300 shadow-sm bg-white p-2"
+                    />
+                    <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                      <RefreshCw className="w-3 h-3 animate-spin text-emerald-700" /> Kode QR diperbarui otomatis
+                    </span>
+                  </div>
+                ) : (
+                  <div className="p-8 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-3">
+                    <RefreshCw className="w-8 h-8 text-emerald-700 animate-spin mx-auto" />
+                    <p className="text-xs text-slate-600 font-bold">Sedang menyiapkan Kode QR WhatsApp...</p>
+                  </div>
+                )}
+
+                {/* 3 Step Instructions */}
+                <div className="bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200 text-xs space-y-1.5 text-slate-800">
+                  <p className="font-bold text-emerald-950">Cara Menghubungkan WhatsApp:</p>
+                  <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-slate-700">
+                    <li>Buka aplikasi <strong>WhatsApp</strong> di HP Anda.</li>
+                    <li>Ketuk <strong>Menu (titik tiga)</strong> atau <strong>Pengaturan</strong> ➔ Pilih <strong>Perangkat Tertaut</strong>.</li>
+                    <li>Ketuk <strong>Tautkan Perangkat</strong>, lalu arahkan kamera HP ke Kode QR di atas.</li>
+                  </ol>
+                </div>
+              </div>
+            )}
           </div>
         </div>
       )}
