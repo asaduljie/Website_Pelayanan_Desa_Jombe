@@ -1,0 +1,356 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  MASYARAKAT
+  OPERATOR
+  ADMIN
+}
+
+enum ApplicationStatus {
+  PENDING
+  VERIFIED
+  PROCESSING
+  NEED_REVISION
+  COMPLETED
+  REJECTED
+}
+
+enum ComplaintStatus {
+  SUBMITTED
+  VERIFIED
+  IN_PROGRESS
+  RESOLVED
+  REJECTED
+}
+
+enum FieldType {
+  TEXT
+  TEXTAREA
+  NUMBER
+  DATE
+  SELECT
+  RADIO
+  CHECKBOX
+  FILE
+  PHONE
+}
+
+model User {
+  id               String            @id @default(uuid())
+  nik              String            @unique
+  nikEncrypted     String?           
+  name             String
+  email            String?           @unique
+  phone            String            
+  password         String            
+  role             Role              @default(MASYARAKAT)
+  address          String?
+  dusun            String?
+  rt               String?
+  rw               String?
+  avatar           String?
+  isActive         Boolean           @default(true)
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
+
+  applications     Application[]     @relation("UserApplications")
+  processedApps    Application[]     @relation("OperatorApplications")
+  complaints       Complaint[]
+  notifications    Notification[]
+  auditLogs        AuditLog[]
+  createdNews      News[]
+  createdAgendas   Agenda[]
+  createdAnnounce  Announcement[]
+
+  @@index([nik])
+  @@index([role])
+}
+
+model Service {
+  id             String         @id @default(uuid())
+  name           String
+  slug           String         @unique
+  description    String?
+  category       String         @default("Surat Keterangan")
+  requirements   String?        
+  estimatedDays  Int            @default(3)
+  icon           String?        @default("file-text")
+  isActive       Boolean        @default(true)
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  fields         ServiceField[]
+  applications   Application[]
+  letterTemplates LetterTemplate[]
+
+  @@index([slug])
+  @@index([category])
+  @@index([isActive])
+}
+
+model ServiceField {
+  id           String        @id @default(uuid())
+  serviceId    String
+  service      Service       @relation(fields: [serviceId], references: [id], onDelete: Cascade)
+  label        String
+  fieldName    String        
+  fieldType    FieldType     @default(TEXT)
+  placeholder  String?
+  isRequired   Boolean       @default(true)
+  options      String?       
+  order        Int           @default(0)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  fieldValues  ApplicationFieldValue[]
+
+  @@index([serviceId])
+}
+
+model Application {
+  id                String                 @id @default(uuid())
+  applicationNumber String                 @unique
+  userId            String
+  user              User                   @relation("UserApplications", fields: [userId], references: [id])
+  serviceId         String
+  service           Service                @relation(fields: [serviceId], references: [id])
+  operatorId        String?
+  operator          User?                  @relation("OperatorApplications", fields: [operatorId], references: [id])
+  status            ApplicationStatus      @default(PENDING)
+  rejectionReason   String?
+  revisionNotes     String?
+  createdAt         DateTime               @default(now())
+  updatedAt         DateTime               @updatedAt
+
+  fieldValues       ApplicationFieldValue[]
+  documents         ApplicationDocument[]
+  history           ApplicationHistory[]
+  generatedLetters  GeneratedLetter[]
+
+  @@index([userId])
+  @@index([serviceId])
+  @@index([status])
+  @@index([applicationNumber])
+  @@index([createdAt])
+}
+
+model ApplicationFieldValue {
+  id            String       @id @default(uuid())
+  applicationId String
+  application   Application  @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  fieldId       String
+  field         ServiceField @relation(fields: [fieldId], references: [id])
+  value         String
+  createdAt     DateTime     @default(now())
+
+  @@index([applicationId])
+}
+
+model ApplicationDocument {
+  id            String      @id @default(uuid())
+  applicationId String
+  application   Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  documentName  String      
+  fileUrl       String      
+  fileType      String      
+  fileSize      Int         
+  isVerified    Boolean     @default(false)
+  createdAt     DateTime    @default(now())
+
+  @@index([applicationId])
+}
+
+model ApplicationHistory {
+  id            String            @id @default(uuid())
+  applicationId String
+  application   Application       @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+  status        ApplicationStatus
+  actorName     String            
+  notes         String?
+  createdAt     DateTime          @default(now())
+
+  @@index([applicationId])
+}
+
+model LetterTemplate {
+  id            String            @id @default(uuid())
+  serviceId     String
+  service       Service           @relation(fields: [serviceId], references: [id])
+  title         String
+  templateHtml  String            
+  headerText    String?           @default("PEMERINTAH KABUPATEN JOMBANG\nKECAMATAN JOMBANG\nPEMERINTAH DESA JOMBE")
+  codePrefix    String            @default("470")
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+
+  generated     GeneratedLetter[]
+
+  @@index([serviceId])
+}
+
+model GeneratedLetter {
+  id            String         @id @default(uuid())
+  applicationId String
+  application   Application    @relation(fields: [applicationId], references: [id])
+  templateId    String
+  template      LetterTemplate @relation(fields: [templateId], references: [id])
+  letterNumber  String         @unique
+  pdfUrl        String         
+  generatedBy   String         
+  createdAt     DateTime       @default(now())
+
+  @@index([applicationId])
+}
+
+model Complaint {
+  id            String           @id @default(uuid())
+  ticketNumber  String           @unique
+  userId        String
+  user          User             @relation(fields: [userId], references: [id])
+  title         String
+  category      String           
+  description   String
+  location      String?
+  photoUrl      String?
+  status        ComplaintStatus  @default(SUBMITTED)
+  adminResponse String?
+  createdAt     DateTime         @default(now())
+  updatedAt     DateTime         @updatedAt
+
+  history       ComplaintHistory[]
+
+  @@index([userId])
+  @@index([category])
+  @@index([status])
+}
+
+model ComplaintHistory {
+  id          String          @id @default(uuid())
+  complaintId String
+  complaint   Complaint       @relation(fields: [complaintId], references: [id], onDelete: Cascade)
+  status      ComplaintStatus
+  notes       String?
+  actorName   String
+  createdAt   DateTime        @default(now())
+
+  @@index([complaintId])
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  type      String   @default("APPLICATION")
+  read      Boolean  @default(false)
+  linkUrl   String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([read])
+}
+
+model News {
+  id          String   @id @default(uuid())
+  title       String
+  slug        String   @unique
+  category    String   @default("Pemerintahan")
+  content     String
+  excerpt     String?
+  thumbnail   String?
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  views       Int      @default(0)
+  isPublished Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@index([slug])
+  @@index([isPublished])
+}
+
+model Announcement {
+  id          String    @id @default(uuid())
+  title       String
+  content     String
+  isImportant Boolean   @default(false)
+  authorId    String
+  author      User      @relation(fields: [authorId], references: [id])
+  expiresAt   DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Agenda {
+  id          String   @id @default(uuid())
+  title       String
+  description String
+  location    String
+  eventDate   DateTime
+  eventTime   String?
+  authorId    String
+  author      User     @relation(fields: [authorId], references: [id])
+  createdAt   DateTime @default(now())
+}
+
+model Gallery {
+  id          String   @id @default(uuid())
+  title       String
+  category    String   @default("Kegiatan Desa")
+  imageUrl    String
+  caption     String?
+  createdAt   DateTime @default(now())
+}
+
+model VillageProfile {
+  id          String   @id @default("default")
+  name        String   @default("Desa Jombe")
+  district    String   @default("Kecamatan Jombang")
+  regency     String   @default("Kabupaten Jombang")
+  province    String   @default("Jawa Timur")
+  vision      String
+  mission     String
+  history     String
+  address     String
+  phone       String
+  email       String
+  whatsapp    String
+  mapsEmbed   String?
+  updatedAt   DateTime @updatedAt
+}
+
+model VillageStatistic {
+  id               String   @id @default("default")
+  totalPopulation   Int      @default(3850)
+  malePopulation    Int      @default(1920)
+  femalePopulation  Int      @default(1930)
+  totalDusun       Int      @default(4)
+  totalRt          Int      @default(18)
+  totalRw          Int      @default(6)
+  totalFamily      Int      @default(1120)
+  updatedAt        DateTime @updatedAt
+}
+
+model AuditLog {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  role      String?
+  action    String   
+  details   String?  
+  ipAddress String?
+  userAgent String?
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}

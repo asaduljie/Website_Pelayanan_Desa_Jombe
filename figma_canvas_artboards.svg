@@ -1,0 +1,79 @@
+<svg width="1440" height="900" viewBox="0 0 1440 900" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background Canvas -->
+  <rect width="1440" height="900" fill="#FCFBF7"/>
+  
+  <!-- Header Navbar -->
+  <rect width="1440" height="80" fill="#FFFFFF"/>
+  <line x1="0" y1="80" x2="1440" y2="80" stroke="#E5E7EB" stroke-width="2"/>
+  <rect x="80" y="20" width="40" height="40" rx="10" fill="#15803D"/>
+  <text x="135" y="45" font-family="Inter, sans-serif" font-weight="800" font-size="20" fill="#14532D">JOMBE DIGITAL</text>
+  <text x="135" y="60" font-family="Inter, sans-serif" font-weight="600" font-size="10" fill="#16A34A" letter-spacing="1">PELAYANAN DESA JOMBE</text>
+  
+  <!-- Hero Section Banner -->
+  <rect x="80" y="120" width="1280" height="360" rx="24" fill="url(#hero-gradient)"/>
+  <defs>
+    <linearGradient id="hero-gradient" x1="80" y1="120" x2="1360" y2="480" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#052E16"/>
+      <stop offset="0.5" stop-color="#14532D"/>
+      <stop offset="1" stop-color="#15803D"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Hero Text -->
+  <rect x="540" y="150" width="360" height="28" rx="14" fill="#15803D" opacity="0.6"/>
+  <text x="720" y="169" font-family="Inter, sans-serif" font-weight="700" font-size="12" fill="#A7F3D0" text-anchor="middle">Sistem Pelayanan Digital Desa Jombe</text>
+
+  <text x="720" y="230" font-family="Inter, sans-serif" font-weight="900" font-size="42" fill="#FFFFFF" text-anchor="middle">Selamat Datang di Desa Jombe</text>
+  <text x="720" y="270" font-family="Inter, sans-serif" font-weight="400" font-size="16" fill="#D1FAE5" text-anchor="middle">Akses pelayanan desa dengan mudah, cepat, dan transparan tanpa harus mengurus semuanya secara manual.</text>
+
+  <!-- Hero Action Buttons -->
+  <rect x="540" y="320" width="170" height="48" rx="12" fill="#059669"/>
+  <text x="625" y="349" font-family="Inter, sans-serif" font-weight="700" font-size="14" fill="#FFFFFF" text-anchor="middle">Ajukan Layanan</text>
+
+  <rect x="730" y="320" width="170" height="48" rx="12" fill="#FFFFFF" fill-opacity="0.15"/>
+  <text x="815" y="349" font-family="Inter, sans-serif" font-weight="600" font-size="14" fill="#FFFFFF" text-anchor="middle">Jelajahi Desa</text>
+
+  <!-- Tracking Widget Card -->
+  <rect x="240" y="440" width="960" height="140" rx="24" fill="#FFFFFF" filter="url(#drop-shadow)"/>
+  <defs>
+    <filter id="drop-shadow" x="220" y="420" width="1000" height="180" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="10" stdDeviation="15" flood-color="#15803D" flood-opacity="0.1"/>
+    </filter>
+  </defs>
+
+  <text x="280" y="485" font-family="Inter, sans-serif" font-weight="800" font-size="18" fill="#111827">Cek Status Permohonan Surat</text>
+  <text x="280" y="505" font-family="Inter, sans-serif" font-weight="400" font-size="12" fill="#6B7280">Masukkan nomor permohonan yang Anda dapatkan saat mengajukan surat.</text>
+
+  <rect x="280" y="520" width="760" height="44" rx="12" fill="#F9FAFB" stroke="#E5E7EB"/>
+  <text x="300" y="547" font-family="Courier, monospace" font-weight="700" font-size="14" fill="#15803D">JMB-2026-00012</text>
+  
+  <rect x="1050" y="520" width="120" height="44" rx="12" fill="#14532D"/>
+  <text x="1110" y="547" font-family="Inter, sans-serif" font-weight="700" font-size="13" fill="#FFFFFF" text-anchor="middle">Lacak</text>
+
+  <!-- Services Grid -->
+  <text x="80" y="630" font-family="Inter, sans-serif" font-weight="800" font-size="22" fill="#111827">Pelayanan Administrasi Utama</text>
+
+  <!-- Card 1 -->
+  <rect x="80" y="660" width="295" height="180" rx="16" fill="#FFFFFF" stroke="#F3F4F6"/>
+  <rect x="100" y="680" width="44" height="44" rx="12" fill="#FEF3C7"/>
+  <text x="100" y="750" font-family="Inter, sans-serif" font-weight="800" font-size="16" fill="#111827">Surat Keterangan Usaha</text>
+  <text x="100" y="770" font-family="Inter, sans-serif" font-weight="400" font-size="12" fill="#6B7280">Pengantar resmi izin usaha Desa Jombe.</text>
+
+  <!-- Card 2 -->
+  <rect x="405" y="660" width="295" height="180" rx="16" fill="#FFFFFF" stroke="#F3F4F6"/>
+  <rect x="425" y="680" width="44" height="44" rx="12" fill="#DBEAFE"/>
+  <text x="425" y="750" font-family="Inter, sans-serif" font-weight="800" font-size="16" fill="#111827">Surat Domisili</text>
+  <text x="425" y="770" font-family="Inter, sans-serif" font-weight="400" font-size="12" fill="#6B7280">Keterangan domisili resmi tempat tinggal.</text>
+
+  <!-- Card 3 -->
+  <rect x="730" y="660" width="295" height="180" rx="16" fill="#FFFFFF" stroke="#F3F4F6"/>
+  <rect x="750" y="680" width="44" height="44" rx="12" fill="#DCFCE7"/>
+  <text x="750" y="750" font-family="Inter, sans-serif" font-weight="800" font-size="16" fill="#111827">Surat SKTM</text>
+  <text x="750" y="770" font-family="Inter, sans-serif" font-weight="400" font-size="12" fill="#6B7280">Keterangan tidak mampu beasiswa &amp; berobat.</text>
+
+  <!-- Card 4 -->
+  <rect x="1055" y="660" width="295" height="180" rx="16" fill="#FFFFFF" stroke="#F3F4F6"/>
+  <rect x="1075" y="680" width="44" height="44" rx="12" fill="#F3E8FF"/>
+  <text x="1075" y="750" font-family="Inter, sans-serif" font-weight="800" font-size="16" fill="#111827">Pengaduan Warga</text>
+  <text x="1075" y="770" font-family="Inter, sans-serif" font-weight="400" font-size="12" fill="#6B7280">Laporan fasilitas publik &amp; lingkungan.</text>
+</svg>
