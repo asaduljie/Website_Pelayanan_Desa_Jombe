@@ -2,7 +2,7 @@ import makeWASocket, {
   DisconnectReason,
   useMultiFileAuthState,
   WASocket,
-  proto,
+  fetchLatestBaileysVersion,
 } from '@whiskeysockets/baileys';
 import QRCode from 'qrcode';
 import path from 'path';
@@ -13,6 +13,7 @@ import { Boom } from '@hapi/boom';
 export interface BaileysStatus {
   status: 'DISCONNECTED' | 'SCAN_QR' | 'CONNECTING' | 'CONNECTED';
   qrCodeDataUrl: string | null;
+  pairingCode: string | null;
   phoneNumber: string | null;
   userName: string | null;
   lastConnected: string | null;
@@ -23,6 +24,7 @@ const AUTH_DIR = path.join(__dirname, '../../auth_info_baileys');
 class WhatsAppBaileysEngine {
   private sock: WASocket | null = null;
   private qrCodeDataUrl: string | null = null;
+  private pairingCode: string | null = null;
   private status: 'DISCONNECTED' | 'SCAN_QR' | 'CONNECTING' | 'CONNECTED' = 'DISCONNECTED';
   private phoneNumber: string | null = null;
   private userName: string | null = null;
@@ -39,35 +41,59 @@ class WhatsAppBaileysEngine {
     return {
       status: this.status,
       qrCodeDataUrl: this.qrCodeDataUrl,
+      pairingCode: this.pairingCode,
       phoneNumber: this.phoneNumber,
       userName: this.userName,
       lastConnected: this.lastConnected,
     };
   }
 
-  public async startEngine(): Promise<void> {
+  public async startEngine(customPhoneNumber?: string): Promise<void> {
     if (this.isInitializing || this.status === 'CONNECTED') return;
     this.isInitializing = true;
     this.status = 'CONNECTING';
 
     try {
       const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+      const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] as [number, number, number] }));
 
       this.sock = makeWASocket({
+        version,
         auth: state,
         printQRInTerminal: false,
         logger: pino({ level: 'silent' }),
-        browser: ['Jombe Digital', 'Chrome', '1.0.0'],
+        browser: ['Ubuntu', 'Chrome', '20.0.04'],
+        connectTimeoutMs: 60000,
+        defaultQueryTimeoutMs: 60000,
+        keepAliveIntervalMs: 10000,
       });
 
       this.sock.ev.on('creds.update', saveCreds);
 
+      // If user requested pairing with phone number
+      if (customPhoneNumber && !state.creds.registered) {
+        setTimeout(async () => {
+          try {
+            const cleanPhone = customPhoneNumber.replace(/\D/g, '');
+            const formatted = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
+            const code = await this.sock?.requestPairingCode(formatted);
+            if (code) {
+              this.pairingCode = code;
+              this.status = 'SCAN_QR';
+              console.log(`📱 [Baileys] Pairing Code WhatsApp: ${code}`);
+            }
+          } catch (err) {
+            console.error('Failed to request pairing code:', err);
+          }
+        }, 3000);
+      }
+
       this.sock.ev.on('connection.update', async (update) => {
         const { connection, lastDisconnect, qr } = update;
 
-        if (qr) {
+        if (qr && !this.pairingCode) {
           try {
-            this.qrCodeDataUrl = await QRCode.toDataURL(qr, { width: 300, margin: 2 });
+            this.qrCodeDataUrl = await QRCode.toDataURL(qr, { width: 320, margin: 2 });
             this.status = 'SCAN_QR';
             console.log('📱 [Baileys] QR Code baru siap di-scan dari HP!');
           } catch (e) {
@@ -76,20 +102,22 @@ class WhatsAppBaileysEngine {
         }
 
         if (connection === 'close') {
-          const shouldReconnect =
-            (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
+          const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+          const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
 
           this.status = 'DISCONNECTED';
           this.qrCodeDataUrl = null;
-          console.log('📱 [Baileys] Koneksi terputus. Reconnect:', shouldReconnect);
+          this.pairingCode = null;
+          console.log(`📱 [Baileys] Koneksi terputus (Status ${statusCode}). Reconnect:`, shouldReconnect);
 
           this.isInitializing = false;
           if (shouldReconnect) {
-            setTimeout(() => this.startEngine(), 3000);
+            setTimeout(() => this.startEngine(), 4000);
           }
         } else if (connection === 'open') {
           this.status = 'CONNECTED';
           this.qrCodeDataUrl = null;
+          this.pairingCode = null;
           this.lastConnected = new Date().toISOString();
 
           const userJid = this.sock?.user?.id || '';
@@ -101,13 +129,13 @@ class WhatsAppBaileysEngine {
         }
       });
 
-      // Handle Incoming WhatsApp Messages
+      // Handle Incoming Messages
       this.sock.ev.on('messages.upsert', async (m) => {
         const msg = m.messages[0];
         if (!msg || !msg.message || msg.key.fromMe) return;
 
         const remoteJid = msg.key.remoteJid || '';
-        if (remoteJid.includes('@g.us')) return; // Ignore groups
+        if (remoteJid.includes('@g.us')) return;
 
         const senderPhone = remoteJid.replace('@s.whatsapp.net', '');
         const messageText =
@@ -118,7 +146,6 @@ class WhatsAppBaileysEngine {
 
         console.log(`📩 [Baileys] Pesan masuk dari ${senderPhone}: "${messageText}"`);
 
-        // Trigger Automated Conversational Bot
         try {
           const { handleIncomingWhatsAppMessageInternal } = await import('../controllers/whatsappBotController');
           const botResponse = await handleIncomingWhatsAppMessageInternal(senderPhone, messageText);
@@ -173,10 +200,10 @@ class WhatsAppBaileysEngine {
       }
       this.status = 'DISCONNECTED';
       this.qrCodeDataUrl = null;
+      this.pairingCode = null;
       this.phoneNumber = null;
       this.userName = null;
 
-      // Clean auth dir on explicit logout
       if (fs.existsSync(AUTH_DIR)) {
         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
       }

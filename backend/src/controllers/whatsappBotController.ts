@@ -115,10 +115,11 @@ export const getBaileysStatus = (req: Request, res: Response) => {
 
 export const startBaileysConnection = async (req: Request, res: Response) => {
   try {
-    baileysEngine.startEngine();
+    const phoneNumber = req.body?.phoneNumber || req.query?.phone;
+    baileysEngine.startEngine(phoneNumber ? String(phoneNumber) : undefined);
     return res.status(200).json({
       status: 'success',
-      message: 'Mesin WhatsApp Baileys diaktifkan. Silakan scan QR code di layar dengan HP Anda.',
+      message: 'Mesin WhatsApp Baileys diaktifkan. Silakan scan QR code atau masukkan kode pairing.',
       data: baileysEngine.getStatus(),
     });
   } catch (e: any) {

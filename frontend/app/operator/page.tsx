@@ -921,33 +921,63 @@ export default function OperatorDashboardPage() {
                 </div>
               </div>
             ) : (
-              /* STATUS: SCAN QR / CONNECTING */
-              <div className="space-y-5">
-                {waStatus.qrCodeDataUrl ? (
+              /* STATUS: SCAN QR / PAIRING CODE */
+              <div className="space-y-4">
+                {/* Method Selector Tabs */}
+                <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
+                  <button
+                    type="button"
+                    onClick={() => handleStartWaConnection()}
+                    className="flex-1 py-2 text-xs font-bold rounded-lg bg-white text-slate-900 shadow-xs flex items-center justify-center gap-1.5"
+                  >
+                    📷 Scan QR Code
+                  </button>
+                </div>
+
+                {waStatus.pairingCode ? (
+                  <div className="p-5 bg-emerald-50 rounded-2xl border-2 border-emerald-400 text-center space-y-2">
+                    <span className="text-[11px] font-bold text-emerald-800 uppercase block">Kode Pairing 8 Digit WhatsApp Anda:</span>
+                    <span className="text-3xl font-mono font-extrabold tracking-widest text-emerald-950 block py-1 bg-white rounded-xl border border-emerald-300">
+                      {waStatus.pairingCode}
+                    </span>
+                    <p className="text-[11px] text-emerald-900 font-medium">
+                      Masukkan 8 karakter kode ini di WhatsApp HP Anda.
+                    </p>
+                  </div>
+                ) : waStatus.qrCodeDataUrl ? (
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center justify-center space-y-3">
                     <img
                       src={waStatus.qrCodeDataUrl}
                       alt="WhatsApp QR Code"
                       className="w-56 h-56 rounded-xl border border-slate-300 shadow-sm bg-white p-2"
                     />
-                    <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                      <RefreshCw className="w-3 h-3 animate-spin text-emerald-700" /> Kode QR diperbarui otomatis
-                    </span>
+                    <div className="flex items-center gap-3">
+                      <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                        <RefreshCw className="w-3 h-3 animate-spin text-emerald-700" /> Auto-sync QR
+                      </span>
+                      <button
+                        onClick={handleStartWaConnection}
+                        className="text-[11px] text-emerald-700 font-bold hover:underline"
+                      >
+                        Muat Ulang QR Baru
+                      </button>
+                    </div>
                   </div>
                 ) : (
                   <div className="p-8 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-3">
                     <RefreshCw className="w-8 h-8 text-emerald-700 animate-spin mx-auto" />
-                    <p className="text-xs text-slate-600 font-bold">Sedang menyiapkan Kode QR WhatsApp...</p>
+                    <p className="text-xs text-slate-600 font-bold">Sedang memuat Kode QR WhatsApp terbaru...</p>
                   </div>
                 )}
 
                 {/* 3 Step Instructions */}
                 <div className="bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200 text-xs space-y-1.5 text-slate-800">
-                  <p className="font-bold text-emerald-950">Cara Menghubungkan WhatsApp:</p>
-                  <ol className="list-decimal list-inside space-y-0.5 text-[11px] text-slate-700">
+                  <p className="font-bold text-emerald-950">Cara Scan dari HP:</p>
+                  <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-700">
                     <li>Buka aplikasi <strong>WhatsApp</strong> di HP Anda.</li>
-                    <li>Ketuk <strong>Menu (titik tiga)</strong> atau <strong>Pengaturan</strong> ➔ Pilih <strong>Perangkat Tertaut</strong>.</li>
-                    <li>Ketuk <strong>Tautkan Perangkat</strong>, lalu arahkan kamera HP ke Kode QR di atas.</li>
+                    <li>Ketuk <strong>Menu (titik tiga)</strong> di pojok kanan atas ➔ Pilih <strong>Perangkat Tertaut</strong>.</li>
+                    <li>Ketuk <strong>Tautkan Perangkat</strong>.</li>
+                    <li>Arahkan kamera ke <strong>Kode QR</strong> di atas <em>(pastikan scan saat kode masih segar/baru)</em>.</li>
                   </ol>
                 </div>
               </div>
