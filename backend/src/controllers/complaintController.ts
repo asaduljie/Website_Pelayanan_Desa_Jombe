@@ -97,7 +97,7 @@ export const getComplaints = async (req: AuthRequest, res: Response) => {
 export const updateComplaintStatus = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
-    const { status, adminResponse } = req.body;
+    const { status, adminResponse, assignedOfficer, officerPhone } = req.body;
 
     if (!req.user || req.user.role === 'MASYARAKAT') {
       return res.status(403).json({ status: 'error', message: 'Akses ditolak.' });
@@ -106,6 +106,8 @@ export const updateComplaintStatus = async (req: AuthRequest, res: Response) => 
     const updated = PersistentDatabase.updateComplaint(id, {
       status,
       adminResponse,
+      assignedOfficer,
+      officerPhone,
     });
 
     try {

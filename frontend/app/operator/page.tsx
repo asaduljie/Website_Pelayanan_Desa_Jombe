@@ -60,6 +60,8 @@ export default function OperatorDashboardPage() {
   const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
   const [complaintStatusUpdate, setComplaintStatusUpdate] = useState('PROCESSING');
   const [complaintAdminResponse, setComplaintAdminResponse] = useState('');
+  const [assignedOfficer, setAssignedOfficer] = useState('Kepala Dusun I (Krajan)');
+  const [officerPhone, setOfficerPhone] = useState('081234567890');
   const [complaintSaving, setComplaintSaving] = useState(false);
 
   const [showCreateNewsModal, setShowCreateNewsModal] = useState(false);
@@ -389,6 +391,24 @@ export default function OperatorDashboardPage() {
     setSelectedComplaint(c);
     setComplaintStatusUpdate(c.status || 'PROCESSING');
     setComplaintAdminResponse(c.adminResponse || '');
+    setAssignedOfficer(c.assignedOfficer || 'Kepala Dusun I (Krajan)');
+    setOfficerPhone(c.officerPhone || '081234567890');
+  };
+
+  const handleForwardToOfficerWhatsApp = () => {
+    if (!selectedComplaint) return;
+    const cleanPhone = officerPhone.replace(/[^0-9]/g, '').replace(/^0/, '62');
+    const msg =
+      `*DISPOSISI LAPORAN PENGADUAN WARGA DESA JOMBE*\n\n` +
+      `Kepada Yth. *${assignedOfficer}*\n` +
+      `No. Tiket: *${selectedComplaint.ticketNumber}*\n` +
+      `Kategori: *${selectedComplaint.category}*\n` +
+      `Pelapor: *${selectedComplaint.userName || 'Warga Desa'}* (Telp: ${selectedComplaint.userPhone || '-'})\n` +
+      `Lokasi: *${selectedComplaint.location}*\n\n` +
+      `*Deskripsi Laporan:*\n${selectedComplaint.description}\n\n` +
+      `*Instruksi Operator Desa:*\n${complaintAdminResponse || 'Mohon segera dilakukan pengecekan lapangan dan tindak lanjut perbaikan.'}\n\n` +
+      `_Sistem Pelayanan Digital Desa Jombe_`;
+    window.open(`https://wa.me/${cleanPhone}?text=${encodeURIComponent(msg)}`, '_blank');
   };
 
   const handleUpdateComplaintStatus = async (e: React.FormEvent) => {
@@ -399,9 +419,11 @@ export default function OperatorDashboardPage() {
       const res = await api.patch(`/operator/complaints/${selectedComplaint.id}`, {
         status: complaintStatusUpdate,
         adminResponse: complaintAdminResponse,
+        assignedOfficer,
+        officerPhone,
       });
       if (res.data.status === 'success') {
-        alert('Tanggapan pengaduan berhasil disimpan & dikirim ke warga!');
+        alert('Keputusan & Tanggapan pengaduan berhasil disimpan!');
         setSelectedComplaint(null);
         fetchComplaints();
       }
@@ -1145,26 +1167,74 @@ export default function OperatorDashboardPage() {
             {/* Operator Response & Status Form */}
             <form onSubmit={handleUpdateComplaintStatus} className="space-y-4 pt-4 border-t border-slate-100 text-xs">
               <div className="space-y-1">
-                <label className="font-bold text-slate-800">Ubah Status Penanganan</label>
+                <label className="font-bold text-slate-800">Keputusan & Status Pengaduan</label>
                 <select
                   value={complaintStatusUpdate}
                   onChange={(e) => setComplaintStatusUpdate(e.target.value)}
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-bold"
                 >
-                  <option value="SUBMITTED">Menunggu Tindakan (SUBMITTED)</option>
-                  <option value="PROCESSING">Sedang Ditindaklanjuti (PROCESSING)</option>
-                  <option value="RESOLVED">Selesai Ditangani (RESOLVED)</option>
-                  <option value="REJECTED">Ditolak / Tidak Valid (REJECTED)</option>
+                  <option value="SUBMITTED">⏳ Menunggu Pemeriksaan Operator (SUBMITTED)</option>
+                  <option value="PROCESSING">🚀 Diterima & Diteruskan ke Petugas Lapangan (PROCESSING)</option>
+                  <option value="RESOLVED">✅ Selesai Ditangani Petugas Lapangan (RESOLVED)</option>
+                  <option value="REJECTED">❌ Ditolak / Tidak Valid (REJECTED)</option>
                 </select>
               </div>
 
+              {/* Petugas Lapangan & Disposisi WhatsApp */}
+              <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-3">
+                <div className="flex justify-between items-center">
+                  <span className="font-bold text-emerald-950 flex items-center gap-1.5">
+                    <UserCheck className="w-4 h-4 text-emerald-800" /> Disposisi Petugas Lapangan Desa:
+                  </span>
+                  <span className="text-[10px] text-emerald-700 font-bold uppercase">Layanan Koordinasi Lapangan</span>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-700">Pilih Petugas / Unit Terkait:</label>
+                    <select
+                      value={assignedOfficer}
+                      onChange={(e) => setAssignedOfficer(e.target.value)}
+                      className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-xl text-slate-900 font-medium"
+                    >
+                      <option value="Kepala Dusun I (Krajan)">Kepala Dusun I (Krajan)</option>
+                      <option value="Kepala Dusun II (Jombe Barat)">Kepala Dusun II (Jombe Barat)</option>
+                      <option value="Kepala Dusun III (Jombe Timur)">Kepala Dusun III (Jombe Timur)</option>
+                      <option value="Seksi Kebersihan & Pengelolaan Sampah">Seksi Kebersihan & Pengelolaan Sampah</option>
+                      <option value="Seksi Ketertiban & Linmas Desa">Seksi Ketertiban & Linmas Desa</option>
+                      <option value="Seksi Pembangunan & Infrastruktur">Seksi Pembangunan & Infrastruktur</option>
+                      <option value="Bhabinkamtibmas / Babinsa Desa">Bhabinkamtibmas / Babinsa Desa</option>
+                    </select>
+                  </div>
+
+                  <div className="space-y-1">
+                    <label className="text-[11px] font-bold text-slate-700">Nomor WhatsApp Petugas:</label>
+                    <input
+                      type="text"
+                      value={officerPhone}
+                      onChange={(e) => setOfficerPhone(e.target.value)}
+                      placeholder="081234567890"
+                      className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-xl text-slate-900 font-mono font-medium"
+                    />
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={handleForwardToOfficerWhatsApp}
+                  className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs flex items-center justify-center gap-2 transition-colors"
+                >
+                  <MessageSquare className="w-4 h-4" /> Hubungi & Teruskan Laporan via WhatsApp Petugas
+                </button>
+              </div>
+
               <div className="space-y-1">
-                <label className="font-bold text-slate-800">Catatan Tanggapan Resmi Petugas</label>
+                <label className="font-bold text-slate-800">Catatan Tanggapan Resmi Operator untuk Warga</label>
                 <textarea
                   rows={3}
                   value={complaintAdminResponse}
                   onChange={(e) => setComplaintAdminResponse(e.target.value)}
-                  placeholder="Contoh: Laporan telah kami terima dan tim teknis desa sudah diterjunkan ke lokasi untuk perbaikan..."
+                  placeholder="Contoh: Laporan telah diterima oleh operator desa dan saat ini telah diteruskan kepada Kepala Dusun / Tim Terkait untuk penanganan langsung di lokasi."
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 leading-relaxed font-sans"
                 />
               </div>
@@ -1182,7 +1252,7 @@ export default function OperatorDashboardPage() {
                   disabled={complaintSaving}
                   className="px-6 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl shadow-md flex items-center gap-1.5 transition-all"
                 >
-                  <Send className="w-4 h-4" /> {complaintSaving ? 'Menyimpan...' : 'Simpan & Kirim Tanggapan'}
+                  <Send className="w-4 h-4" /> {complaintSaving ? 'Menyimpan...' : 'Simpan Keputusan & Tanggapan'}
                 </button>
               </div>
             </form>
