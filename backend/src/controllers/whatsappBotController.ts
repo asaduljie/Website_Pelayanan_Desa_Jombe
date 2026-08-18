@@ -101,6 +101,59 @@ export const sendNotificationToCitizenWhatsApp = (
   return notifMsg;
 };
 
+export const sendComplaintNotificationToCitizenWhatsApp = (
+  phone: string,
+  ticketNumber: string,
+  title: string,
+  status: 'SUBMITTED' | 'PROCESSING' | 'RESOLVED' | 'REJECTED',
+  adminResponse?: string
+) => {
+  const cleanPhone = String(phone).replace(/\D/g, '') || '6281299887766';
+  if (!chatHistories[cleanPhone]) {
+    chatHistories[cleanPhone] = [getInitialGreeting()];
+  }
+
+  let statusHeader = '';
+  let statusDetail = '';
+
+  if (status === 'SUBMITTED') {
+    statusHeader = '📢 *PENGADUAN WARGA BERHASIL DITERIMA*';
+    statusDetail =
+      `Laporan pengaduan Anda telah masuk ke sistem pelayanan Desa Jombe dan saat ini berada dalam antrean pemeriksaan oleh Operator Desa.`;
+  } else if (status === 'PROCESSING') {
+    statusHeader = '🚀 *UPDATE PENGADUAN: SEDANG DIKERJAKAN / DIPROSES*';
+    statusDetail =
+      `Laporan pengaduan Anda telah ditinjau dan *SEDANG DIKERJAKAN / DITINDAKLANJUTI* oleh Operator Desa Jombe.` +
+      (adminResponse ? `\n\n💬 *Catatan Operator Desa:*\n"${adminResponse}"` : '');
+  } else if (status === 'RESOLVED') {
+    statusHeader = '✅ *UPDATE PENGADUAN: SELESAI DITANGANI*';
+    statusDetail =
+      `Laporan pengaduan Anda telah *SELESAI DITANGANI* oleh Pemerintah Desa Jombe. Terima kasih atas partisipasi dan kepedulian Anda dalam memajukan lingkungan desa.` +
+      (adminResponse ? `\n\n💬 *Catatan Penyelesaian Operator:*\n"${adminResponse}"` : '');
+  } else if (status === 'REJECTED') {
+    statusHeader = '❌ *UPDATE PENGADUAN: DITOLAK / TIDAK VALID*';
+    statusDetail =
+      `Mohon maaf, laporan pengaduan Anda tidak dapat ditindaklanjuti.` +
+      (adminResponse ? `\n\n💬 *Alasan Penolakan:*\n"${adminResponse}"` : '');
+  }
+
+  const notifMsg = `${statusHeader}\n\n` +
+    `🎫 *No. Tiket Pengaduan:* ${ticketNumber}\n` +
+    `📌 *Judul Laporan:* ${title}\n\n` +
+    `${statusDetail}\n\n` +
+    `_Layanan Aspirasi & Pengaduan Digital Desa Jombe_`;
+
+  const currentTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  chatHistories[cleanPhone].push({
+    id: `msg-complaint-notif-${Date.now()}`,
+    sender: 'bot',
+    text: notifMsg,
+    timestamp: currentTime,
+  });
+
+  return notifMsg;
+};
+
 // In-memory Session State Machine for WhatsApp Chat Bot
 interface SessionState {
   phone: string;

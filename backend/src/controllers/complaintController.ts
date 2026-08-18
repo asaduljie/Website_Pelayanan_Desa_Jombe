@@ -2,6 +2,7 @@ import { Response } from 'express';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import { PersistentDatabase, ComplaintRecord } from '../utils/persistentDb';
+import { sendComplaintNotificationToCitizenWhatsApp } from './whatsappBotController';
 
 const generateComplaintTicket = (): string => {
   const year = new Date().getFullYear();
@@ -65,6 +66,14 @@ export const createComplaint = async (req: AuthRequest, res: Response) => {
       }).catch(() => null);
     } catch (e) {}
 
+    // Notifikasi WhatsApp saat pengaduan berhasil dibuat
+    sendComplaintNotificationToCitizenWhatsApp(
+      newRecord.userPhone,
+      newRecord.ticketNumber,
+      newRecord.title,
+      'SUBMITTED'
+    );
+
     return res.status(201).json({
       status: 'success',
       message: 'Pengaduan Anda telah dikirim dan akan ditindaklanjuti oleh perangkat desa.',
@@ -127,9 +136,20 @@ export const updateComplaintStatus = async (req: AuthRequest, res: Response) => 
       }).catch(() => null);
     } catch (e) {}
 
+    // Notifikasi WhatsApp saat status pengaduan diperbarui oleh operator (Sedang Dikerjakan / Selesai / Ditolak)
+    if (updated && updated.userPhone) {
+      sendComplaintNotificationToCitizenWhatsApp(
+        updated.userPhone,
+        updated.ticketNumber || 'PGD-2026-00001',
+        updated.title || 'Laporan Pengaduan',
+        status as any,
+        adminResponse
+      );
+    }
+
     return res.status(200).json({
       status: 'success',
-      message: 'Status pengaduan berhasil diperbarui.',
+      message: 'Status pengaduan berhasil diperbarui dan notifikasi WhatsApp telah dikirim ke warga.',
       data: updated,
     });
   } catch (error) {
