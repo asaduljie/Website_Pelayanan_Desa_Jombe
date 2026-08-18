@@ -51,6 +51,28 @@ const INITIAL_GREETING_MESSAGE: ChatBubble = {
   timestamp: '09:41',
 };
 
+// Helper: Cleanly parse WhatsApp markdown (*bold* and _italic_) into HTML without raw asterisks
+const renderFormattedText = (rawText: string) => {
+  if (!rawText) return null;
+  const lines = rawText.split('\n');
+  return lines.map((line, lIdx) => {
+    const parts = line.split(/(\*[^*]+\*|_[^_]+_)/g);
+    return (
+      <span key={lIdx} className="block min-h-[1.2em]">
+        {parts.map((part, pIdx) => {
+          if (part.startsWith('*') && part.endsWith('*') && part.length > 2) {
+            return <strong key={pIdx} className="font-bold text-slate-950">{part.slice(1, -1)}</strong>;
+          }
+          if (part.startsWith('_') && part.endsWith('_') && part.length > 2) {
+            return <span key={pIdx} className="text-slate-600 italic">{part.slice(1, -1)}</span>;
+          }
+          return <span key={pIdx}>{part}</span>;
+        })}
+      </span>
+    );
+  });
+};
+
 // Helper: Auto-compress images down to < 500KB
 const compressImage = async (file: File): Promise<Blob> => {
   if (file.type === 'application/pdf') return file;
@@ -472,7 +494,7 @@ export default function WhatsAppBotSimulatorPage() {
                       </div>
                     )}
 
-                    <div className="leading-relaxed">{msg.text}</div>
+                    <div className="leading-relaxed space-y-1">{renderFormattedText(msg.text)}</div>
 
                     {/* ATTACHED PDF CARD IF NOTIFICATION CONTAINS PDF */}
                     {msg.pdfUrl && (

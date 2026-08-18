@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
-import { Landmark, User, LogOut, Menu, X, Bell, LayoutDashboard, FileText, MessageSquare, HelpCircle } from 'lucide-react';
+import { Landmark, User, LogOut, Menu, X, Bell, LayoutDashboard, FileText, MessageSquare, HelpCircle, Newspaper, Info } from 'lucide-react';
 
 export default function Navbar() {
   const pathname = usePathname();
@@ -47,6 +47,7 @@ export default function Navbar() {
     >
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
+          {/* Brand Logo & Name */}
           <Link href="/" className="flex items-center gap-3 group">
             <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-900 to-emerald-700 text-white flex items-center justify-center shadow-xs group-hover:scale-105 transition-transform">
               <Landmark className="w-5 h-5 text-emerald-200" />
@@ -61,6 +62,7 @@ export default function Navbar() {
             </div>
           </Link>
 
+          {/* Desktop Navigation */}
           <nav className="hidden md:flex items-center gap-1">
             <Link
               href="/"
@@ -84,7 +86,15 @@ export default function Navbar() {
                 pathname === '/profil' ? 'text-emerald-900 bg-emerald-50' : 'text-slate-600 hover:text-emerald-800 hover:bg-slate-50'
               }`}
             >
-              Profil Wilayah
+              Profil Desa
+            </Link>
+            <Link
+              href="/berita"
+              className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors ${
+                pathname.startsWith('/berita') ? 'text-emerald-900 bg-emerald-50' : 'text-slate-600 hover:text-emerald-800 hover:bg-slate-50'
+              }`}
+            >
+              Berita & Informasi
             </Link>
             <Link
               href="/pengaduan"
@@ -103,6 +113,7 @@ export default function Navbar() {
             </Link>
           </nav>
 
+          {/* Desktop User Account Actions */}
           <div className="hidden md:flex items-center gap-3">
             {user ? (
               <div className="flex items-center gap-3">
@@ -156,16 +167,132 @@ export default function Navbar() {
             )}
           </div>
 
+          {/* Mobile Menu Hamburger Button */}
           <div className="md:hidden">
             <button
               onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              className="p-2 rounded-xl text-slate-700 hover:bg-slate-100"
+              className="p-2 rounded-xl text-slate-700 hover:bg-slate-100 transition-colors"
+              aria-label="Menu Navigasi"
             >
               {mobileMenuOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
             </button>
           </div>
         </div>
       </div>
+
+      {/* Mobile Drawer Menu */}
+      {mobileMenuOpen && (
+        <div className="md:hidden bg-white border-b border-slate-200 shadow-xl px-4 pt-3 pb-6 space-y-3 animate-in slide-in-from-top-2 duration-200">
+          <nav className="space-y-1 text-sm font-medium">
+            <Link
+              href="/"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3.5 py-2.5 rounded-xl ${
+                pathname === '/' ? 'text-emerald-900 bg-emerald-50 font-bold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Beranda
+            </Link>
+            <Link
+              href="/layanan"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3.5 py-2.5 rounded-xl ${
+                pathname.startsWith('/layanan') ? 'text-emerald-900 bg-emerald-50 font-bold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Layanan Surat
+            </Link>
+            <Link
+              href="/profil"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3.5 py-2.5 rounded-xl ${
+                pathname === '/profil' ? 'text-emerald-900 bg-emerald-50 font-bold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Profil Desa
+            </Link>
+            <Link
+              href="/berita"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3.5 py-2.5 rounded-xl ${
+                pathname.startsWith('/berita') ? 'text-emerald-900 bg-emerald-50 font-bold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Berita & Informasi
+            </Link>
+            <Link
+              href="/pengaduan"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3.5 py-2.5 rounded-xl ${
+                pathname === '/pengaduan' ? 'text-emerald-900 bg-emerald-50 font-bold' : 'text-slate-700 hover:bg-slate-50'
+              }`}
+            >
+              Pengaduan Warga
+            </Link>
+            <Link
+              href="/wa-bot"
+              onClick={() => setMobileMenuOpen(false)}
+              className={`block px-3.5 py-2.5 rounded-xl text-emerald-800 bg-emerald-50 font-bold border border-emerald-200`}
+            >
+              Layanan WhatsApp
+            </Link>
+          </nav>
+
+          <div className="pt-3 border-t border-slate-100">
+            {user ? (
+              <div className="space-y-2">
+                <div className="px-3.5 py-2 bg-slate-50 rounded-xl">
+                  <span className="text-xs font-bold text-slate-900 block">{user.name}</span>
+                  <span className="text-[10px] text-slate-500 uppercase">{user.role}</span>
+                </div>
+                {user.role === 'OPERATOR' || user.role === 'ADMIN' ? (
+                  <Link
+                    href="/operator"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block text-center py-2.5 px-4 bg-amber-500 text-amber-950 font-bold text-xs rounded-xl"
+                  >
+                    Panel Operator
+                  </Link>
+                ) : (
+                  <Link
+                    href="/dashboard"
+                    onClick={() => setMobileMenuOpen(false)}
+                    className="block text-center py-2.5 px-4 bg-emerald-800 text-white font-bold text-xs rounded-xl"
+                  >
+                    Permohonan Saya
+                  </Link>
+                )}
+                <button
+                  onClick={() => {
+                    setMobileMenuOpen(false);
+                    handleLogout();
+                  }}
+                  className="w-full text-center py-2 px-4 text-rose-700 text-xs font-bold hover:bg-rose-50 rounded-xl"
+                >
+                  Keluar Akun
+                </button>
+              </div>
+            ) : (
+              <div className="grid grid-cols-2 gap-2">
+                <Link
+                  href="/login"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-center py-2.5 text-xs font-bold text-emerald-900 bg-emerald-50 rounded-xl"
+                >
+                  Masuk
+                </Link>
+                <Link
+                  href="/register"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="text-center py-2.5 text-xs font-bold text-white bg-emerald-800 rounded-xl"
+                >
+                  Daftar
+                </Link>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </header>
   );
 }
