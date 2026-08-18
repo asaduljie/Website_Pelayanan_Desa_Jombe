@@ -33,6 +33,7 @@ import {
   Tag,
   MessageSquare,
   UserCheck,
+  Image as ImageIcon,
 } from 'lucide-react';
 import api from '@/lib/api';
 
