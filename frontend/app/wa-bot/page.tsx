@@ -597,6 +597,53 @@ export default function WhatsAppBotSimulatorPage() {
               </div>
             )}
 
+            {/* QUICK REPLY CHIPS (SURAT & PENGADUAN) */}
+            <div className="bg-[#f0f0f0] px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto border-t border-slate-200 shrink-0 text-[10px]">
+              <span className="text-slate-400 font-bold shrink-0">Opsi Cepat:</span>
+              <button
+                type="button"
+                onClick={() => handleSendDirectText('1')}
+                className="px-2.5 py-1 bg-white hover:bg-emerald-50 text-emerald-900 font-bold rounded-lg border border-slate-300 shrink-0 transition-colors shadow-2xs"
+              >
+                📄 1. Pengajuan Surat
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendDirectText('2')}
+                className="px-2.5 py-1 bg-white hover:bg-amber-50 text-amber-900 font-bold rounded-lg border border-amber-300 shrink-0 transition-colors shadow-2xs"
+              >
+                📢 2. Pengaduan Warga
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendDirectText('SKU')}
+                className="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-lg border border-slate-300 shrink-0 transition-colors"
+              >
+                SKU
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendDirectText('DOMISILI')}
+                className="px-2 py-1 bg-white hover:bg-slate-100 text-slate-700 font-bold rounded-lg border border-slate-300 shrink-0 transition-colors"
+              >
+                Domisili
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendDirectText('SETUJU')}
+                className="px-2.5 py-1 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-lg shrink-0 transition-colors"
+              >
+                ✓ SETUJU
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSendDirectText('MENU')}
+                className="px-2 py-1 bg-slate-200 hover:bg-slate-300 text-slate-700 font-bold rounded-lg shrink-0 transition-colors"
+              >
+                Menu Utama
+              </button>
+            </div>
+
             {/* WHATSAPP CHAT INPUT FOOTER WITH ATTACHMENT & CAMERA BUTTONS */}
             <form onSubmit={handleSendMessage} className="bg-[#f0f0f0] p-2.5 flex items-center gap-2 border-t border-slate-300 shrink-0 z-10">
               {/* Attachment Paperclip Button (📎) */}

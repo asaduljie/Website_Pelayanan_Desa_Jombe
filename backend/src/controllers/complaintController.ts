@@ -1,10 +1,11 @@
 import { Response } from 'express';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
+import { PersistentDatabase, ComplaintRecord } from '../utils/persistentDb';
 
-const generateComplaintTicket = async (): Promise<string> => {
+const generateComplaintTicket = (): string => {
   const year = new Date().getFullYear();
-  const count = await prisma.complaint.count();
+  const count = PersistentDatabase.loadComplaints().length;
   return `PGD-${year}-${String(count + 1).padStart(5, '0')}`;
 };
 
@@ -21,33 +22,52 @@ export const createComplaint = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ status: 'error', message: 'Judul, Kategori, dan Deskripsi pengaduan wajib diisi.' });
     }
 
-    const ticketNumber = await generateComplaintTicket();
+    const ticketNumber = generateComplaintTicket();
 
-    const newComplaint = await prisma.complaint.create({
-      data: {
-        ticketNumber,
-        userId: req.user.id,
-        title,
-        category,
-        description,
-        location: location || 'Desa Jombe',
-        photoUrl: photoFile ? photoFile.path : null,
-        status: 'SUBMITTED',
-        history: {
-          create: {
-            status: 'SUBMITTED',
-            actorName: req.user.name,
-            notes: 'Laporan pengaduan berhasil dikirim warga.',
+    const newRecord: ComplaintRecord = {
+      id: `complaint-${Date.now()}`,
+      ticketNumber,
+      userId: req.user.id,
+      userNik: req.user.nik || '3512345678900001',
+      userName: req.user.name || 'Warga Desa',
+      userPhone: req.user.phone || '081234567890',
+      title,
+      category,
+      description,
+      location: location || 'Desa Jombe',
+      photoUrl: photoFile ? photoFile.path : undefined,
+      status: 'SUBMITTED',
+      createdAt: new Date().toISOString(),
+    };
+
+    PersistentDatabase.addComplaint(newRecord);
+
+    try {
+      await prisma.complaint.create({
+        data: {
+          ticketNumber,
+          userId: req.user.id,
+          title,
+          category,
+          description,
+          location: location || 'Desa Jombe',
+          photoUrl: photoFile ? photoFile.path : null,
+          status: 'SUBMITTED',
+          history: {
+            create: {
+              status: 'SUBMITTED',
+              actorName: req.user.name,
+              notes: 'Laporan pengaduan berhasil dikirim warga.',
+            },
           },
         },
-      },
-      include: { history: true },
-    });
+      }).catch(() => null);
+    } catch (e) {}
 
     return res.status(201).json({
       status: 'success',
       message: 'Pengaduan Anda telah dikirim dan akan ditindaklanjuti oleh perangkat desa.',
-      data: newComplaint,
+      data: newRecord,
     });
   } catch (error) {
     return res.status(500).json({ status: 'error', message: 'Gagal mengirim pengaduan.' });
@@ -60,21 +80,14 @@ export const getComplaints = async (req: AuthRequest, res: Response) => {
       return res.status(401).json({ status: 'error', message: 'Autentikasi diperlukan.' });
     }
 
-    const whereCondition: any = {};
+    const all = PersistentDatabase.loadComplaints();
+    let result = all;
+
     if (req.user.role === 'MASYARAKAT') {
-      whereCondition.userId = req.user.id;
+      result = all.filter((c) => c.userId === req.user?.id || c.userNik === req.user?.nik);
     }
 
-    const complaints = await prisma.complaint.findMany({
-      where: whereCondition,
-      include: {
-        user: { select: { name: true, phone: true } },
-        history: { orderBy: { createdAt: 'asc' } },
-      },
-      orderBy: { createdAt: 'desc' },
-    });
-
-    return res.status(200).json({ status: 'success', data: complaints });
+    return res.status(200).json({ status: 'success', data: result });
   } catch (error) {
     return res.status(500).json({ status: 'error', message: 'Gagal mengambil daftar pengaduan.' });
   }
@@ -89,21 +102,27 @@ export const updateComplaintStatus = async (req: AuthRequest, res: Response) => 
       return res.status(403).json({ status: 'error', message: 'Akses ditolak.' });
     }
 
-    const updated = await prisma.complaint.update({
-      where: { id: id },
-      data: {
-        status: status,
-        adminResponse: adminResponse,
-        history: {
-          create: {
-            status: status,
-            actorName: `Operator (${req.user.name})`,
-            notes: adminResponse || `Status pengaduan diubah menjadi ${status}`,
+    const updated = PersistentDatabase.updateComplaint(id, {
+      status,
+      adminResponse,
+    });
+
+    try {
+      await prisma.complaint.update({
+        where: { id: id },
+        data: {
+          status: status,
+          adminResponse: adminResponse,
+          history: {
+            create: {
+              status: status,
+              actorName: `Operator (${req.user.name})`,
+              notes: adminResponse || `Status pengaduan diubah menjadi ${status}`,
+            },
           },
         },
-      },
-      include: { history: true },
-    });
+      }).catch(() => null);
+    } catch (e) {}
 
     return res.status(200).json({
       status: 'success',

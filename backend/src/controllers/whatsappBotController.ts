@@ -5,6 +5,7 @@ import fs from 'fs';
 import path from 'path';
 import bcrypt from 'bcrypt';
 import { baileysEngine } from '../services/baileysEngine';
+import { PersistentDatabase, ComplaintRecord } from '../utils/persistentDb';
 
 export interface WaUploadedPhoto {
   title: string;
@@ -45,7 +46,7 @@ export interface ChatMessage {
 const getInitialGreeting = (): ChatMessage => ({
   id: 'msg-init',
   sender: 'bot',
-  text: '*LAYANAN WHATSAPP RESMI DESA JOMBE*\n\nSilakan ketik kode surat yang ingin Anda ajukan:\n- Ketik *SKU* (Surat Keterangan Usaha)\n- Ketik *DOMISILI* (Surat Keterangan Domisili)\n- Ketik *SKTM* (Surat Keterangan Tidak Mampu)\n\n_Ketik salah satu kode layanan di atas:_',
+  text: '*PUSAT PELAYANAN WHATSAPP RESMI DESA JOMBE*\n\nSelamat datang di Layanan Terpadu Desa Jombe.\nSilakan pilih menu layanan yang Anda butuhkan:\n\n1️⃣ *LAYANAN PENGAJUAN SURAT ONLINE*\n- Ketik *1* atau *SURAT* (atau langsung ketik *SKU*, *DOMISILI*, *SKTM*)\n\n2️⃣ *LAYANAN PENGADUAN & ASPIRASI WARGA*\n- Ketik *2* atau *PENGADUAN* (atau *LAPOR*)\n\n_Silakan ketik nomor atau nama menu pilihan Anda:_',
   timestamp: '09:41',
 });
 
@@ -58,8 +59,6 @@ export const SERVICE_PHOTO_REQUIREMENTS: Record<string, string[]> = {
   'surat-keterangan-kematian': ['Foto Kartu Keluarga (KK)', 'Foto e-KTP Jenazah', 'Surat Kematian RS / RT'],
 };
 
-import { PersistentDatabase } from '../utils/persistentDb';
-
 // Global In-Memory Shared Store for WhatsApp Applications (Synced with Persistent Database)
 export const waApplicationsStore: WaApplicationRecord[] = PersistentDatabase.loadApplications();
 
@@ -71,13 +70,32 @@ export const chatHistories: Record<string, ChatMessage[]> = {
 // In-memory Session State Machine for WhatsApp Chat Bot
 interface SessionState {
   phone: string;
-  step: 'WELCOME' | 'ASK_SERVICE' | 'ASK_NIK' | 'ASK_NAME' | 'ASK_DETAIL' | 'ASK_PHOTO' | 'CONFIRMATION';
+  mode?: 'SURAT' | 'PENGADUAN';
+  step:
+    | 'WELCOME'
+    | 'ASK_SERVICE'
+    | 'ASK_NIK'
+    | 'ASK_NAME'
+    | 'ASK_DETAIL'
+    | 'ASK_PHOTO'
+    | 'CONFIRMATION'
+    | 'ASK_COMPLAINT_NIK'
+    | 'ASK_COMPLAINT_NAME'
+    | 'ASK_COMPLAINT_CATEGORY'
+    | 'ASK_COMPLAINT_TITLE'
+    | 'ASK_COMPLAINT_DESC'
+    | 'ASK_COMPLAINT_PHOTO'
+    | 'CONFIRM_COMPLAINT';
   serviceSlug?: string;
   serviceName?: string;
   nik?: string;
   name?: string;
   detailValue?: string;
   photos: WaUploadedPhoto[];
+  complaintCategory?: string;
+  complaintTitle?: string;
+  complaintDesc?: string;
+  complaintLocation?: string;
 }
 
 const chatSessions: Record<string, SessionState> = {};
@@ -100,69 +118,28 @@ export const startBaileysConnection = async (req: Request, res: Response) => {
     baileysEngine.startEngine(phoneNumber ? String(phoneNumber) : undefined);
     return res.status(200).json({
       status: 'success',
-      message: 'Mesin WhatsApp Baileys diaktifkan. Silakan scan QR code atau masukkan kode pairing.',
+      message: 'Inisialisasi sesi WhatsApp Engine berhasil dimulai.',
       data: baileysEngine.getStatus(),
     });
   } catch (e: any) {
-    return res.status(500).json({ status: 'error', message: 'Gagal mengaktifkan Baileys: ' + e.message });
+    return res.status(500).json({ status: 'error', message: e.message });
   }
 };
 
-export const disconnectBaileysSession = async (req: Request, res: Response) => {
+export const disconnectBaileys = async (req: Request, res: Response) => {
   try {
     await baileysEngine.disconnect();
     return res.status(200).json({
       status: 'success',
-      message: 'Sesi WhatsApp berhasil diputuskan (Logout).',
+      message: 'Sesi WhatsApp berhasil diputuskan.',
+      data: baileysEngine.getStatus(),
     });
   } catch (e: any) {
-    return res.status(500).json({ status: 'error', message: 'Gagal logout WhatsApp: ' + e.message });
+    return res.status(500).json({ status: 'error', message: e.message });
   }
 };
 
-export const sendNotificationToCitizenWhatsApp = async (
-  phone: string,
-  applicationNumber: string,
-  serviceName: string,
-  letterNumber: string,
-  pdfUrl: string
-) => {
-  const targetPhone = phone || '6281299887766';
-  if (!chatHistories[targetPhone]) {
-    chatHistories[targetPhone] = [getInitialGreeting()];
-  }
-
-  const notificationText =
-    `*PEMBERITAHUAN PENGAJUAN SURAT RESMI DESA JOMBE*\n\n` +
-    `Pengajuan surat Anda dengan Nomor Registrasi *${applicationNumber}* telah *DITERIMA DAN DISETUJUI* oleh Operator Kantor Desa Jombe.\n\n` +
-    `- Jenis Surat: *${serviceName}*\n` +
-    `- Nomor Surat Resmi: *${letterNumber}*\n` +
-    `- Status: *SELESAI*\n\n` +
-    `Dokumen Surat PDF resmi Anda telah selesai diterbitkan dan dapat langsung diunduh melalui tautan di bawah ini:\n${pdfUrl}`;
-
-  chatHistories[targetPhone].push({
-    id: `notif-${Date.now()}`,
-    sender: 'bot',
-    text: notificationText,
-    timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-    pdfUrl: pdfUrl,
-    letterNumber: letterNumber,
-  });
-
-  // If live Baileys WhatsApp is connected, send real text to citizen's WhatsApp directly!
-  try {
-    const liveStatus = baileysEngine.getStatus();
-    if (liveStatus.status === 'CONNECTED') {
-      const cleanPhone = targetPhone.replace(/\D/g, '');
-      const formattedJid = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
-      await baileysEngine.sendMessage(formattedJid, notificationText);
-    }
-  } catch (err) {
-    console.error('Failed to dispatch live WhatsApp message via Baileys:', err);
-  }
-};
-
-// Internal Processor logic for both Webhook/Simulator and Real Baileys Engine
+// Export internal processing function
 export const handleIncomingWhatsAppMessageInternal = async (
   senderPhone: string,
   userText: string,
@@ -173,7 +150,7 @@ export const handleIncomingWhatsAppMessageInternal = async (
   const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
   // RESET or CANCEL
-  if (upperText === 'RESET' || upperText === 'BATAL') {
+  if (upperText === 'RESET' || upperText === 'BATAL' || upperText === 'MENU') {
     delete chatSessions[senderPhone];
     chatHistories[senderPhone] = [getInitialGreeting()];
     return {
@@ -207,14 +184,61 @@ export const handleIncomingWhatsAppMessageInternal = async (
   let botReply = '';
   let isCompleted = false;
 
-  // STEP 1: WELCOME
+  // ==========================================
+  // STEP 1: WELCOME & MENU SELECTION
+  // ==========================================
   if (session.step === 'WELCOME') {
     session.photos = [];
-    if (upperText.includes('SKU') || upperText.includes('USAHA')) {
+
+    // Opsi 2: Pengaduan & Aspirasi Warga
+    if (
+      upperText === '2' ||
+      upperText.includes('PENGADUAN') ||
+      upperText.includes('LAPOR') ||
+      upperText.includes('ASPIRASI') ||
+      upperText.includes('KELUHAN')
+    ) {
+      session.mode = 'PENGADUAN';
+      session.step = 'ASK_COMPLAINT_NIK';
+      botReply = `*LAYANAN PENGADUAN & ASPIRASI WARGA DESA JOMBE*\n\nLaporan Anda akan langsung diteruskan ke Kepala Desa & Petugas Pelayanan.\n\nLangkah 1 dari 5:\nSilakan masukkan 16 Digit *NIK (Nomor Induk Kependudukan)* Anda:`;
+    }
+    // Opsi 1 / Direct Service Codes: Surat Keterangan
+    else if (upperText.includes('SKU') || upperText.includes('USAHA')) {
+      session.mode = 'SURAT';
       session.serviceSlug = 'surat-keterangan-usaha';
       session.serviceName = 'Surat Keterangan Usaha (SKU)';
       session.step = 'ASK_NIK';
       botReply = `Anda mengajukan *Surat Keterangan Usaha (SKU)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK (Nomor Induk Kependudukan)* Anda:`;
+    } else if (upperText.includes('DOMISILI') || upperText.includes('TINGGAL')) {
+      session.mode = 'SURAT';
+      session.serviceSlug = 'surat-keterangan-domisili';
+      session.serviceName = 'Surat Keterangan Domisili';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Domisili*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+    } else if (upperText.includes('SKTM') || upperText.includes('BANTUAN')) {
+      session.mode = 'SURAT';
+      session.serviceSlug = 'surat-keterangan-tidak-mampu';
+      session.serviceName = 'Surat Keterangan Tidak Mampu (SKTM)';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Tidak Mampu (SKTM)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+    } else if (upperText === '1' || upperText.includes('SURAT') || upperText.includes('PENGAJUAN')) {
+      session.mode = 'SURAT';
+      session.step = 'ASK_SERVICE';
+      botReply = `*LAYANAN PENGAJUAN SURAT ONLINE*\n\nSilakan pilih surat yang ingin Anda ajukan:\n- Ketik *SKU* (Surat Keterangan Usaha)\n- Ketik *DOMISILI* (Surat Keterangan Domisili)\n- Ketik *SKTM* (Surat Keterangan Tidak Mampu)\n\n_Ketik salah satu kode surat di atas:_`;
+    } else {
+      botReply = `*PUSAT PELAYANAN WHATSAPP RESMI DESA JOMBE*\n\nSilakan pilih menu layanan:\n1️⃣ Ketik *1* untuk *Pengajuan Surat Online* (SKU, Domisili, SKTM)\n2️⃣ Ketik *2* untuk *Layanan Pengaduan & Aspirasi Warga*\n\n_Ketik nomor atau kode di atas:_`;
+    }
+  }
+
+  // ==========================================
+  // FLOW A: PENGAJUAN SURAT ONLINE
+  // ==========================================
+  else if (session.step === 'ASK_SERVICE') {
+    if (upperText.includes('SKU') || upperText.includes('USAHA')) {
+      session.serviceSlug = 'surat-keterangan-usaha';
+      session.serviceName = 'Surat Keterangan Usaha (SKU)';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Usaha (SKU)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
     } else if (upperText.includes('DOMISILI') || upperText.includes('TINGGAL')) {
       session.serviceSlug = 'surat-keterangan-domisili';
       session.serviceName = 'Surat Keterangan Domisili';
@@ -226,11 +250,9 @@ export const handleIncomingWhatsAppMessageInternal = async (
       session.step = 'ASK_NIK';
       botReply = `Anda mengajukan *Surat Keterangan Tidak Mampu (SKTM)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
     } else {
-      botReply = `*LAYANAN WHATSAPP RESMI DESA JOMBE*\n\nSilakan pilih jenis permohonan surat:\n- Ketik *SKU* (Surat Keterangan Usaha)\n- Ketik *DOMISILI* (Surat Domisili)\n- Ketik *SKTM* (Surat Tidak Mampu)\n\n_Ketik salah satu kode layanan di atas:_`;
+      botReply = `Ketik *SKU*, *DOMISILI*, atau *SKTM* untuk melanjutkan permohonan surat.`;
     }
-  } 
-  // STEP 2: NIK
-  else if (session.step === 'ASK_NIK') {
+  } else if (session.step === 'ASK_NIK') {
     if (userText.length < 10) {
       botReply = `Nomor NIK kurang valid. Silakan masukkan 16 digit NIK Anda:`;
     } else {
@@ -238,9 +260,7 @@ export const handleIncomingWhatsAppMessageInternal = async (
       session.step = 'ASK_NAME';
       botReply = `Langkah 2 dari 4:\nMasukkan *Nama Lengkap* Anda sesuai KTP:`;
     }
-  } 
-  // STEP 3: NAME
-  else if (session.step === 'ASK_NAME') {
+  } else if (session.step === 'ASK_NAME') {
     session.name = userText;
     session.step = 'ASK_DETAIL';
     if (session.serviceSlug === 'surat-keterangan-usaha') {
@@ -248,22 +268,19 @@ export const handleIncomingWhatsAppMessageInternal = async (
     } else {
       botReply = `Langkah 3 dari 4:\nMasukkan *Alamat Lengkap & Keperluan Surat* Anda:`;
     }
-  } 
-  // STEP 4: DETAIL
-  else if (session.step === 'ASK_DETAIL') {
+  } else if (session.step === 'ASK_DETAIL') {
     session.detailValue = userText;
     session.step = 'ASK_PHOTO';
     session.photos = [];
 
     const requiredList = SERVICE_PHOTO_REQUIREMENTS[session.serviceSlug || 'surat-keterangan-usaha'] || ['Foto e-KTP', 'Foto Usaha / KK'];
 
-    botReply = `Langkah 4 dari 4 (Wajib Lampirkan Dokumen Persyaratan):\n\n` +
+    botReply =
+      `Langkah 4 dari 4 (Wajib Lampirkan Dokumen Persyaratan):\n\n` +
       `Untuk pengajuan *${session.serviceName}*, Anda wajib melampirkan *${requiredList.length} Foto Dokumen*:\n` +
       requiredList.map((r, i) => `${i + 1}. ${r}`).join('\n') +
       `\n\n📸 *Kirim Foto Ke-1:* Silakan kirim *${requiredList[0]}* terlebih dahulu menggunakan kamera / lampiran foto:`;
-  } 
-  // STEP 5: ASK_PHOTO
-  else if (session.step === 'ASK_PHOTO') {
+  } else if (session.step === 'ASK_PHOTO') {
     const requiredList = SERVICE_PHOTO_REQUIREMENTS[session.serviceSlug || 'surat-keterangan-usaha'] || ['Foto e-KTP', 'Foto Usaha / KK'];
     const currentPhotoIndex = session.photos.length;
     const expectedTitle = requiredList[currentPhotoIndex] || `Foto Dokumen ${currentPhotoIndex + 1}`;
@@ -277,13 +294,15 @@ export const handleIncomingWhatsAppMessageInternal = async (
 
     if (session.photos.length < requiredList.length) {
       const nextRequired = requiredList[session.photos.length];
-      botReply = `*${expectedTitle} Berhasil Diterima!* ✓\n\n` +
+      botReply =
+        `*${expectedTitle} Berhasil Diterima!* ✓\n\n` +
         `Satu dokumen lagi diperlukan:\n` +
         `📸 *Silakan kirim Foto Ke-${session.photos.length + 1}: ${nextRequired}*:`;
     } else {
       session.step = 'CONFIRMATION';
 
-      botReply = `*Semua Foto Persyaratan Telah Lengkap Diterima!* ✓\n\n` +
+      botReply =
+        `*Semua Foto Persyaratan Telah Lengkap Diterima!* ✓\n\n` +
         `*RINGKASAN PERMOHONAN SURAT DESA JOMBE*\n\n` +
         `- Jenis Layanan: *${session.serviceName}*\n` +
         `- NIK Pemohon: *${session.nik}*\n` +
@@ -294,12 +313,10 @@ export const handleIncomingWhatsAppMessageInternal = async (
         `👉 Balas *SETUJU* untuk mengirim permohonan ke Operator Desa.\n` +
         `👉 Balas *BATAL* untuk mengulang.`;
     }
-  } 
-  // STEP 6: CONFIRMATION
-  else if (session.step === 'CONFIRMATION') {
+  } else if (session.step === 'CONFIRMATION') {
     if (upperText === 'SETUJU' || upperText === 'YA' || upperText === 'OK') {
       const targetNik = session.nik || '3512345678900001';
-      const targetName = session.name || 'Siti Rahmawati (Via WA Bot)';
+      const targetName = session.name || 'Warga Desa (Via WA Bot)';
       const targetSlug = session.serviceSlug || 'surat-keterangan-usaha';
       const targetServiceName = session.serviceName || 'Surat Keterangan Usaha (SKU)';
 
@@ -307,10 +324,13 @@ export const handleIncomingWhatsAppMessageInternal = async (
       const appNumber = `JMB-${new Date().getFullYear()}-${String(appCount + 1).padStart(5, '0')}`;
       const letterNumber = `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${new Date().getFullYear()}`;
 
-      const submittedPhotos = session.photos && session.photos.length > 0 ? session.photos : [
-        { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
-        { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
-      ];
+      const submittedPhotos =
+        session.photos && session.photos.length > 0
+          ? session.photos
+          : [
+              { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
+              { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
+            ];
 
       const newWaApp: WaApplicationRecord = {
         id: `wa-app-${Date.now()}`,
@@ -337,52 +357,207 @@ export const handleIncomingWhatsAppMessageInternal = async (
         let citizen = await prisma.user.findUnique({ where: { nik: targetNik } }).catch(() => null);
         if (!citizen) {
           const hashedPass = await bcrypt.hash('123456', 10);
-          citizen = await prisma.user.create({
-            data: {
-              nik: targetNik,
-              name: targetName,
-              phone: senderPhone,
-              password: hashedPass,
-              address: 'Desa Jombe',
-              role: 'MASYARAKAT',
-            },
-          }).catch(() => null);
+          citizen = await prisma.user
+            .create({
+              data: {
+                nik: targetNik,
+                name: targetName,
+                phone: senderPhone,
+                password: hashedPass,
+                address: 'Desa Jombe',
+                role: 'MASYARAKAT',
+              },
+            })
+            .catch(() => null);
         }
 
         let service = await prisma.service.findUnique({ where: { slug: targetSlug } }).catch(() => null);
         if (!service) service = await prisma.service.findFirst().catch(() => null);
 
         if (service && citizen) {
-          await prisma.application.create({
-            data: {
-              applicationNumber: appNumber,
-              userId: citizen.id,
-              serviceId: service.id,
-              status: 'PENDING',
-              history: {
-                create: {
-                  status: 'PENDING',
-                  actorName: 'Layanan WhatsApp Otomatis',
-                  notes: `Permohonan masuk via WhatsApp lengkap dengan ${submittedPhotos.length} foto lampiran. Detail: ${session.detailValue}`,
+          await prisma.application
+            .create({
+              data: {
+                applicationNumber: appNumber,
+                userId: citizen.id,
+                serviceId: service.id,
+                status: 'PENDING',
+                history: {
+                  create: {
+                    status: 'PENDING',
+                    actorName: 'Layanan WhatsApp Otomatis',
+                    notes: `Permohonan masuk via WhatsApp lengkap dengan ${submittedPhotos.length} foto lampiran. Detail: ${session.detailValue}`,
+                  },
                 },
               },
-            },
-          }).catch(() => null);
+            })
+            .catch(() => null);
         }
       } catch (dbErr) {}
 
       delete chatSessions[senderPhone];
       isCompleted = true;
 
-      botReply = `*PERMOHONAN BERHASIL DITERIMA SISTEM DESA*\n\n` +
+      botReply =
+        `*PERMOHONAN BERHASIL DITERIMA SISTEM DESA*\n\n` +
         `- Nomor Registrasi: *${appNumber}*\n` +
         `- Jenis Dokumen: ${targetServiceName}\n` +
         `- Lampiran: *${submittedPhotos.length} Dokumen Foto Sah*\n` +
         `- Status: *Menunggu Persetujuan Operator Desa*\n\n` +
-        `Draf surat permohonan & seluruh foto berkas Anda telah muncul di layar komputer Operator Kantor Desa Jombe.\n\n` +
+        `Draf surat permohonan & seluruh foto berkas Anda telah muncul di panel Operator Kantor Desa Jombe.\n\n` +
         `Begitu Operator memeriksa dan menyetujui, surat balasan PDF resmi akan langsung dikirimkan kembali ke WhatsApp ini.`;
     } else {
       botReply = `Ketik *SETUJU* jika Anda ingin memproses surat di atas, atau ketik *BATAL* untuk mengulang.`;
+    }
+  }
+
+  // ==========================================
+  // FLOW B: LAYANAN PENGADUAN & ASPIRASI WARGA
+  // ==========================================
+  else if (session.step === 'ASK_COMPLAINT_NIK') {
+    if (userText.length < 10) {
+      botReply = `Nomor NIK kurang valid. Silakan masukkan 16 digit NIK Anda:`;
+    } else {
+      session.nik = userText;
+      session.step = 'ASK_COMPLAINT_NAME';
+      botReply = `Langkah 2 dari 5:\nMasukkan *Nama Lengkap* Anda sebagai pelapor:`;
+    }
+  } else if (session.step === 'ASK_COMPLAINT_NAME') {
+    session.name = userText;
+    session.step = 'ASK_COMPLAINT_CATEGORY';
+    botReply =
+      `Langkah 3 dari 5:\n` +
+      `Pilih *Kategori Pengaduan* Anda:\n` +
+      `- Ketik *1* untuk Fasilitas Publik & Jalan Rusak\n` +
+      `- Ketik *2* untuk Pelayanan Kantor Desa\n` +
+      `- Ketik *3* untuk Kebersihan, Sampah & Saluran Air\n` +
+      `- Ketik *4* untuk Keamanan & Ketertiban Lingkungan\n` +
+      `- Ketik *5* untuk Bantuan Sosial & Lainnya\n\n` +
+      `_Ketik angka 1-5 atau tulis langsung kategorinya:_`;
+  } else if (session.step === 'ASK_COMPLAINT_CATEGORY') {
+    let cat = userText;
+    if (userText === '1' || upperText.includes('FASILITAS') || upperText.includes('JALAN')) cat = 'Fasilitas Publik & Jalan';
+    else if (userText === '2' || upperText.includes('PELAYANAN')) cat = 'Pelayanan Kantor Desa';
+    else if (userText === '3' || upperText.includes('SAMPAH') || upperText.includes('AIR')) cat = 'Kebersihan & Lingkungan';
+    else if (userText === '4' || upperText.includes('KEAMANAN')) cat = 'Keamanan & Ketertiban';
+    else if (userText === '5' || upperText.includes('SOSIAL')) cat = 'Bantuan Sosial & Kemasyarakatan';
+
+    session.complaintCategory = cat;
+    session.step = 'ASK_COMPLAINT_TITLE';
+    botReply = `Langkah 4 dari 5:\nMasukkan *Judul & Lokasi Kejadian* Pengaduan:\n_(Contoh: Lampu Penerangan Jalan Mati di Dusun Krajan RT 03)_`;
+  } else if (session.step === 'ASK_COMPLAINT_TITLE') {
+    session.complaintTitle = userText;
+    session.complaintLocation = userText;
+    session.step = 'ASK_COMPLAINT_DESC';
+    botReply = `Langkah 5 dari 5:\nJelaskan *Deskripsi / Kronologi Lengkap* pengaduan atau aspirasi Anda:`;
+  } else if (session.step === 'ASK_COMPLAINT_DESC') {
+    session.complaintDesc = userText;
+    session.step = 'ASK_COMPLAINT_PHOTO';
+    botReply =
+      `📸 *Lampiran Bukti Foto (Opsional):*\n\n` +
+      `Silakan kirim foto kondisi lapangan/lokasi kejadian menggunakan kamera atau lampiran WhatsApp.\n\n` +
+      `_Atau jika tidak ada foto, ketik *LEWATI* atau *LANJUT*:_`;
+  } else if (session.step === 'ASK_COMPLAINT_PHOTO') {
+    if (imageUrl) {
+      session.photos = [
+        {
+          title: 'Foto Bukti Pengaduan',
+          type: 'BUKTI',
+          url: imageUrl,
+          caption: imageCaption || userText,
+        },
+      ];
+    }
+
+    session.step = 'CONFIRM_COMPLAINT';
+    botReply =
+      `*RINGKASAN LAPORAN PENGADUAN WARGA*\n\n` +
+      `- Kategori: *${session.complaintCategory}*\n` +
+      `- Pelapor: *${session.name}* (NIK: *${session.nik}*)\n` +
+      `- Judul & Lokasi: *${session.complaintTitle}*\n` +
+      `- Deskripsi Masalah: *${session.complaintDesc}*\n` +
+      `- Bukti Foto: *${session.photos.length > 0 ? '1 Foto Terlampir ✓' : 'Tanpa Foto'}*\n\n` +
+      `*Konfirmasi Pengiriman:*\n` +
+      `👉 Balas *SETUJU* untuk mengirimkan pengaduan ini ke Operator & Kepala Desa Jombe.\n` +
+      `👉 Balas *BATAL* untuk membatalkan.`;
+  } else if (session.step === 'CONFIRM_COMPLAINT') {
+    if (upperText === 'SETUJU' || upperText === 'YA' || upperText === 'OK') {
+      const targetNik = session.nik || '3512345678900001';
+      const targetName = session.name || 'Warga Desa (Via WA Bot)';
+      const complaintCount = PersistentDatabase.loadComplaints().length;
+      const ticketNumber = `PGD-${new Date().getFullYear()}-${String(complaintCount + 1).padStart(5, '0')}`;
+
+      const newComplaint: ComplaintRecord = {
+        id: `complaint-${Date.now()}`,
+        ticketNumber,
+        userNik: targetNik,
+        userName: targetName,
+        userPhone: senderPhone,
+        title: session.complaintTitle || 'Pengaduan Warga via WhatsApp',
+        category: session.complaintCategory || 'Fasilitas Publik & Jalan',
+        description: session.complaintDesc || 'Laporan kendala warga desa.',
+        location: session.complaintLocation || 'Desa Jombe',
+        photoUrl: session.photos[0]?.url,
+        status: 'SUBMITTED',
+        createdAt: new Date().toISOString(),
+      };
+
+      PersistentDatabase.addComplaint(newComplaint);
+
+      try {
+        let citizen = await prisma.user.findUnique({ where: { nik: targetNik } }).catch(() => null);
+        if (!citizen) {
+          const hashedPass = await bcrypt.hash('123456', 10);
+          citizen = await prisma.user
+            .create({
+              data: {
+                nik: targetNik,
+                name: targetName,
+                phone: senderPhone,
+                password: hashedPass,
+                address: 'Desa Jombe',
+                role: 'MASYARAKAT',
+              },
+            })
+            .catch(() => null);
+        }
+
+        if (citizen) {
+          await prisma.complaint
+            .create({
+              data: {
+                ticketNumber,
+                userId: citizen.id,
+                title: newComplaint.title,
+                category: newComplaint.category,
+                description: newComplaint.description,
+                location: newComplaint.location,
+                status: 'SUBMITTED',
+                history: {
+                  create: {
+                    status: 'SUBMITTED',
+                    actorName: `${targetName} (Via WhatsApp Bot)`,
+                    notes: `Pengaduan masuk melalui bot WhatsApp resmi Desa Jombe.`,
+                  },
+                },
+              },
+            })
+            .catch(() => null);
+        }
+      } catch (dbErr) {}
+
+      delete chatSessions[senderPhone];
+      isCompleted = true;
+
+      botReply =
+        `*PENGADUAN BERHASIL TERCATAT & DITERUSKAN* ✓\n\n` +
+        `- Nomor Tiket: *${ticketNumber}*\n` +
+        `- Kategori: *${newComplaint.category}*\n` +
+        `- Status: *Menunggu Tindak Lanjut Perangkat Desa*\n\n` +
+        `Terima kasih atas laporan dan kepedulian Anda terhadap kemajuan Desa Jombe. Laporan Anda telah masuk ke dashboard Operator Kantor Desa dan akan segera ditindaklanjuti.\n\n` +
+        `Anda dapat melacak status penanganan pengaduan ini di website resmi Desa Jombe menggunakan nomor tiket *${ticketNumber}*.`;
+    } else {
+      botReply = `Ketik *SETUJU* jika Anda ingin mengirim pengaduan di atas, atau ketik *BATAL* untuk mengulang.`;
     }
   }
 
