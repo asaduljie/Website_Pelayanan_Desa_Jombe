@@ -260,8 +260,16 @@ export const getProfile = async (req: AuthRequest, res: Response) => {
         nik: req.user.nik,
         name: req.user.name,
         role: req.user.role,
+        address: 'Desa Jombe RT 02 RW 01',
+        phone: '085712345678',
       };
     }
+
+    return res.status(200).json({ status: 'success', data: user });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: 'Gagal mengambil data profil.' });
+  }
+};
 
 export const updateProfile = async (req: AuthRequest, res: Response) => {
   try {
