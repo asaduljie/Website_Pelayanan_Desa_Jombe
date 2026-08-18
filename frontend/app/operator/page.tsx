@@ -771,27 +771,41 @@ export default function OperatorDashboardPage() {
       )}
 
       {/* ======================================================== */}
-      {/* LIGHTBOX / ENLARGED DOCUMENT VIEWER MODAL                */}
+      {/* LIGHTBOX / ENLARGED DOCUMENT VIEWER MODAL (Z-[9999] LAYER PALING DEPAN) */}
       {/* ======================================================== */}
       {previewDoc && (
-        <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 space-y-4 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-sm font-extrabold text-slate-900 flex items-center gap-2">
-                <ImageIcon className="w-4 h-4 text-emerald-800" /> {previewDoc.title}
-              </h3>
+        <div className="fixed inset-0 z-[9999] bg-black/90 backdrop-blur-md flex items-center justify-center p-4 sm:p-6 animate-in fade-in duration-200">
+          <div className="bg-slate-900 rounded-3xl max-w-4xl w-full p-6 sm:p-8 space-y-4 shadow-2xl overflow-hidden border border-slate-700 animate-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center border-b border-slate-800 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-xl bg-emerald-950 border border-emerald-500/40 flex items-center justify-center">
+                  <ImageIcon className="w-4 h-4 text-emerald-400" />
+                </div>
+                <div>
+                  <h3 className="text-sm font-extrabold text-white">
+                    {previewDoc.title}
+                  </h3>
+                  <span className="text-[10px] text-emerald-400 font-bold uppercase tracking-wider block">
+                    Pratinjau Resolusi Penuh
+                  </span>
+                </div>
+              </div>
               <button
                 onClick={() => setPreviewDoc(null)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
+                className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-slate-800 transition-colors border border-slate-700"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
             {/* Document Content View */}
-            <div className="bg-slate-950 rounded-2xl p-6 flex flex-col items-center justify-center min-h-[300px] border border-slate-800">
+            <div className="bg-black/80 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center min-h-[350px] max-h-[72vh] border border-slate-800/80 overflow-y-auto">
               {previewDoc.url ? (
-                <img src={previewDoc.url} alt={previewDoc.title} className="max-h-[350px] max-w-full rounded-xl object-contain border border-slate-700" />
+                <img
+                  src={previewDoc.url}
+                  alt={previewDoc.title}
+                  className="max-h-[65vh] max-w-full rounded-xl object-contain shadow-2xl border border-slate-700"
+                />
               ) : previewDoc.type === 'KTP' ? (
                 <div className="w-full max-w-md bg-gradient-to-tr from-sky-800 via-sky-700 to-sky-900 text-white rounded-2xl p-6 shadow-2xl border-2 border-sky-400 space-y-4">
                   <div className="text-center border-b border-sky-400/40 pb-2">
@@ -854,9 +868,9 @@ export default function OperatorDashboardPage() {
             <div className="flex justify-end pt-2">
               <button
                 onClick={() => setPreviewDoc(null)}
-                className="px-5 py-2.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl"
+                className="px-6 py-2.5 bg-emerald-700 hover:bg-emerald-600 text-white text-xs font-extrabold rounded-xl transition-all shadow-md"
               >
-                Tutup Pratinjau Dokumen
+                Tutup Pratinjau
               </button>
             </div>
           </div>
