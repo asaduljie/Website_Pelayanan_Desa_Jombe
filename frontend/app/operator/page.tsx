@@ -1589,11 +1589,14 @@ export default function OperatorDashboardPage() {
 
             {/* Document Content View */}
             <div className="bg-black/80 rounded-2xl p-4 sm:p-6 flex flex-col items-center justify-center min-h-[350px] max-h-[72vh] border border-slate-800/80 overflow-y-auto">
-              {previewDoc.url ? (
+              {previewDoc.url && !previewDoc.url.startsWith('blob:') ? (
                 <img
                   src={previewDoc.url}
                   alt={previewDoc.title}
                   className="max-h-[65vh] max-w-full rounded-xl object-contain shadow-2xl border border-slate-700"
+                  onError={(e) => {
+                    (e.target as HTMLElement).style.display = 'none';
+                  }}
                 />
               ) : previewDoc.type === 'KTP' ? (
                 <div className="w-full max-w-md bg-gradient-to-tr from-sky-800 via-sky-700 to-sky-900 text-white rounded-2xl p-6 shadow-2xl border-2 border-sky-400 space-y-4">
@@ -1613,8 +1616,10 @@ export default function OperatorDashboardPage() {
                       <p><strong>Nama</strong> : {selectedApp?.user?.name || 'SITI RAHMAWATI'}</p>
                       <p><strong>Tempat/Tgl Lahir</strong> : JOMBANG, 15-08-1992</p>
                       <p><strong>Jenis Kelamin</strong> : PEREMPUAN</p>
-                      <p><strong>Alamat</strong> : DUSUN KRAJAN RT 02 RW 01</p>
-                      <p><strong>Agama / Pekerjaan</strong> : ISLAM / WIRASWASTA</p>
+                      <p><strong>Alamat</strong> : DUSUN KRAJAN RT 02 / RW 01</p>
+                      <p><strong>Agama</strong> : ISLAM</p>
+                      <p><strong>Status Perkawinan</strong> : KAWIN</p>
+                      <p><strong>Pekerjaan</strong> : WIRASWASTA</p>
                       <p><strong>Kewarganegaraan</strong> : WNI</p>
                     </div>
                   </div>
