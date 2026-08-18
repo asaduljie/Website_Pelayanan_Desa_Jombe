@@ -81,14 +81,6 @@ export default function Navbar() {
               Layanan Surat
             </Link>
             <Link
-              href="/profil"
-              className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors ${
-                pathname === '/profil' ? 'text-emerald-900 bg-emerald-50' : 'text-slate-600 hover:text-emerald-800 hover:bg-slate-50'
-              }`}
-            >
-              Profil Desa
-            </Link>
-            <Link
               href="/berita"
               className={`px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors ${
                 pathname.startsWith('/berita') ? 'text-emerald-900 bg-emerald-50' : 'text-slate-600 hover:text-emerald-800 hover:bg-slate-50'
@@ -116,7 +108,7 @@ export default function Navbar() {
           {/* Desktop User Account Actions */}
           <div className="hidden md:flex items-center gap-3">
             {user ? (
-              <div className="flex items-center gap-3">
+              <div className="flex items-center gap-2.5">
                 {user.role === 'OPERATOR' || user.role === 'ADMIN' ? (
                   <Link
                     href="/operator"
@@ -135,19 +127,31 @@ export default function Navbar() {
                   </Link>
                 )}
 
-                <div className="flex items-center gap-2 pl-2 border-l border-slate-200">
-                  <div className="text-right">
-                    <span className="text-xs font-bold text-slate-900 block leading-tight">{user.name}</span>
-                    <span className="text-[10px] text-slate-500 uppercase block font-semibold">{user.role}</span>
+                {/* Profil Pengguna Nav Link */}
+                <Link
+                  href="/profil"
+                  className={`px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 border ${
+                    pathname === '/profil'
+                      ? 'bg-emerald-800 text-white border-emerald-800 shadow-xs'
+                      : 'bg-slate-50 text-slate-800 hover:bg-slate-100 border-slate-200'
+                  }`}
+                >
+                  <div className="w-5 h-5 rounded-full bg-emerald-700 text-white flex items-center justify-center text-[10px] font-bold">
+                    <User className="w-3 h-3" />
                   </div>
-                  <button
-                    onClick={handleLogout}
-                    title="Keluar"
-                    className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
-                  >
-                    <LogOut className="w-4 h-4" />
-                  </button>
-                </div>
+                  <div className="text-left leading-none">
+                    <span className="block text-xs font-bold">{user.name?.split(' ')[0] || 'Profil'}</span>
+                    <span className="text-[9px] text-slate-400 font-medium uppercase">Profil Saya</span>
+                  </div>
+                </Link>
+
+                <button
+                  onClick={handleLogout}
+                  title="Keluar"
+                  className="p-2 rounded-xl text-slate-400 hover:text-rose-600 hover:bg-rose-50 transition-colors"
+                >
+                  <LogOut className="w-4 h-4" />
+                </button>
               </div>
             ) : (
               <div className="flex items-center gap-2">
@@ -203,15 +207,6 @@ export default function Navbar() {
               Layanan Surat
             </Link>
             <Link
-              href="/profil"
-              onClick={() => setMobileMenuOpen(false)}
-              className={`block px-3.5 py-2.5 rounded-xl ${
-                pathname === '/profil' ? 'text-emerald-900 bg-emerald-50 font-bold' : 'text-slate-700 hover:bg-slate-50'
-              }`}
-            >
-              Profil Desa
-            </Link>
-            <Link
               href="/berita"
               onClick={() => setMobileMenuOpen(false)}
               className={`block px-3.5 py-2.5 rounded-xl ${
@@ -241,10 +236,20 @@ export default function Navbar() {
           <div className="pt-3 border-t border-slate-100">
             {user ? (
               <div className="space-y-2">
-                <div className="px-3.5 py-2 bg-slate-50 rounded-xl">
-                  <span className="text-xs font-bold text-slate-900 block">{user.name}</span>
-                  <span className="text-[10px] text-slate-500 uppercase">{user.role}</span>
-                </div>
+                <Link
+                  href="/profil"
+                  onClick={() => setMobileMenuOpen(false)}
+                  className="flex items-center gap-3 p-3 bg-emerald-50 rounded-xl border border-emerald-200 text-emerald-950"
+                >
+                  <div className="w-8 h-8 rounded-full bg-emerald-800 text-white flex items-center justify-center font-bold text-xs">
+                    <User className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <span className="text-xs font-bold block">{user.name}</span>
+                    <span className="text-[10px] text-emerald-700 font-semibold uppercase block">Buka Profil Pengguna</span>
+                  </div>
+                </Link>
+
                 {user.role === 'OPERATOR' || user.role === 'ADMIN' ? (
                   <Link
                     href="/operator"

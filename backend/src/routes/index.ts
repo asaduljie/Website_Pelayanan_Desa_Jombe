@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { register, login, getProfile } from '../controllers/authController';
+import { register, login, getProfile, updateProfile } from '../controllers/authController';
 import { getServices, getServiceBySlug, createService } from '../controllers/serviceController';
 import { createApplication, getMyApplications, getApplicationDetail, trackApplication } from '../controllers/applicationController';
 import {
@@ -37,6 +37,7 @@ router.use(sanitizeInputMiddleware);
 router.post('/auth/register', authLimiter, register);
 router.post('/auth/login', authLimiter, login);
 router.get('/auth/profile', authenticateToken, getProfile);
+router.patch('/auth/profile', authenticateToken, updateProfile);
 
 // ==================== PUBLIC CONTENT ROUTES ====================
 router.get('/content/profile', getVillageProfile);
