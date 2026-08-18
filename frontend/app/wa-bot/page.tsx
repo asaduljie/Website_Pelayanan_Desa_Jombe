@@ -227,21 +227,26 @@ export default function WhatsAppBotSimulatorPage() {
     }
   };
 
-  // Handle Photo & Camera Upload from WA Chat Bar
+  // Handle Photo & Camera Upload from WA Chat Bar (Base64 Persistent)
   const handlePhotoSelect = async (e: React.ChangeEvent<HTMLInputElement>, label: string) => {
     const file = e.target.files?.[0];
     if (!file) return;
 
     const compressedBlob = await compressImage(file);
-    const previewUrl = URL.createObjectURL(compressedBlob);
     const sizeKb = Math.round(compressedBlob.size / 1024);
 
-    setAttachedImage({
-      url: previewUrl,
-      label: label,
-      size: `${sizeKb} KB`,
-    });
-    setShowAttachmentMenu(false);
+    const reader = new FileReader();
+    reader.onloadend = () => {
+      const base64Url = reader.result as string;
+      setAttachedImage({
+        url: base64Url,
+        file: file,
+        label: label,
+        size: `${sizeKb} KB`,
+      });
+      setShowAttachmentMenu(false);
+    };
+    reader.readAsDataURL(compressedBlob);
   };
 
   // ACTION: Hapus Pesan & Mengulang Percakapan dari Awal
