@@ -133,3 +133,21 @@ export const updateComplaintStatus = async (req: AuthRequest, res: Response) => 
     return res.status(500).json({ status: 'error', message: 'Gagal memperbarui status pengaduan.' });
   }
 };
+
+export const deleteComplaint = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    PersistentDatabase.deleteComplaint(id);
+    try {
+      await prisma.complaint.delete({ where: { id } }).catch(() => null);
+    } catch (e) {}
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Laporan pengaduan berhasil dihapus.',
+    });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: 'Gagal menghapus pengaduan.' });
+  }
+};
+

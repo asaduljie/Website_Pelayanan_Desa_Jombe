@@ -13,7 +13,7 @@ import {
 } from '../controllers/operatorController';
 import { getDocumentAccessToken, streamPrivateDocument } from '../controllers/documentController';
 import { generateLetterPdf, downloadApplicationPdf } from '../controllers/pdfController';
-import { createComplaint, getComplaints, updateComplaintStatus } from '../controllers/complaintController';
+import { createComplaint, getComplaints, updateComplaintStatus, deleteComplaint } from '../controllers/complaintController';
 import { getMyNotifications, markNotificationAsRead } from '../controllers/notificationController';
 import {
   getVillageProfile,
@@ -110,6 +110,7 @@ router.post(
 );
 router.get('/complaints', authenticateToken, getComplaints);
 router.patch('/operator/complaints/:id', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), updateComplaintStatus);
+router.delete('/operator/complaints/:id', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), deleteComplaint);
 
 // ==================== NOTIFICATION ROUTES ====================
 router.get('/notifications', authenticateToken, getMyNotifications);

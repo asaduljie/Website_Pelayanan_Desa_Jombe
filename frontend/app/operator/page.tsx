@@ -46,13 +46,21 @@ export default function OperatorDashboardPage() {
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Tab State: 'PERMOHONAN_WARGA' | 'KELOLA_BERITA' | 'KELOLA_PENGUMUMAN'
-  const [activeTab, setActiveTab] = useState<'PERMOHONAN_WARGA' | 'KELOLA_BERITA' | 'KELOLA_PENGUMUMAN'>('PERMOHONAN_WARGA');
+  // Tab State: 'PERMOHONAN_WARGA' | 'PENGADUAN_WARGA' | 'KELOLA_BERITA' | 'KELOLA_PENGUMUMAN'
+  const [activeTab, setActiveTab] = useState<'PERMOHONAN_WARGA' | 'PENGADUAN_WARGA' | 'KELOLA_BERITA' | 'KELOLA_PENGUMUMAN'>('PERMOHONAN_WARGA');
 
   // News & Announcement States
   const [newsList, setNewsList] = useState<any[]>([]);
   const [announcementsList, setAnnouncementsList] = useState<any[]>([]);
   const [newsLoading, setNewsLoading] = useState(false);
+
+  // Complaints State
+  const [complaintsList, setComplaintsList] = useState<any[]>([]);
+  const [complaintsLoading, setComplaintsLoading] = useState(false);
+  const [selectedComplaint, setSelectedComplaint] = useState<any>(null);
+  const [complaintStatusUpdate, setComplaintStatusUpdate] = useState('PROCESSING');
+  const [complaintAdminResponse, setComplaintAdminResponse] = useState('');
+  const [complaintSaving, setComplaintSaving] = useState(false);
 
   const [showCreateNewsModal, setShowCreateNewsModal] = useState(false);
   const [newsTitle, setNewsTitle] = useState('');
@@ -275,6 +283,7 @@ export default function OperatorDashboardPage() {
 
   useEffect(() => {
     fetchNewsAndAnnouncements();
+    fetchComplaints();
   }, []);
 
   const fetchNewsAndAnnouncements = async () => {
@@ -363,6 +372,56 @@ export default function OperatorDashboardPage() {
     }
   };
 
+  const fetchComplaints = async () => {
+    setComplaintsLoading(true);
+    try {
+      const res = await api.get('/complaints');
+      if (res.data.status === 'success') {
+        setComplaintsList(res.data.data);
+      }
+    } catch (e) {
+    } finally {
+      setComplaintsLoading(false);
+    }
+  };
+
+  const handleOpenComplaintDetail = (c: any) => {
+    setSelectedComplaint(c);
+    setComplaintStatusUpdate(c.status || 'PROCESSING');
+    setComplaintAdminResponse(c.adminResponse || '');
+  };
+
+  const handleUpdateComplaintStatus = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedComplaint) return;
+    setComplaintSaving(true);
+    try {
+      const res = await api.patch(`/operator/complaints/${selectedComplaint.id}`, {
+        status: complaintStatusUpdate,
+        adminResponse: complaintAdminResponse,
+      });
+      if (res.data.status === 'success') {
+        alert('Tanggapan pengaduan berhasil disimpan & dikirim ke warga!');
+        setSelectedComplaint(null);
+        fetchComplaints();
+      }
+    } catch (e) {
+      alert('Gagal memperbarui status pengaduan.');
+    } finally {
+      setComplaintSaving(false);
+    }
+  };
+
+  const handleDeleteComplaint = async (id: string, title: string) => {
+    if (!confirm(`Hapus laporan pengaduan "${title}"?`)) return;
+    try {
+      await api.delete(`/operator/complaints/${id}`);
+      fetchComplaints();
+    } catch (e) {
+      alert('Gagal menghapus pengaduan.');
+    }
+  };
+
   if (!operator) return null;
 
   return (
@@ -429,6 +488,20 @@ export default function OperatorDashboardPage() {
 
         <button
           onClick={() => {
+            setActiveTab('PENGADUAN_WARGA');
+            fetchComplaints();
+          }}
+          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${
+            activeTab === 'PENGADUAN_WARGA'
+              ? 'bg-emerald-900 text-white shadow-md'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <MessageSquare className="w-4 h-4" /> Pengaduan Warga ({complaintsList.length})
+        </button>
+
+        <button
+          onClick={() => {
             setActiveTab('KELOLA_BERITA');
             fetchNewsAndAnnouncements();
           }}
@@ -438,7 +511,7 @@ export default function OperatorDashboardPage() {
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
-          <Newspaper className="w-4 h-4" /> Kelola & Tulis Berita Desa ({newsList.length})
+          <Newspaper className="w-4 h-4" /> Kelola & Tulis Berita ({newsList.length})
         </button>
 
         <button
@@ -452,7 +525,7 @@ export default function OperatorDashboardPage() {
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
           }`}
         >
-          <Megaphone className="w-4 h-4" /> Kelola Pengumuman Warga ({announcementsList.length})
+          <Megaphone className="w-4 h-4" /> Pengumuman ({announcementsList.length})
         </button>
       </div>
 
@@ -616,6 +689,108 @@ export default function OperatorDashboardPage() {
               </div>
             )}
           </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB: PENGADUAN & ASPIRASI WARGA                          */}
+      {/* ======================================================== */}
+      {activeTab === 'PENGADUAN_WARGA' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-soft space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <MessageSquare className="w-5 h-5 text-emerald-800" />
+                Daftar Laporan Pengaduan & Aspirasi Warga
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">Laporan pengaduan masuk via WhatsApp Bot dan Portal Web resmi Desa Jombe.</p>
+            </div>
+
+            <button
+              onClick={fetchComplaints}
+              className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl flex items-center gap-1.5 transition-all"
+            >
+              <RefreshCw className="w-3.5 h-3.5" /> Segarkan Data
+            </button>
+          </div>
+
+          {complaintsLoading ? (
+            <div className="text-center py-12 text-xs text-slate-500">Memuat data pengaduan...</div>
+          ) : complaintsList.length === 0 ? (
+            <div className="text-center py-14 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
+              <MessageSquare className="w-8 h-8 text-slate-400 mx-auto" />
+              <p className="text-xs text-slate-500 font-bold">Belum ada pengaduan yang masuk.</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs">
+                <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
+                  <tr>
+                    <th className="px-6 py-3.5">No. Tiket</th>
+                    <th className="px-6 py-3.5">Pelapor Warga</th>
+                    <th className="px-6 py-3.5">Kategori & Judul Laporan</th>
+                    <th className="px-6 py-3.5">Tanggal Masuk</th>
+                    <th className="px-6 py-3.5">Status Penanganan</th>
+                    <th className="px-6 py-3.5 text-right">Aksi Tindak Lanjut</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100 font-medium">
+                  {complaintsList.map((comp) => (
+                    <tr key={comp.id} className="hover:bg-slate-50/70">
+                      <td className="px-6 py-4 font-mono font-bold text-emerald-950">
+                        {comp.ticketNumber}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="font-bold text-slate-900 block">{comp.userName || comp.user?.name || 'Warga Desa'}</span>
+                        <span className="text-[10px] text-slate-500 font-mono block">NIK: {comp.userNik || comp.user?.nik || '-'}</span>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="text-[10px] font-bold uppercase px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 block w-fit mb-1">
+                          {comp.category}
+                        </span>
+                        <span className="font-bold text-slate-900 block">{comp.title}</span>
+                      </td>
+                      <td className="px-6 py-4 text-slate-500">
+                        {new Date(comp.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </td>
+                      <td className="px-6 py-4">
+                        <span
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold ${
+                            comp.status === 'RESOLVED'
+                              ? 'bg-emerald-100 text-emerald-900'
+                              : comp.status === 'PROCESSING'
+                              ? 'bg-sky-100 text-sky-900'
+                              : comp.status === 'REJECTED'
+                              ? 'bg-rose-100 text-rose-900'
+                              : 'bg-amber-100 text-amber-900'
+                          }`}
+                        >
+                          {comp.status === 'RESOLVED' ? 'Selesai Ditangani' : comp.status === 'PROCESSING' ? 'Sedang Ditindaklanjuti' : comp.status === 'REJECTED' ? 'Ditolak' : 'Menunggu Tindakan'}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="flex items-center justify-end gap-2">
+                          <button
+                            onClick={() => handleOpenComplaintDetail(comp)}
+                            className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs transition-colors shadow-xs flex items-center gap-1.5"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Lihat Detail & Tanggapi
+                          </button>
+                          <button
+                            onClick={() => handleDeleteComplaint(comp.id, comp.title)}
+                            className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                            title="Hapus Pengaduan"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 
@@ -878,6 +1053,136 @@ export default function OperatorDashboardPage() {
                   className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-amber-950 font-extrabold rounded-xl shadow-md flex items-center gap-1.5 transition-all"
                 >
                   <Send className="w-4 h-4" /> {annSaving ? 'Menerbitkan...' : 'Terbitkan Pengumuman'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL: DETAIL PENGADUAN WARGA & TANGGAPAN OPERATOR       */}
+      {/* ======================================================== */}
+      {selectedComplaint && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-6 shadow-2xl overflow-y-auto max-h-[92vh] border border-slate-200 animate-in zoom-in-95 duration-150">
+            {/* Modal Header */}
+            <div className="flex justify-between items-start border-b border-slate-100 pb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
+                    {selectedComplaint.category || 'Pengaduan Umum'}
+                  </span>
+                  <span className="text-xs text-slate-400 font-mono font-bold">
+                    {selectedComplaint.ticketNumber}
+                  </span>
+                </div>
+                <h3 className="text-lg font-extrabold text-slate-900">{selectedComplaint.title}</h3>
+              </div>
+              <button
+                onClick={() => setSelectedComplaint(null)}
+                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-700"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            {/* Citizen Details */}
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 grid grid-cols-2 gap-3 text-xs">
+              <div>
+                <span className="text-slate-400 block font-medium">Pelapor:</span>
+                <span className="font-bold text-slate-900">{selectedComplaint.userName || selectedComplaint.user?.name || 'Warga Desa'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block font-medium">NIK Pelapor:</span>
+                <span className="font-bold text-slate-900 font-mono">{selectedComplaint.userNik || selectedComplaint.user?.nik || '-'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block font-medium">No. Telepon / WA:</span>
+                <span className="font-bold text-slate-900">{selectedComplaint.userPhone || selectedComplaint.user?.phone || '-'}</span>
+              </div>
+              <div>
+                <span className="text-slate-400 block font-medium">Tanggal Lapor:</span>
+                <span className="font-bold text-slate-900">
+                  {new Date(selectedComplaint.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                </span>
+              </div>
+            </div>
+
+            {/* Complaint Location & Full Description */}
+            <div className="space-y-2 text-xs">
+              <div>
+                <span className="font-bold text-slate-700 block mb-1">Lokasi Kejadian:</span>
+                <div className="p-3 bg-white border border-slate-200 rounded-xl text-slate-800 font-medium">
+                  {selectedComplaint.location || 'Wilayah Desa Jombe'}
+                </div>
+              </div>
+
+              <div>
+                <span className="font-bold text-slate-700 block mb-1">Deskripsi Lengkap Masalah / Aspirasi:</span>
+                <div className="p-3.5 bg-slate-50 border border-slate-200 rounded-xl text-slate-800 leading-relaxed font-sans whitespace-pre-wrap">
+                  {selectedComplaint.description}
+                </div>
+              </div>
+            </div>
+
+            {/* Photo Attachment (If Any) */}
+            {selectedComplaint.photoUrl && (
+              <div className="space-y-2">
+                <span className="font-bold text-slate-700 text-xs block">Foto Bukti Lapangan:</span>
+                <div
+                  onClick={() => setPreviewDoc({ title: 'Foto Bukti Pengaduan', type: 'BUKTI', url: selectedComplaint.photoUrl })}
+                  className="relative rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 max-h-48 cursor-pointer group"
+                >
+                  <img src={selectedComplaint.photoUrl} alt="Bukti Pengaduan" className="w-full h-48 object-cover group-hover:scale-105 transition-transform" />
+                  <div className="absolute inset-0 bg-black/30 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center text-white text-xs font-bold gap-1.5">
+                    <Eye className="w-4 h-4" /> Klik untuk Memperbesar Foto
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* Operator Response & Status Form */}
+            <form onSubmit={handleUpdateComplaintStatus} className="space-y-4 pt-4 border-t border-slate-100 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-slate-800">Ubah Status Penanganan</label>
+                <select
+                  value={complaintStatusUpdate}
+                  onChange={(e) => setComplaintStatusUpdate(e.target.value)}
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-bold"
+                >
+                  <option value="SUBMITTED">Menunggu Tindakan (SUBMITTED)</option>
+                  <option value="PROCESSING">Sedang Ditindaklanjuti (PROCESSING)</option>
+                  <option value="RESOLVED">Selesai Ditangani (RESOLVED)</option>
+                  <option value="REJECTED">Ditolak / Tidak Valid (REJECTED)</option>
+                </select>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-800">Catatan Tanggapan Resmi Petugas</label>
+                <textarea
+                  rows={3}
+                  value={complaintAdminResponse}
+                  onChange={(e) => setComplaintAdminResponse(e.target.value)}
+                  placeholder="Contoh: Laporan telah kami terima dan tim teknis desa sudah diterjunkan ke lokasi untuk perbaikan..."
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 leading-relaxed font-sans"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-2">
+                <button
+                  type="button"
+                  onClick={() => setSelectedComplaint(null)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
+                >
+                  Tutup
+                </button>
+                <button
+                  type="submit"
+                  disabled={complaintSaving}
+                  className="px-6 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+                >
+                  <Send className="w-4 h-4" /> {complaintSaving ? 'Menyimpan...' : 'Simpan & Kirim Tanggapan'}
                 </button>
               </div>
             </form>

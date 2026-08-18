@@ -193,29 +193,59 @@ export default function PengaduanPage() {
           ) : complaints.length > 0 ? (
             <div className="space-y-4">
               {complaints.map((item) => (
-                <div key={item.id} className="bg-white p-5 rounded-2xl border border-gray-100 shadow-soft space-y-2">
+                <div key={item.id} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-soft space-y-3 hover:border-emerald-200 transition-all">
                   <div className="flex justify-between items-start gap-2">
                     <div>
-                      <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-jombe-50 text-jombe-800 border border-jombe-200">
-                        {item.category}
-                      </span>
-                      <h3 className="text-sm font-bold text-gray-900 mt-1">{item.title}</h3>
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
+                          {item.category}
+                        </span>
+                        <span className="text-xs font-mono font-bold text-slate-500">
+                          {item.ticketNumber || `PGD-2026-${String(item.id).slice(-4)}`}
+                        </span>
+                      </div>
+                      <h3 className="text-sm font-extrabold text-slate-900 leading-snug">{item.title}</h3>
                     </div>
-                    <span className="px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 text-amber-900">
-                      {item.status}
+                    <span
+                      className={`px-3 py-1 rounded-full text-[10px] font-bold shrink-0 ${
+                        item.status === 'RESOLVED'
+                          ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                          : item.status === 'PROCESSING'
+                          ? 'bg-sky-100 text-sky-900 border border-sky-300'
+                          : item.status === 'REJECTED'
+                          ? 'bg-rose-100 text-rose-900 border border-rose-300'
+                          : 'bg-amber-100 text-amber-900 border border-amber-300'
+                      }`}
+                    >
+                      {item.status === 'RESOLVED'
+                        ? 'Selesai Ditangani'
+                        : item.status === 'PROCESSING'
+                        ? 'Sedang Diproses'
+                        : item.status === 'REJECTED'
+                        ? 'Ditolak'
+                        : 'Menunggu Tindakan'}
                     </span>
                   </div>
 
-                  <p className="text-xs text-gray-600 leading-relaxed">{item.description}</p>
+                  <p className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap">{item.description}</p>
 
-                  <div className="pt-2 flex justify-between items-center text-[11px] text-gray-400 border-t border-gray-50">
-                    <span>Lokasi: {item.location}</span>
-                    <span>{new Date(item.createdAt).toLocaleDateString('id-ID')}</span>
+                  {item.photoUrl && (
+                    <div className="mt-2 rounded-xl overflow-hidden border border-slate-200 max-h-48 bg-slate-50">
+                      <img src={item.photoUrl} alt="Bukti Lapangan" className="w-full h-44 object-cover" />
+                    </div>
+                  )}
+
+                  <div className="pt-2 flex justify-between items-center text-[11px] text-slate-400 border-t border-slate-100 font-medium">
+                    <span>📍 Lokasi: <strong>{item.location || 'Desa Jombe'}</strong></span>
+                    <span>{new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
                   </div>
 
                   {item.adminResponse && (
-                    <div className="mt-2 p-3 rounded-xl bg-emerald-50 text-xs text-emerald-950 border border-emerald-200">
-                      <strong>Tanggapan Operator:</strong> {item.adminResponse}
+                    <div className="mt-2 p-3.5 rounded-2xl bg-emerald-50 text-xs text-emerald-950 border border-emerald-200 space-y-1">
+                      <span className="font-extrabold text-emerald-900 block flex items-center gap-1.5">
+                        <CheckCircle2 className="w-4 h-4 text-emerald-700" /> Tanggapan Resmi Operator Desa:
+                      </span>
+                      <p className="leading-relaxed font-sans">{item.adminResponse}</p>
                     </div>
                   )}
                 </div>
