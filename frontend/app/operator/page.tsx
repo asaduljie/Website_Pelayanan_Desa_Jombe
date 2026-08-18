@@ -34,6 +34,8 @@ import {
   MessageSquare,
   UserCheck,
   Image as ImageIcon,
+  Camera,
+  ZoomIn,
 } from 'lucide-react';
 import api from '@/lib/api';
 
