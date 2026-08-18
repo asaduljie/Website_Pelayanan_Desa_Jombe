@@ -118,16 +118,17 @@ export default function HomePage() {
     <div className="min-h-screen bg-slate-50/50">
       {/* HERO SECTION WITH REAL VILLAGE LANDSCAPE BACKGROUND */}
       <section className="relative overflow-hidden text-white pt-20 pb-32 lg:pt-28 lg:pb-40 border-b border-emerald-900/40">
-        {/* Background Image with Ambient Overlay */}
-        <div
-          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transition-transform duration-1000"
-          style={{
-            backgroundImage: "url('/images/hero-desa-jombe.jpg')",
-          }}
-        />
+        {/* Single Full-Bleed Background Image (No Tiling / No Repeat) */}
+        <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+          <img
+            src="/images/hero-desa-jombe.jpg"
+            alt="Pemandangan Desa Jombe"
+            className="w-full h-full object-cover object-center scale-105"
+          />
+        </div>
         {/* Deep Emerald Gradient & Vignette Overlay */}
-        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-950/80 to-emerald-900/70" />
-        <div className="absolute inset-0 bg-black/20 backdrop-blur-[0.5px]" />
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-950/80 to-emerald-900/70 z-1" />
+        <div className="absolute inset-0 bg-black/25 z-1" />
 
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl text-center mx-auto space-y-6">
