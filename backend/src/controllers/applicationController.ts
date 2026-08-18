@@ -97,20 +97,9 @@ export const getMyApplications = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id || 'demo-warga-id-1';
     const userNik = req.user?.nik || '3512345678900001';
 
-    let dbApps: any[] = [];
-    try {
-      dbApps = await prisma.application.findMany({
-        where: { userId },
-        include: {
-          service: { select: { name: true, category: true, slug: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-    } catch (e) {}
-
-    // Combine with WA Bot created applications for this user
-    const waAppsFormatted = waApplicationsStore
-      .filter((w) => w.userId === userId || w.userNik === userNik || userId.startsWith('demo-warga'))
+    const allPersistent = PersistentDatabase.loadApplications();
+    const userApps = allPersistent
+      .filter((w) => w.userNik === userNik || w.userId === userId)
       .map((w) => ({
         id: w.id,
         applicationNumber: w.applicationNumber,
@@ -119,15 +108,11 @@ export const getMyApplications = async (req: AuthRequest, res: Response) => {
         service: {
           name: w.serviceName,
           category: 'Surat Keterangan',
-          slug: 'surat-keterangan-usaha',
+          slug: w.serviceSlug || 'surat-keterangan-usaha',
         },
       }));
 
-    const combined = [...waAppsFormatted, ...dbApps];
-    // Unique by applicationNumber
-    const uniqueApps = Array.from(new Map(combined.map((item) => [item.applicationNumber, item])).values());
-
-    return res.status(200).json({ status: 'success', data: uniqueApps });
+    return res.status(200).json({ status: 'success', data: userApps });
   } catch (error) {
     return res.status(200).json({ status: 'success', data: [] });
   }
@@ -143,18 +128,19 @@ export const trackApplication = async (req: AuthRequest, res: Response) => {
 
     const appNumStr = String(applicationNumber).trim().toUpperCase();
 
-    // Check WA store first
-    const waMatch = waApplicationsStore.find((w) => w.applicationNumber.toUpperCase() === appNumStr);
-    if (waMatch) {
+    // Check persistent DB first
+    const allPersistent = PersistentDatabase.loadApplications();
+    const match = allPersistent.find((w) => w.applicationNumber.toUpperCase() === appNumStr);
+    if (match) {
       return res.status(200).json({
         status: 'success',
         data: {
-          applicationNumber: waMatch.applicationNumber,
-          status: waMatch.status,
-          serviceName: waMatch.serviceName,
-          createdAt: waMatch.createdAt,
-          user: { name: waMatch.userName, nik: waMatch.userNik },
-          revisionNotes: 'Permohonan sedang diproses oleh Operator Kantor Desa Jombe.',
+          applicationNumber: match.applicationNumber,
+          status: match.status,
+          serviceName: match.serviceName,
+          createdAt: match.createdAt,
+          user: { name: match.userName, nik: match.userNik },
+          revisionNotes: match.status === 'COMPLETED' ? 'Surat resmi telah disetujui & diterbitkan.' : 'Permohonan sedang diproses oleh Operator Kantor Desa Jombe.',
         },
       });
     }
