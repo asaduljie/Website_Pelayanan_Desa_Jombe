@@ -1,6 +1,8 @@
 import { Request, Response } from 'express';
 import prisma from '../config/db';
 import { waApplicationsStore } from './whatsappBotController';
+import { PersistentDatabase, NewsRecord, AnnouncementRecord } from '../utils/persistentDb';
+import { AuthRequest } from '../middleware/auth';
 
 const defaultProfile = {
   id: 'default',
@@ -25,49 +27,6 @@ const defaultStats = {
   completedApplications: 142,
   totalApplications: 154,
 };
-
-const defaultNewsList = [
-  {
-    id: 'news-1',
-    slug: 'peluncuran-sistem-jombe-digital',
-    title: 'Pemerintah Desa Jombe Resmi Luncurkan Sistem Pelayanan Digital Berbasis Web & WhatsApp',
-    category: 'Pemerintahan',
-    content: 'Pemerintah Desa Jombe resmi meluncurkan platform JOMBE DIGITAL untuk mempermudah warga dalam mengajukan surat keterangan secara mandiri dari rumah maupun melalui chat WhatsApp.',
-    excerpt: 'Peluncuran platform pelayanan terpadu desa untuk mempermudah permohonan surat warga.',
-    views: 124,
-    createdAt: new Date().toISOString(),
-    author: { name: 'Humas Desa Jombe' },
-  },
-  {
-    id: 'news-2',
-    slug: 'musrenbangdes-desa-jombe-2026',
-    title: 'Musrenbangdes Tahun 2026: Fokus Peningkatan Fasilitas Pertanian & UMKM',
-    category: 'Pembangunan',
-    content: 'Musyawarah Perencanaan Pembangunan Desa (Musrenbangdes) Desa Jombe menyepakati alokasi prioritas pada pembangunan drainase sawah dan pembinaan UMKM lokal.',
-    excerpt: 'Musyawarah desa menetapkan arah pembangunan pertanian dan ekonomi warga.',
-    views: 89,
-    createdAt: new Date(Date.now() - 86400000 * 2).toISOString(),
-    author: { name: 'Humas Desa Jombe' },
-  },
-];
-
-const defaultAnnouncements = [
-  {
-    id: 'ann-1',
-    title: 'Pelayanan Pembuatan Surat Keterangan Usaha (SKU) & Domisili Online',
-    content: 'Warga Desa Jombe kini dapat mengurus permohonan surat secara online 24 jam melalui portal web atau bot WhatsApp resmi.',
-    createdAt: new Date().toISOString(),
-  },
-];
-
-const defaultAgendas = [
-  {
-    id: 'agenda-1',
-    title: 'Posyandu Balita & Lansia Dusun Krajan',
-    location: 'Balai Dusun Jombe Krajan',
-    eventDate: new Date(Date.now() + 86400000 * 3).toISOString(),
-  },
-];
 
 export const getVillageProfile = async (req: Request, res: Response) => {
   try {
@@ -108,96 +67,166 @@ export const getVillageProfile = async (req: Request, res: Response) => {
 export const getNewsList = async (req: Request, res: Response) => {
   try {
     const { category, search } = req.query;
-    let news: any[] = [];
+    const allNews = PersistentDatabase.loadNews();
 
-    try {
-      const where: any = { isPublished: true };
-      if (category) where.category = String(category);
-      if (search) {
-        where.OR = [
-          { title: { contains: String(search), mode: 'insensitive' } },
-          { content: { contains: String(search), mode: 'insensitive' } },
-        ];
-      }
-
-      news = await prisma.news.findMany({
-        where,
-        orderBy: { createdAt: 'desc' },
-        include: { author: { select: { name: true } } },
-      });
-    } catch (e) {}
-
-    if (!news || news.length === 0) {
-      news = defaultNewsList;
+    let filtered = allNews;
+    if (category) {
+      filtered = filtered.filter((n) => n.category.toLowerCase() === String(category).toLowerCase());
+    }
+    if (search) {
+      const q = String(search).toLowerCase();
+      filtered = filtered.filter((n) => n.title.toLowerCase().includes(q) || n.content.toLowerCase().includes(q));
     }
 
-    return res.status(200).json({ status: 'success', data: news });
+    return res.status(200).json({ status: 'success', data: filtered });
   } catch (error) {
-    return res.status(200).json({ status: 'success', data: defaultNewsList });
+    return res.status(200).json({ status: 'success', data: [] });
   }
 };
 
 export const getNewsBySlug = async (req: Request, res: Response) => {
   try {
     const { slug } = req.params;
-    let item: any = null;
-
-    try {
-      item = await prisma.news.findUnique({
-        where: { slug },
-        include: { author: { select: { name: true } } },
-      });
-      if (item) {
-        await prisma.news.update({ where: { id: item.id }, data: { views: { increment: 1 } } }).catch(() => null);
-      }
-    } catch (e) {}
+    const allNews = PersistentDatabase.loadNews();
+    const item = allNews.find((n) => n.slug === slug || n.id === slug);
 
     if (!item) {
-      item = defaultNewsList.find((n) => n.slug === slug) || defaultNewsList[0];
+      return res.status(404).json({ status: 'error', message: 'Berita tidak ditemukan.' });
     }
+
+    item.views = (item.views || 0) + 1;
+    PersistentDatabase.saveNews(allNews);
 
     return res.status(200).json({ status: 'success', data: item });
   } catch (error) {
-    return res.status(200).json({ status: 'success', data: defaultNewsList[0] });
+    return res.status(500).json({ status: 'error', message: 'Gagal memuat berita.' });
+  }
+};
+
+export const createNews = async (req: AuthRequest, res: Response) => {
+  try {
+    const { title, category, content, excerpt, imageUrl } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ status: 'error', message: 'Judul dan isi berita wajib diisi.' });
+    }
+
+    const slug = title
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)+/g, '') + '-' + Date.now().toString().slice(-4);
+
+    const newRecord: NewsRecord = {
+      id: `news-${Date.now()}`,
+      slug,
+      title,
+      category: category || 'Pemerintahan',
+      content,
+      excerpt: excerpt || content.slice(0, 120) + '...',
+      imageUrl: imageUrl || undefined,
+      views: 1,
+      createdAt: new Date().toISOString(),
+      author: { name: req.user?.name || 'Humas Pemdes Jombe' },
+    };
+
+    PersistentDatabase.addNews(newRecord);
+
+    try {
+      await prisma.news.create({
+        data: {
+          title,
+          slug,
+          category: category || 'Pemerintahan',
+          content,
+          excerpt: newRecord.excerpt,
+          imageUrl: imageUrl || null,
+          authorId: req.user?.id || 'demo-operator-id-9',
+          isPublished: true,
+        },
+      }).catch(() => null);
+    } catch (e) {}
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Berita desa berhasil dipublikasikan!',
+      data: newRecord,
+    });
+  } catch (error: any) {
+    return res.status(500).json({ status: 'error', message: 'Gagal membuat berita: ' + error.message });
+  }
+};
+
+export const deleteNews = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    PersistentDatabase.deleteNews(id);
+
+    try {
+      await prisma.news.delete({ where: { id } }).catch(() => null);
+    } catch (e) {}
+
+    return res.status(200).json({ status: 'success', message: 'Berita berhasil dihapus.' });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: 'Gagal menghapus berita.' });
   }
 };
 
 export const getAnnouncements = async (req: Request, res: Response) => {
   try {
-    let announcements: any[] = [];
-    try {
-      announcements = await prisma.announcement.findMany({
-        orderBy: { createdAt: 'desc' },
-        take: 10,
-      });
-    } catch (e) {}
+    const list = PersistentDatabase.loadAnnouncements();
+    return res.status(200).json({ status: 'success', data: list });
+  } catch (error) {
+    return res.status(200).json({ status: 'success', data: [] });
+  }
+};
 
-    if (!announcements || announcements.length === 0) {
-      announcements = defaultAnnouncements;
+export const createAnnouncement = async (req: AuthRequest, res: Response) => {
+  try {
+    const { title, content } = req.body;
+
+    if (!title || !content) {
+      return res.status(400).json({ status: 'error', message: 'Judul dan isi pengumuman wajib diisi.' });
     }
 
-    return res.status(200).json({ status: 'success', data: announcements });
+    const newAnn: AnnouncementRecord = {
+      id: `ann-${Date.now()}`,
+      title,
+      content,
+      createdAt: new Date().toISOString(),
+    };
+
+    PersistentDatabase.addAnnouncement(newAnn);
+
+    return res.status(201).json({
+      status: 'success',
+      message: 'Pengumuman baru berhasil diterbitkan!',
+      data: newAnn,
+    });
   } catch (error) {
-    return res.status(200).json({ status: 'success', data: defaultAnnouncements });
+    return res.status(500).json({ status: 'error', message: 'Gagal membuat pengumuman.' });
+  }
+};
+
+export const deleteAnnouncement = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    PersistentDatabase.deleteAnnouncement(id);
+    return res.status(200).json({ status: 'success', message: 'Pengumuman berhasil dihapus.' });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: 'Gagal menghapus pengumuman.' });
   }
 };
 
 export const getAgendas = async (req: Request, res: Response) => {
-  try {
-    let agendas: any[] = [];
-    try {
-      agendas = await prisma.agenda.findMany({
-        orderBy: { eventDate: 'asc' },
-        take: 10,
-      });
-    } catch (e) {}
-
-    if (!agendas || agendas.length === 0) {
-      agendas = defaultAgendas;
-    }
-
-    return res.status(200).json({ status: 'success', data: agendas });
-  } catch (error) {
-    return res.status(200).json({ status: 'success', data: defaultAgendas });
-  }
+  return res.status(200).json({
+    status: 'success',
+    data: [
+      {
+        id: 'agenda-1',
+        title: 'Posyandu Balita & Lansia Dusun Krajan',
+        location: 'Balai Dusun Jombe Krajan',
+        eventDate: new Date(Date.now() + 86400000 * 3).toISOString(),
+      },
+    ],
+  });
 };

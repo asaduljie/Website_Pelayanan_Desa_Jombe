@@ -13,7 +13,17 @@ import { getDocumentAccessToken, streamPrivateDocument } from '../controllers/do
 import { generateLetterPdf, downloadApplicationPdf } from '../controllers/pdfController';
 import { createComplaint, getComplaints, updateComplaintStatus } from '../controllers/complaintController';
 import { getMyNotifications, markNotificationAsRead } from '../controllers/notificationController';
-import { getVillageProfile, getNewsList, getNewsBySlug, getAnnouncements, getAgendas } from '../controllers/contentController';
+import {
+  getVillageProfile,
+  getNewsList,
+  getNewsBySlug,
+  createNews,
+  deleteNews,
+  getAnnouncements,
+  createAnnouncement,
+  deleteAnnouncement,
+  getAgendas,
+} from '../controllers/contentController';
 import { handleAiQuery } from '../controllers/aiController';
 import {
   handleIncomingWhatsAppMessage,
@@ -39,11 +49,16 @@ router.post('/auth/login', authLimiter, login);
 router.get('/auth/profile', authenticateToken, getProfile);
 router.patch('/auth/profile', authenticateToken, updateProfile);
 
-// ==================== PUBLIC CONTENT ROUTES ====================
+// ==================== PUBLIC & OPERATOR CONTENT ROUTES ====================
 router.get('/content/profile', getVillageProfile);
 router.get('/content/news', getNewsList);
 router.get('/content/news/:slug', getNewsBySlug);
+router.post('/content/news', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), createNews);
+router.delete('/content/news/:id', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), deleteNews);
+
 router.get('/content/announcements', getAnnouncements);
+router.post('/content/announcements', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), createAnnouncement);
+router.delete('/content/announcements/:id', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), deleteAnnouncement);
 router.get('/content/agendas', getAgendas);
 
 // ==================== SERVICES & DYNAMIC FORM ROUTES ====================

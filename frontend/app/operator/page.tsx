@@ -27,10 +27,10 @@ import {
   Save,
   FileSpreadsheet,
   ArrowRight,
-  Camera,
-  Image as ImageIcon,
-  ZoomIn,
-  ExternalLink,
+  Newspaper,
+  Trash2,
+  Megaphone,
+  Tag,
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -46,8 +46,25 @@ export default function OperatorDashboardPage() {
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Tab State: 'PERMOHONAN_WARGA' or 'SURAT_BALASAN_SKU'
-  const [activeTab, setActiveTab] = useState<'PERMOHONAN_WARGA' | 'SURAT_BALASAN_SKU'>('PERMOHONAN_WARGA');
+  // Tab State: 'PERMOHONAN_WARGA' | 'KELOLA_BERITA' | 'KELOLA_PENGUMUMAN'
+  const [activeTab, setActiveTab] = useState<'PERMOHONAN_WARGA' | 'KELOLA_BERITA' | 'KELOLA_PENGUMUMAN'>('PERMOHONAN_WARGA');
+
+  // News & Announcement States
+  const [newsList, setNewsList] = useState<any[]>([]);
+  const [announcementsList, setAnnouncementsList] = useState<any[]>([]);
+  const [newsLoading, setNewsLoading] = useState(false);
+
+  const [showCreateNewsModal, setShowCreateNewsModal] = useState(false);
+  const [newsTitle, setNewsTitle] = useState('');
+  const [newsCategory, setNewsCategory] = useState('Pemerintahan');
+  const [newsExcerpt, setNewsExcerpt] = useState('');
+  const [newsContent, setNewsContent] = useState('');
+  const [newsSaving, setNewsSaving] = useState(false);
+
+  const [showCreateAnnModal, setShowCreateAnnModal] = useState(false);
+  const [annTitle, setAnnTitle] = useState('');
+  const [annContent, setAnnContent] = useState('');
+  const [annSaving, setAnnSaving] = useState(false);
 
   // Document Lightbox / Image Viewer Modal
   const [previewDoc, setPreviewDoc] = useState<{ title: string; type: string; url?: string } | null>(null);
@@ -256,6 +273,96 @@ export default function OperatorDashboardPage() {
     }
   };
 
+  useEffect(() => {
+    fetchNewsAndAnnouncements();
+  }, []);
+
+  const fetchNewsAndAnnouncements = async () => {
+    setNewsLoading(true);
+    try {
+      const nRes = await api.get('/content/news');
+      if (nRes.data.status === 'success') {
+        setNewsList(nRes.data.data);
+      }
+      const aRes = await api.get('/content/announcements');
+      if (aRes.data.status === 'success') {
+        setAnnouncementsList(aRes.data.data);
+      }
+    } catch (e) {
+    } finally {
+      setNewsLoading(false);
+    }
+  };
+
+  const handleCreateNews = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newsTitle.trim() || !newsContent.trim()) return;
+    setNewsSaving(true);
+    try {
+      const res = await api.post('/content/news', {
+        title: newsTitle,
+        category: newsCategory,
+        excerpt: newsExcerpt,
+        content: newsContent,
+      });
+      if (res.data.status === 'success') {
+        alert('Berita desa berhasil dipublikasikan!');
+        setShowCreateNewsModal(false);
+        setNewsTitle('');
+        setNewsExcerpt('');
+        setNewsContent('');
+        fetchNewsAndAnnouncements();
+      }
+    } catch (err: any) {
+      alert('Gagal membuat berita: ' + (err.response?.data?.message || err.message));
+    } finally {
+      setNewsSaving(false);
+    }
+  };
+
+  const handleDeleteNews = async (id: string, title: string) => {
+    if (!confirm(`Hapus berita "${title}"?`)) return;
+    try {
+      await api.delete(`/content/news/${id}`);
+      fetchNewsAndAnnouncements();
+    } catch (e) {
+      alert('Gagal menghapus berita.');
+    }
+  };
+
+  const handleCreateAnnouncement = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!annTitle.trim() || !annContent.trim()) return;
+    setAnnSaving(true);
+    try {
+      const res = await api.post('/content/announcements', {
+        title: annTitle,
+        content: annContent,
+      });
+      if (res.data.status === 'success') {
+        alert('Pengumuman desa berhasil diterbitkan!');
+        setShowCreateAnnModal(false);
+        setAnnTitle('');
+        setAnnContent('');
+        fetchNewsAndAnnouncements();
+      }
+    } catch (err: any) {
+      alert('Gagal membuat pengumuman.');
+    } finally {
+      setAnnSaving(false);
+    }
+  };
+
+  const handleDeleteAnnouncement = async (id: string, title: string) => {
+    if (!confirm(`Hapus pengumuman "${title}"?`)) return;
+    try {
+      await api.delete(`/content/announcements/${id}`);
+      fetchNewsAndAnnouncements();
+    } catch (e) {
+      alert('Gagal menghapus pengumuman.');
+    }
+  };
+
   if (!operator) return null;
 
   return (
@@ -307,124 +414,439 @@ export default function OperatorDashboardPage() {
         </div>
       </div>
 
-      {/* Metrics Counter Cards */}
-      <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1">
-          <span className="text-xs font-bold text-slate-500 block uppercase">Permohonan Masuk</span>
-          <span className="text-2xl font-extrabold text-amber-600 block">{stats.pending}</span>
-        </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1">
-          <span className="text-xs font-bold text-slate-500 block uppercase">Sedang Diperiksa</span>
-          <span className="text-2xl font-extrabold text-sky-600 block">{stats.processing}</span>
-        </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1">
-          <span className="text-xs font-bold text-slate-500 block uppercase">Perlu Perbaikan</span>
-          <span className="text-2xl font-extrabold text-orange-600 block">{stats.needRevision}</span>
-        </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1">
-          <span className="text-xs font-bold text-slate-500 block uppercase">Surat Balasan Terbit</span>
-          <span className="text-2xl font-extrabold text-emerald-600 block">{stats.completed}</span>
-        </div>
-        <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1 col-span-2 sm:col-span-1">
-          <span className="text-xs font-bold text-slate-500 block uppercase">Total Berkas</span>
-          <span className="text-2xl font-extrabold text-slate-900 block">{stats.total}</span>
-        </div>
+      {/* Primary Dashboard Navigation Tabs */}
+      <div className="flex flex-wrap items-center gap-3">
+        <button
+          onClick={() => setActiveTab('PERMOHONAN_WARGA')}
+          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${
+            activeTab === 'PERMOHONAN_WARGA'
+              ? 'bg-emerald-900 text-white shadow-md'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <FileCheck className="w-4 h-4" /> Pemeriksaan Berkas Permohonan ({applications.length})
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('KELOLA_BERITA');
+            fetchNewsAndAnnouncements();
+          }}
+          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${
+            activeTab === 'KELOLA_BERITA'
+              ? 'bg-emerald-900 text-white shadow-md'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Newspaper className="w-4 h-4" /> Kelola & Tulis Berita Desa ({newsList.length})
+        </button>
+
+        <button
+          onClick={() => {
+            setActiveTab('KELOLA_PENGUMUMAN');
+            fetchNewsAndAnnouncements();
+          }}
+          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${
+            activeTab === 'KELOLA_PENGUMUMAN'
+              ? 'bg-emerald-900 text-white shadow-md'
+              : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+          }`}
+        >
+          <Megaphone className="w-4 h-4" /> Kelola Pengumuman Warga ({announcementsList.length})
+        </button>
       </div>
 
-      {/* Filter & Table Area */}
-      <div className="bg-white rounded-3xl border border-slate-200/80 shadow-soft overflow-hidden">
-        {/* Controls Bar */}
-        <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
-          <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-            {['ALL', 'PENDING', 'PROCESSING', 'NEED_REVISION', 'COMPLETED'].map((st) => (
-              <button
-                key={st}
-                onClick={() => setStatusFilter(st)}
-                className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                  statusFilter === st
-                    ? 'bg-emerald-900 text-white shadow-xs'
-                    : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                }`}
-              >
-                {st === 'ALL' ? 'Semua Berkas' : st}
-              </button>
-            ))}
+      {/* ======================================================== */}
+      {/* TAB 1: PEMERIKSAAN PERMOHONAN BERKAS WARGA               */}
+      {/* ======================================================== */}
+      {activeTab === 'PERMOHONAN_WARGA' && (
+        <div className="space-y-6">
+          {/* Metrics Counter Cards */}
+          <div className="grid grid-cols-2 sm:grid-cols-5 gap-4">
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1">
+              <span className="text-xs font-bold text-slate-500 block uppercase">Permohonan Masuk</span>
+              <span className="text-2xl font-extrabold text-amber-600 block">{stats.pending}</span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1">
+              <span className="text-xs font-bold text-slate-500 block uppercase">Sedang Diperiksa</span>
+              <span className="text-2xl font-extrabold text-sky-600 block">{stats.processing}</span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1">
+              <span className="text-xs font-bold text-slate-500 block uppercase">Perlu Perbaikan</span>
+              <span className="text-2xl font-extrabold text-orange-600 block">{stats.needRevision}</span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1">
+              <span className="text-xs font-bold text-slate-500 block uppercase">Surat Balasan Terbit</span>
+              <span className="text-2xl font-extrabold text-emerald-600 block">{stats.completed}</span>
+            </div>
+            <div className="bg-white p-5 rounded-2xl border border-slate-200/80 shadow-soft text-center space-y-1 col-span-2 sm:col-span-1">
+              <span className="text-xs font-bold text-slate-500 block uppercase">Total Berkas</span>
+              <span className="text-2xl font-extrabold text-slate-900 block">{stats.total}</span>
+            </div>
           </div>
 
-          <div className="relative w-full sm:w-64">
-            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-            <input
-              type="text"
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Cari NIK / Nama / No Registrasi..."
-              className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-medium"
-            />
-          </div>
-        </div>
-
-        {/* Applications Table */}
-        {loading ? (
-          <div className="p-12 text-center text-xs text-slate-500">Memuat berkas permohonan...</div>
-        ) : applications.length === 0 ? (
-          <div className="p-12 text-center text-xs text-slate-500">Tidak ada permohonan ditemukan.</div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
-                <tr>
-                  <th className="px-6 py-3.5">No. Registrasi</th>
-                  <th className="px-6 py-3.5">Pemohon Warga</th>
-                  <th className="px-6 py-3.5">Surat yang Dimohon</th>
-                  <th className="px-6 py-3.5">Tanggal Masuk</th>
-                  <th className="px-6 py-3.5">Status</th>
-                  <th className="px-6 py-3.5 text-right">Aksi Pemeriksaan</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-100 font-medium">
-                {applications.map((app) => (
-                  <tr key={app.id} className="hover:bg-slate-50/70">
-                    <td className="px-6 py-4 font-mono font-bold text-emerald-950">
-                      {app.applicationNumber}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span className="font-bold text-slate-900 block">{app.user?.name}</span>
-                      <span className="text-[10px] text-slate-500 font-mono block">NIK: {app.user?.nik}</span>
-                    </td>
-                    <td className="px-6 py-4 text-slate-800 font-semibold">
-                      {app.service?.name}
-                    </td>
-                    <td className="px-6 py-4 text-slate-500">
-                      {new Date(app.createdAt).toLocaleDateString('id-ID')}
-                    </td>
-                    <td className="px-6 py-4">
-                      <span
-                        className={`px-3 py-1 rounded-full text-[10px] font-bold ${
-                          app.status === 'COMPLETED'
-                            ? 'bg-emerald-100 text-emerald-900'
-                            : app.status === 'PROCESSING'
-                            ? 'bg-sky-100 text-sky-900'
-                            : 'bg-amber-100 text-amber-900'
-                        }`}
-                      >
-                        {app.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <button
-                        onClick={() => handleSelectApp(app)}
-                        className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs transition-colors shadow-xs flex items-center gap-1.5 ml-auto"
-                      >
-                        <Eye className="w-3.5 h-3.5" /> Periksa Permohonan & Foto
-                      </button>
-                    </td>
-                  </tr>
+          {/* Filter & Table Area */}
+          <div className="bg-white rounded-3xl border border-slate-200/80 shadow-soft overflow-hidden">
+            {/* Controls Bar */}
+            <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
+              <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
+                {['ALL', 'PENDING', 'PROCESSING', 'NEED_REVISION', 'COMPLETED'].map((st) => (
+                  <button
+                    key={st}
+                    onClick={() => setStatusFilter(st)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
+                      statusFilter === st
+                        ? 'bg-emerald-900 text-white shadow-xs'
+                        : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                    }`}
+                  >
+                    {st === 'ALL' ? 'Semua Berkas' : st}
+                  </button>
                 ))}
-              </tbody>
-            </table>
+              </div>
+
+              <div className="relative w-full sm:w-64">
+                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                <input
+                  type="text"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  placeholder="Cari NIK / Nama / No Registrasi..."
+                  className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-medium"
+                />
+              </div>
+            </div>
+
+            {/* Applications Table */}
+            {loading ? (
+              <div className="p-12 text-center text-xs text-slate-500">Memuat berkas permohonan...</div>
+            ) : applications.length === 0 ? (
+              <div className="p-12 text-center text-xs text-slate-500">Tidak ada permohonan ditemukan.</div>
+            ) : (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-xs">
+                  <thead className="bg-slate-50 text-slate-500 uppercase font-bold text-[10px] tracking-wider">
+                    <tr>
+                      <th className="px-6 py-3.5">No. Registrasi</th>
+                      <th className="px-6 py-3.5">Pemohon Warga</th>
+                      <th className="px-6 py-3.5">Surat yang Dimohon</th>
+                      <th className="px-6 py-3.5">Tanggal Masuk</th>
+                      <th className="px-6 py-3.5">Status</th>
+                      <th className="px-6 py-3.5 text-right">Aksi Pemeriksaan</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-slate-100 font-medium">
+                    {applications.map((app) => (
+                      <tr key={app.id} className="hover:bg-slate-50/70">
+                        <td className="px-6 py-4 font-mono font-bold text-emerald-950">
+                          {app.applicationNumber}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span className="font-bold text-slate-900 block">{app.user?.name}</span>
+                          <span className="text-[10px] text-slate-500 font-mono block">NIK: {app.user?.nik}</span>
+                        </td>
+                        <td className="px-6 py-4 text-slate-800 font-semibold">
+                          {app.service?.name}
+                        </td>
+                        <td className="px-6 py-4 text-slate-500">
+                          {new Date(app.createdAt).toLocaleDateString('id-ID')}
+                        </td>
+                        <td className="px-6 py-4">
+                          <span
+                            className={`px-3 py-1 rounded-full text-[10px] font-bold ${
+                              app.status === 'COMPLETED'
+                                ? 'bg-emerald-100 text-emerald-900'
+                                : app.status === 'PROCESSING'
+                                ? 'bg-sky-100 text-sky-900'
+                                : 'bg-amber-100 text-amber-900'
+                            }`}
+                          >
+                            {app.status}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 text-right">
+                          <button
+                            onClick={() => handleSelectApp(app)}
+                            className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs transition-colors shadow-xs flex items-center gap-1.5 ml-auto"
+                          >
+                            <Eye className="w-3.5 h-3.5" /> Periksa Permohonan & Foto
+                          </button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
           </div>
-        )}
-      </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 2: KELOLA & TULIS BERITA DESA                        */}
+      {/* ======================================================== */}
+      {activeTab === 'KELOLA_BERITA' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-soft space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <Newspaper className="w-5 h-5 text-emerald-800" />
+                Manajemen Publikasi Berita Desa Jombe
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">Tulis, publikasikan, dan kelola berita resmi pemerintah desa yang tampil di halaman utama.</p>
+            </div>
+
+            <button
+              onClick={() => setShowCreateNewsModal(true)}
+              className="px-5 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all"
+            >
+              <Plus className="w-4 h-4" /> Tulis Berita Baru
+            </button>
+          </div>
+
+          {newsLoading ? (
+            <div className="text-center py-10 text-xs text-slate-500">Memuat data berita...</div>
+          ) : newsList.length === 0 ? (
+            <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
+              <Newspaper className="w-8 h-8 text-slate-400 mx-auto" />
+              <p className="text-xs text-slate-500 font-bold">Belum ada berita yang diterbitkan.</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              {newsList.map((item) => (
+                <div key={item.id} className="p-5 rounded-2xl border border-slate-200 bg-slate-50/50 hover:bg-slate-50 transition-all flex flex-col justify-between space-y-3">
+                  <div className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-[10px] font-bold uppercase px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 border border-emerald-300">
+                        {item.category}
+                      </span>
+                      <span className="text-[11px] text-slate-400 font-medium">
+                        {new Date(item.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
+                      </span>
+                    </div>
+                    <h3 className="text-sm font-bold text-slate-900 leading-snug">{item.title}</h3>
+                    <p className="text-xs text-slate-600 line-clamp-3">{item.excerpt || item.content}</p>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-3 border-t border-slate-200/80">
+                    <span className="text-[11px] text-slate-500">Penulis: <strong>{item.author?.name || 'Humas'}</strong></span>
+                    <button
+                      onClick={() => handleDeleteNews(item.id, item.title)}
+                      className="p-2 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors text-xs font-bold flex items-center gap-1"
+                      title="Hapus Berita"
+                    >
+                      <Trash2 className="w-4 h-4" /> Hapus
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* TAB 3: KELOLA PENGUMUMAN WARGA                           */}
+      {/* ======================================================== */}
+      {activeTab === 'KELOLA_PENGUMUMAN' && (
+        <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200/80 shadow-soft space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-100 pb-4">
+            <div>
+              <h2 className="text-lg font-extrabold text-slate-900 flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-amber-600" />
+                Manajemen Pengumuman Penting Warga
+              </h2>
+              <p className="text-xs text-slate-500 mt-0.5">Terbitkan pengumuman darurat, jadwal pelayanan, dan surat edaran desa.</p>
+            </div>
+
+            <button
+              onClick={() => setShowCreateAnnModal(true)}
+              className="px-5 py-2.5 bg-amber-500 hover:bg-amber-400 text-amber-950 font-extrabold text-xs rounded-xl shadow-md flex items-center gap-2 transition-all"
+            >
+              <Plus className="w-4 h-4" /> Buat Pengumuman Baru
+            </button>
+          </div>
+
+          {announcementsList.length === 0 ? (
+            <div className="text-center py-12 bg-slate-50 rounded-2xl border border-dashed border-slate-200 space-y-2">
+              <Megaphone className="w-8 h-8 text-slate-400 mx-auto" />
+              <p className="text-xs text-slate-500 font-bold">Belum ada pengumuman aktif.</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {announcementsList.map((ann) => (
+                <div key={ann.id} className="p-5 rounded-2xl border border-amber-200 bg-amber-50/40 flex justify-between items-start gap-4">
+                  <div className="space-y-1">
+                    <h3 className="text-sm font-bold text-slate-900">{ann.title}</h3>
+                    <p className="text-xs text-slate-700 leading-relaxed">{ann.content}</p>
+                    <span className="text-[10px] text-slate-400 block pt-1">
+                      Diterbitkan: {new Date(ann.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}
+                    </span>
+                  </div>
+
+                  <button
+                    onClick={() => handleDeleteAnnouncement(ann.id, ann.title)}
+                    className="p-2 text-rose-600 hover:bg-rose-100 rounded-xl transition-colors shrink-0"
+                    title="Hapus Pengumuman"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL: TULIS BERITA BARU                                 */}
+      {/* ======================================================== */}
+      {showCreateNewsModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <Newspaper className="w-5 h-5 text-emerald-800" /> Tulis Publikasi Berita Desa
+              </h3>
+              <button onClick={() => setShowCreateNewsModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-800">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateNews} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700">Judul Berita</label>
+                <input
+                  type="text"
+                  value={newsTitle}
+                  onChange={(e) => setNewsTitle(e.target.value)}
+                  placeholder="Contoh: Penyaluran Bantuan Pertanian Desa Jombe 2026..."
+                  required
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-semibold"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700">Kategori Berita</label>
+                  <select
+                    value={newsCategory}
+                    onChange={(e) => setNewsCategory(e.target.value)}
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-semibold"
+                  >
+                    <option value="Pemerintahan">Pemerintahan</option>
+                    <option value="Pembangunan">Pembangunan</option>
+                    <option value="UMKM & Ekonomi">UMKM & Ekonomi</option>
+                    <option value="Sosial & Budaya">Sosial & Budaya</option>
+                    <option value="Kesehatan">Kesehatan</option>
+                  </select>
+                </div>
+
+                <div className="space-y-1">
+                  <label className="font-bold text-slate-700">Ringkasan Singkat (Excerpt)</label>
+                  <input
+                    type="text"
+                    value={newsExcerpt}
+                    onChange={(e) => setNewsExcerpt(e.target.value)}
+                    placeholder="Ringkasan singkat berita untuk kartu beranda..."
+                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700">Isi Berita Lengkap</label>
+                <textarea
+                  rows={6}
+                  value={newsContent}
+                  onChange={(e) => setNewsContent(e.target.value)}
+                  placeholder="Tuliskan isi berita dan informasi desa secara lengkap di sini..."
+                  required
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 leading-relaxed font-sans"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateNewsModal(false)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={newsSaving}
+                  className="px-6 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+                >
+                  <Send className="w-4 h-4" /> {newsSaving ? 'Menerbitkan...' : 'Terbitkan Berita'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ======================================================== */}
+      {/* MODAL: BUAT PENGUMUMAN BARU                              */}
+      {/* ======================================================== */}
+      {showCreateAnnModal && (
+        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
+            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
+              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
+                <Megaphone className="w-5 h-5 text-amber-600" /> Terbitkan Pengumuman Warga
+              </h3>
+              <button onClick={() => setShowCreateAnnModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-800">
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleCreateAnnouncement} className="space-y-4 text-xs">
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700">Judul Pengumuman</label>
+                <input
+                  type="text"
+                  value={annTitle}
+                  onChange={(e) => setAnnTitle(e.target.value)}
+                  placeholder="Contoh: Jadwal Pelayanan Pembuatan Dokumen Kependudukan..."
+                  required
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 bg-slate-50 text-slate-900 font-semibold"
+                />
+              </div>
+
+              <div className="space-y-1">
+                <label className="font-bold text-slate-700">Isi Pengumuman</label>
+                <textarea
+                  rows={4}
+                  value={annContent}
+                  onChange={(e) => setAnnContent(e.target.value)}
+                  placeholder="Tuliskan isi pengumuman atau instruksi untuk warga..."
+                  required
+                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-amber-500 bg-slate-50 text-slate-900 leading-relaxed"
+                />
+              </div>
+
+              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowCreateAnnModal(false)}
+                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  disabled={annSaving}
+                  className="px-6 py-2.5 bg-amber-500 hover:bg-amber-400 text-amber-950 font-extrabold rounded-xl shadow-md flex items-center gap-1.5 transition-all"
+                >
+                  <Send className="w-4 h-4" /> {annSaving ? 'Menerbitkan...' : 'Terbitkan Pengumuman'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* ======================================================== */}
       {/* SCREEN PEMERIKSAAN PERMOHONAN & PRATINJAU SURAT BALASAN */}
