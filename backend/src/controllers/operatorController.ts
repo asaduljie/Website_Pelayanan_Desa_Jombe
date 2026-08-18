@@ -2,32 +2,17 @@ import { Response } from 'express';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import { waApplicationsStore, sendNotificationToCitizenWhatsApp, SERVICE_PHOTO_REQUIREMENTS } from './whatsappBotController';
+import { PersistentDatabase } from '../utils/persistentDb';
 
 export const getOperatorDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
-    let pendingCount = 0;
-    let processingCount = 0;
-    let revisionCount = 0;
-    let completedCount = 0;
-    let totalCount = 0;
+    const allApps = PersistentDatabase.loadApplications();
 
-    try {
-      pendingCount = await prisma.application.count({ where: { status: 'PENDING' } });
-      processingCount = await prisma.application.count({ where: { status: 'PROCESSING' } });
-      revisionCount = await prisma.application.count({ where: { status: 'NEED_REVISION' } });
-      completedCount = await prisma.application.count({ where: { status: 'COMPLETED' } });
-      totalCount = await prisma.application.count();
-    } catch (e) {}
-
-    // Include WA Store count
-    const waPending = waApplicationsStore.filter((w) => w.status === 'PENDING').length;
-    const waProcessing = waApplicationsStore.filter((w) => w.status === 'PROCESSING').length;
-    const waCompleted = waApplicationsStore.filter((w) => w.status === 'COMPLETED').length;
-
-    pendingCount += waPending;
-    processingCount += waProcessing;
-    completedCount += waCompleted;
-    totalCount += waApplicationsStore.length;
+    const pendingCount = allApps.filter((w) => w.status === 'PENDING').length;
+    const processingCount = allApps.filter((w) => w.status === 'PROCESSING').length;
+    const revisionCount = allApps.filter((w) => w.status === 'NEED_REVISION').length;
+    const completedCount = allApps.filter((w) => w.status === 'COMPLETED').length;
+    const totalCount = allApps.length;
 
     return res.status(200).json({
       status: 'success',
@@ -48,32 +33,10 @@ export const getOperatorApplications = async (req: AuthRequest, res: Response) =
   try {
     const { status, search } = req.query;
 
-    let dbApps: any[] = [];
-    try {
-      const where: any = {};
-      if (status && status !== 'ALL') where.status = String(status);
-      if (search) {
-        where.OR = [
-          { applicationNumber: { contains: String(search), mode: 'insensitive' } },
-          { user: { name: { contains: String(search), mode: 'insensitive' } } },
-          { user: { nik: { contains: String(search), mode: 'insensitive' } } },
-        ];
-      }
+    const allApps = PersistentDatabase.loadApplications();
 
-      dbApps = await prisma.application.findMany({
-        where,
-        include: {
-          service: { select: { id: true, name: true, category: true, slug: true } },
-          user: { select: { id: true, name: true, nik: true, phone: true, address: true } },
-          documents: true,
-          fieldValues: { include: { field: true } },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-    } catch (e) {}
-
-    // Map WA applications with their exact uploaded photos
-    const waAppsMapped = waApplicationsStore.map((w) => {
+    // Map persistent applications with full photo and citizen details
+    const waAppsMapped = allApps.map((w) => {
       const serviceSlug = w.serviceSlug || 'surat-keterangan-usaha';
       const defaultReqs = SERVICE_PHOTO_REQUIREMENTS[serviceSlug] || ['Foto e-KTP Asli Pemohon', 'Foto Dokumen Pendukung'];
 
@@ -112,10 +75,9 @@ export const getOperatorApplications = async (req: AuthRequest, res: Response) =
       };
     });
 
-    const combined = [...waAppsMapped, ...dbApps];
-    let filtered = combined;
+    let filtered = waAppsMapped;
     if (status && status !== 'ALL') {
-      filtered = combined.filter((c) => c.status === status);
+      filtered = waAppsMapped.filter((c) => c.status === status);
     }
     if (search) {
       const s = String(search).toLowerCase();
@@ -127,9 +89,7 @@ export const getOperatorApplications = async (req: AuthRequest, res: Response) =
       );
     }
 
-    const uniqueApps = Array.from(new Map(filtered.map((item) => [item.applicationNumber, item])).values());
-
-    return res.status(200).json({ status: 'success', data: uniqueApps });
+    return res.status(200).json({ status: 'success', data: filtered });
   } catch (error) {
     return res.status(500).json({ status: 'error', message: 'Gagal mengambil permohonan operator.' });
   }
@@ -148,21 +108,23 @@ export const approveAndSendLetter = async (req: AuthRequest, res: Response) => {
     let targetServiceName = 'Surat Keterangan Usaha (SKU)';
     let officialLetterNum = letterNumber || `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/2026`;
 
-    // 1. Update in WA Store
-    const waMatch = waApplicationsStore.find((w) => w.id === id || w.applicationNumber === id);
-    if (waMatch) {
-      waMatch.status = 'COMPLETED';
-      if (letterNumber) waMatch.letterNumber = letterNumber;
-      if (letterContent) waMatch.letterContent = letterContent;
-      targetAppNumber = waMatch.applicationNumber;
-      targetPhone = waMatch.userPhone || '6281299887766';
-      targetServiceName = waMatch.serviceName;
-      officialLetterNum = waMatch.letterNumber;
+    // 1. Update in Persistent Database
+    const updated = PersistentDatabase.updateApplication(id, {
+      status: 'COMPLETED',
+      letterNumber: officialLetterNum,
+      letterContent: letterContent || undefined,
+    });
+
+    if (updated) {
+      targetAppNumber = updated.applicationNumber;
+      targetPhone = updated.userPhone || '6281299887766';
+      targetServiceName = updated.serviceName;
+      officialLetterNum = updated.letterNumber;
     }
 
     // 2. Try DB Update
     try {
-      const dbApp = await prisma.application.update({
+      await prisma.application.update({
         where: { id },
         data: {
           status: 'COMPLETED',
@@ -174,13 +136,7 @@ export const approveAndSendLetter = async (req: AuthRequest, res: Response) => {
             },
           },
         },
-        include: { service: true, user: true },
-      });
-      if (dbApp) {
-        targetAppNumber = dbApp.applicationNumber;
-        targetPhone = dbApp.user.phone;
-        targetServiceName = dbApp.service.name;
-      }
+      }).catch(() => null);
     } catch (e) {}
 
     const pdfUrl = `http://localhost:5000/api/operator/pdf/${id}`;
@@ -217,19 +173,13 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
       return res.status(400).json({ status: 'error', message: 'Status baru wajib diisi.' });
     }
 
-    const waMatch = waApplicationsStore.find((w) => w.id === id || w.applicationNumber === id);
-    if (waMatch) {
-      waMatch.status = status;
-      return res.status(200).json({
-        status: 'success',
-        message: `Status permohonan ${waMatch.applicationNumber} diperbarui menjadi ${status}.`,
-        data: waMatch,
-      });
-    }
+    const updated = PersistentDatabase.updateApplication(id, {
+      status,
+      detailValue: revisionNotes ? `Catatan: ${revisionNotes}` : undefined,
+    });
 
-    let updated: any = null;
     try {
-      updated = await prisma.application.update({
+      await prisma.application.update({
         where: { id },
         data: {
           status,
@@ -242,10 +192,8 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
             },
           },
         },
-      });
-    } catch (e) {
-      updated = { id, status, revisionNotes };
-    }
+      }).catch(() => null);
+    } catch (e) {}
 
     return res.status(200).json({
       status: 'success',
@@ -265,52 +213,38 @@ export const createApplicationForCitizen = async (req: AuthRequest, res: Respons
       return res.status(400).json({ status: 'error', message: 'NIK, Nama, dan Jenis Layanan wajib diisi.' });
     }
 
-    let citizen = await prisma.user.findUnique({ where: { nik: citizenNik } }).catch(() => null);
-    if (!citizen) {
-      citizen = await prisma.user.create({
-        data: {
-          nik: citizenNik,
-          name: citizenName,
-          phone: citizenPhone || '081234567890',
-          password: 'password123',
-          address: 'Desa Jombe',
-          role: 'MASYARAKAT',
-        },
-      }).catch(() => null);
-    }
-
-    const count = await prisma.application.count().catch(() => 15);
+    const count = PersistentDatabase.loadApplications().length + 15;
     const applicationNumber = `JMB-${new Date().getFullYear()}-${String(count + 1).padStart(5, '0')}`;
+    const newAppId = `app-assisted-${Date.now()}`;
+    const letterNumber = `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${new Date().getFullYear()}`;
 
-    let app: any = null;
-    try {
-      app = await prisma.application.create({
-        data: {
-          applicationNumber,
-          userId: citizen?.id || 'demo-warga-id-1',
-          serviceId,
-          status: 'PENDING',
-          history: {
-            create: {
-              status: 'PENDING',
-              actorName: `Operator (${req.user!.name})`,
-              notes: `Permohonan dibuatkan oleh Operator (Bantuan WA/Offline). Catatan: ${notes || '-'}`,
-            },
-          },
-        },
-      });
-    } catch (e) {
-      app = {
-        id: `app-assisted-${Date.now()}`,
-        applicationNumber,
-        status: 'PENDING',
-      };
-    }
+    const newRecord: any = {
+      id: newAppId,
+      applicationNumber,
+      userId: `user-${Date.now()}`,
+      userNik: citizenNik,
+      userName: citizenName,
+      userPhone: citizenPhone || '081234567890',
+      serviceId,
+      serviceName: 'Surat Keterangan Usaha (SKU)',
+      serviceSlug: 'surat-keterangan-usaha',
+      status: 'PENDING',
+      detailValue: notes || 'Permohonan dibuatkan oleh Operator',
+      uploadedPhotos: [
+        { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
+        { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
+      ],
+      letterNumber,
+      letterContent: `Menerangkan bahwa ${citizenName} adalah benar warga Desa Jombe dengan keterangan: ${notes || '-'}`,
+      createdAt: new Date().toISOString(),
+    };
+
+    PersistentDatabase.addApplication(newRecord);
 
     return res.status(201).json({
       status: 'success',
       message: `Permohonan bantuan berhasil dibuatkan! Nomor Lacak: ${applicationNumber}`,
-      data: app,
+      data: newRecord,
     });
   } catch (error) {
     return res.status(500).json({ status: 'error', message: 'Gagal membuatkan permohonan warga.' });

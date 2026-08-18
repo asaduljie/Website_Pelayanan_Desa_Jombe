@@ -3,6 +3,7 @@ import { z } from 'zod';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import { waApplicationsStore } from './whatsappBotController';
+import { PersistentDatabase } from '../utils/persistentDb';
 
 export const createApplication = async (req: AuthRequest, res: Response) => {
   try {
@@ -44,8 +45,7 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
       }
     } catch (dbErr) {}
 
-    // Store in shared store so it shows up in dashboards
-    waApplicationsStore.unshift({
+    const newAppRecord = {
       id: newAppId,
       applicationNumber,
       userId,
@@ -64,7 +64,10 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
       letterNumber,
       letterContent: `Menerangkan dengan sebenarnya bahwa ${userName} (NIK: ${userNik}) adalah benar warga Desa Jombe dengan keterangan: ${fieldValues}`,
       createdAt: new Date().toISOString(),
-    });
+    };
+
+    waApplicationsStore.unshift(newAppRecord);
+    PersistentDatabase.addApplication(newAppRecord);
 
     return res.status(201).json({
       status: 'success',

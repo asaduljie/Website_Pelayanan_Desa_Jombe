@@ -58,29 +58,10 @@ export const SERVICE_PHOTO_REQUIREMENTS: Record<string, string[]> = {
   'surat-keterangan-kematian': ['Foto Kartu Keluarga (KK)', 'Foto e-KTP Jenazah', 'Surat Kematian RS / RT'],
 };
 
-// Global In-Memory Shared Store for WhatsApp Applications
-export const waApplicationsStore: WaApplicationRecord[] = [
-  {
-    id: 'wa-app-demo-1',
-    applicationNumber: 'JMB-2026-00012',
-    userId: 'demo-warga-id-1',
-    userNik: '3512345678900001',
-    userName: 'Siti Rahmawati',
-    userPhone: '085712345678',
-    serviceId: 'service-sku-1',
-    serviceName: 'Surat Keterangan Usaha (SKU)',
-    serviceSlug: 'surat-keterangan-usaha',
-    status: 'PROCESSING',
-    detailValue: 'Toko Sembako Berkah, Dusun Krajan RT 02 RW 01',
-    uploadedPhotos: [
-      { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
-      { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
-    ],
-    letterNumber: '503/470/124/DS-JMB/2026',
-    letterContent: 'Menerangkan bahwa Siti Rahmawati memiliki usaha Toko Sembako Berkah di Dusun Krajan RT 02 RW 01 Desa Jombe.',
-    createdAt: new Date().toISOString(),
-  },
-];
+import { PersistentDatabase } from '../utils/persistentDb';
+
+// Global In-Memory Shared Store for WhatsApp Applications (Synced with Persistent Database)
+export const waApplicationsStore: WaApplicationRecord[] = PersistentDatabase.loadApplications();
 
 // Persistent Global In-Memory Store for Chat Histories (by Phone Number)
 export const chatHistories: Record<string, ChatMessage[]> = {
@@ -350,6 +331,7 @@ export const handleIncomingWhatsAppMessageInternal = async (
       };
 
       waApplicationsStore.unshift(newWaApp);
+      PersistentDatabase.addApplication(newWaApp);
 
       try {
         let citizen = await prisma.user.findUnique({ where: { nik: targetNik } }).catch(() => null);
