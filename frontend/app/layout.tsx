@@ -16,6 +16,23 @@ export default function RootLayout({
 }) {
   return (
     <html lang="id">
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              // Ignore third-party Chrome Extension runtime errors from polluting dev overlay
+              if (typeof window !== 'undefined') {
+                window.addEventListener('error', function(e) {
+                  if (e.filename && e.filename.includes('chrome-extension://')) {
+                    e.stopImmediatePropagation();
+                    e.preventDefault();
+                  }
+                }, true);
+              }
+            `,
+          }}
+        />
+      </head>
       <body className="flex flex-col min-h-screen">
         <Navbar />
         <main className="flex-1 pt-20">
