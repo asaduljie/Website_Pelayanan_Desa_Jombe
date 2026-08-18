@@ -505,15 +505,35 @@ export default function OperatorDashboardPage() {
                 ))}
               </div>
 
-              <div className="relative w-full sm:w-64">
-                <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
-                <input
-                  type="text"
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Cari NIK / Nama / No Registrasi..."
-                  className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-medium"
-                />
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <div className="relative flex-1 sm:w-64">
+                  <Search className="w-4 h-4 text-slate-400 absolute left-3 top-3" />
+                  <input
+                    type="text"
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Cari NIK / Nama / No Registrasi..."
+                    className="w-full pl-9 pr-4 py-2 text-xs border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-medium"
+                  />
+                </div>
+
+                {applications.length > 0 && (
+                  <button
+                    onClick={async () => {
+                      if (!confirm('Kosongkan semua berkas permohonan yang ada di daftar?')) return;
+                      try {
+                        await api.post('/operator/applications/clear-all');
+                        fetchDashboardData();
+                      } catch (e) {
+                        alert('Gagal mengosongkan berkas.');
+                      }
+                    }}
+                    className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5"
+                    title="Kosongkan Semua Berkas Uji Coba"
+                  >
+                    <Trash2 className="w-3.5 h-3.5" /> Bersihkan Semua
+                  </button>
+                )}
               </div>
             </div>
 
@@ -565,12 +585,29 @@ export default function OperatorDashboardPage() {
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => handleSelectApp(app)}
-                            className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs transition-colors shadow-xs flex items-center gap-1.5 ml-auto"
-                          >
-                            <Eye className="w-3.5 h-3.5" /> Periksa Permohonan & Foto
-                          </button>
+                          <div className="flex items-center justify-end gap-2">
+                            <button
+                              onClick={() => handleSelectApp(app)}
+                              className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs transition-colors shadow-xs flex items-center gap-1.5"
+                            >
+                              <Eye className="w-3.5 h-3.5" /> Periksa Permohonan & Foto
+                            </button>
+                            <button
+                              onClick={async () => {
+                                if (!confirm(`Hapus permohonan ${app.applicationNumber} (${app.user?.name})?`)) return;
+                                try {
+                                  await api.delete(`/operator/applications/${app.id}`);
+                                  fetchDashboardData();
+                                } catch (e) {
+                                  alert('Gagal menghapus berkas.');
+                                }
+                              }}
+                              className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-xl transition-colors"
+                              title="Hapus Berkas Ini"
+                            >
+                              <Trash2 className="w-4 h-4" />
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     ))}

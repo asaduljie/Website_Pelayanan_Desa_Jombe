@@ -6,8 +6,10 @@ import {
   getOperatorDashboardStats,
   getOperatorApplications,
   updateApplicationStatus,
-  createApplicationForCitizen,
   approveAndSendLetter,
+  createApplicationForCitizen,
+  deleteOperatorApplication,
+  clearAllOperatorApplications,
 } from '../controllers/operatorController';
 import { getDocumentAccessToken, streamPrivateDocument } from '../controllers/documentController';
 import { generateLetterPdf, downloadApplicationPdf } from '../controllers/pdfController';
@@ -87,6 +89,8 @@ router.post('/operator/applications/:id/approve-and-send', authenticateToken, au
 
 // Operator assisted creation
 router.post('/operator/applications/assisted', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), logAuditTrail('ASSISTED_APP_CREATE'), createApplicationForCitizen);
+router.delete('/operator/applications/:id', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), deleteOperatorApplication);
+router.post('/operator/applications/clear-all', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), clearAllOperatorApplications);
 
 // PDF Generation & Direct Streaming
 router.post('/operator/applications/generate-letter', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), logAuditTrail('GENERATE_LETTER_PDF'), generateLetterPdf);

@@ -250,3 +250,33 @@ export const createApplicationForCitizen = async (req: AuthRequest, res: Respons
     return res.status(500).json({ status: 'error', message: 'Gagal membuatkan permohonan warga.' });
   }
 };
+
+export const deleteOperatorApplication = async (req: AuthRequest, res: Response) => {
+  try {
+    const { id } = req.params;
+    PersistentDatabase.deleteApplication(id);
+    try {
+      await prisma.application.delete({ where: { id } }).catch(() => null);
+    } catch (e) {}
+
+    return res.status(200).json({
+      status: 'success',
+      message: 'Berkas permohonan berhasil dihapus.',
+    });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: 'Gagal menghapus berkas permohonan.' });
+  }
+};
+
+export const clearAllOperatorApplications = async (req: AuthRequest, res: Response) => {
+  try {
+    PersistentDatabase.clearApplications();
+    return res.status(200).json({
+      status: 'success',
+      message: 'Seluruh berkas permohonan berhasil dikosongkan.',
+    });
+  } catch (error) {
+    return res.status(500).json({ status: 'error', message: 'Gagal mengosongkan berkas.' });
+  }
+};
+
