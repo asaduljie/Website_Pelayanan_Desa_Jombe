@@ -132,18 +132,21 @@ export default function ServiceApplicationFormPage() {
     // Auto Compress Image
     const compressedBlob = await compressImage(file);
     const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type });
-    const previewUrl = file.type.startsWith('image/') ? URL.createObjectURL(compressedBlob) : '';
-
     const sizeKb = Math.round(compressedBlob.size / 1024);
 
-    setUploadedFiles((prev) => ({
-      ...prev,
-      [docId]: {
-        file: compressedFile,
-        preview: previewUrl,
-        compressedSize: `${sizeKb} KB (Terkonversi Ringan)`,
-      },
-    }));
+    const reader = new FileReader();
+    reader.readAsDataURL(compressedBlob);
+    reader.onloadend = () => {
+      const base64data = reader.result as string;
+      setUploadedFiles((prev) => ({
+        ...prev,
+        [docId]: {
+          file: compressedFile,
+          preview: base64data,
+          compressedSize: `${sizeKb} KB (Terkonversi Ringan)`,
+        },
+      }));
+    };
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -160,9 +163,22 @@ export default function ServiceApplicationFormPage() {
     setSubmitting(true);
     try {
       const token = localStorage.getItem('jombe_token');
+
+      const photosArray = Object.entries(uploadedFiles).map(([docId, fileItem]) => {
+        const matchingDoc = requiredDocs.find((d) => d.id === docId);
+        return {
+          title: matchingDoc ? matchingDoc.label : `Foto Dokumen ${docId}`,
+          type: docId.toUpperCase(),
+          url: fileItem.preview,
+        };
+      });
+
       const dataPayload = {
         serviceId: service?.id || 'service-sku-1',
+        serviceName: service?.name || 'Surat Keterangan Usaha (SKU)',
+        serviceSlug: slug,
         fieldValues: Object.entries(formData).map(([k, v]) => `${k}: ${v}`).join(', ') || 'Permohonan Surat Keterangan Usaha Desa Jombe',
+        uploadedPhotos: photosArray,
       };
 
       const res = await api.post('/applications', dataPayload, {
@@ -170,7 +186,7 @@ export default function ServiceApplicationFormPage() {
       });
 
       if (res.data.status === 'success') {
-        alert(`Permohonan Surat Berhasil Dikirim!\n\nNomor Registrasi: ${res.data.data.applicationNumber}\nDokumen Surat Permohonan Anda telah masuk ke sistem Operator Desa Jombe.`);
+        alert(`Permohonan Surat Berhasil Dikirim!\n\nNomor Registrasi: ${res.data.data.applicationNumber}\nDokumen Surat Permohonan & Foto Asli Anda telah masuk ke sistem Operator Desa Jombe.`);
         router.push('/dashboard');
       }
     } catch (err: any) {

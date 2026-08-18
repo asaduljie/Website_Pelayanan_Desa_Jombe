@@ -9,18 +9,19 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id || 'demo-warga-id-1';
     const userNik = req.user?.nik || '3512345678900001';
     const userName = req.user?.name || 'Siti Rahmawati';
-    const { serviceId, fieldValues } = req.body;
+    const { serviceId, serviceName: customServiceName, serviceSlug, fieldValues, uploadedPhotos } = req.body;
 
     const appCount = waApplicationsStore.length + 12;
     const applicationNumber = `JMB-${new Date().getFullYear()}-${String(appCount + 1).padStart(5, '0')}`;
 
-    let serviceName = 'Surat Keterangan Usaha (SKU)';
-    if (serviceId) {
+    let serviceName = customServiceName || 'Surat Keterangan Usaha (SKU)';
+    if (serviceId && !customServiceName) {
       const s = await prisma.service.findUnique({ where: { id: serviceId } }).catch(() => null);
       if (s) serviceName = s.name;
     }
 
     const newAppId = `app-web-${Date.now()}`;
+    const letterNumber = `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${new Date().getFullYear()}`;
 
     // Try saving DB
     try {
@@ -53,8 +54,15 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
       userPhone: req.user?.phone || '085712345678',
       serviceId: serviceId || 'service-sku-1',
       serviceName,
+      serviceSlug: serviceSlug || 'surat-keterangan-usaha',
       status: 'PENDING',
       detailValue: typeof fieldValues === 'string' ? fieldValues : 'Pengajuan Surat Online Website Jombe Digital',
+      uploadedPhotos: Array.isArray(uploadedPhotos) && uploadedPhotos.length > 0 ? uploadedPhotos : [
+        { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
+        { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
+      ],
+      letterNumber,
+      letterContent: `Menerangkan dengan sebenarnya bahwa ${userName} (NIK: ${userNik}) adalah benar warga Desa Jombe dengan keterangan: ${fieldValues}`,
       createdAt: new Date().toISOString(),
     });
 
