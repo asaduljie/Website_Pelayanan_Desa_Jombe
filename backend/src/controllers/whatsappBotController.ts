@@ -100,6 +100,52 @@ interface SessionState {
 
 const chatSessions: Record<string, SessionState> = {};
 
+// ==================== VALIDATION HELPERS ====================
+export const validateNik = (nikStr: string): { isValid: boolean; errorAlert?: string; cleanNik: string } => {
+  const clean = nikStr.replace(/[\s\-_.]/g, '');
+  if (!/^\d+$/.test(clean)) {
+    return {
+      isValid: false,
+      cleanNik: clean,
+      errorAlert: `⚠️ *FORMAT NIK SALAH*\n\nNIK hanya boleh berisi karakter angka (0-9) tanpa huruf, tanda baca, atau spasi.\n\nSilakan masukkan kembali 16 digit NIK Anda yang tertera di e-KTP / Kartu Keluarga:`,
+    };
+  }
+  if (clean.length < 16) {
+    return {
+      isValid: false,
+      cleanNik: clean,
+      errorAlert: `⚠️ *JUMLAH DIGIT NIK KURANG*\n\nNIK yang Anda masukkan baru berjumlah *${clean.length} digit*.\nSesuai standar e-KTP Republik Indonesia, NIK wajib berjumlah *tepat 16 digit angka*.\n\nSilakan periksa kembali dan masukkan 16 digit NIK Anda:`,
+    };
+  }
+  if (clean.length > 16) {
+    return {
+      isValid: false,
+      cleanNik: clean,
+      errorAlert: `⚠️ *JUMLAH DIGIT NIK BERLEBIH*\n\nNIK yang Anda masukkan berjumlah *${clean.length} digit* (melebihi batas 16 digit).\n\nSilakan periksa kembali dan ketik ulang 16 digit NIK Anda:`,
+    };
+  }
+  return { isValid: true, cleanNik: clean };
+};
+
+export const validateName = (nameStr: string): { isValid: boolean; errorAlert?: string; cleanName: string } => {
+  const clean = nameStr.trim();
+  if (clean.length < 3) {
+    return {
+      isValid: false,
+      cleanName: clean,
+      errorAlert: `⚠️ *NAMA LENGKAP TIDAK VALID*\n\nNama yang Anda masukkan terlalu pendek (minimal 3 karakter huruf).\n\nSilakan masukkan Nama Lengkap Anda sesuai KTP:`,
+    };
+  }
+  if (!/[a-zA-Z]/.test(clean)) {
+    return {
+      isValid: false,
+      cleanName: clean,
+      errorAlert: `⚠️ *NAMA LENGKAP HARUS MENGANDUNG HURUF*\n\nSilakan masukkan Nama Lengkap Anda sesuai KTP (contoh: Budi Santoso):`,
+    };
+  }
+  return { isValid: true, cleanName: clean };
+};
+
 export const getChatHistory = (req: Request, res: Response) => {
   const phone = String(req.query.phone || '6281299887766').trim();
   const history = chatHistories[phone] || [getInitialGreeting()];
@@ -253,20 +299,26 @@ export const handleIncomingWhatsAppMessageInternal = async (
       botReply = `Ketik *SKU*, *DOMISILI*, atau *SKTM* untuk melanjutkan permohonan surat.`;
     }
   } else if (session.step === 'ASK_NIK') {
-    if (userText.length < 10) {
-      botReply = `Nomor NIK kurang valid. Silakan masukkan 16 digit NIK Anda:`;
+    const nikCheck = validateNik(userText);
+    if (!nikCheck.isValid) {
+      botReply = nikCheck.errorAlert || `⚠️ NIK tidak valid. Silakan masukkan tepat 16 digit angka NIK Anda:`;
     } else {
-      session.nik = userText;
+      session.nik = nikCheck.cleanNik;
       session.step = 'ASK_NAME';
-      botReply = `Langkah 2 dari 4:\nMasukkan *Nama Lengkap* Anda sesuai KTP:`;
+      botReply = `NIK Anda (*${nikCheck.cleanNik}*) terverifikasi sah 16 digit ✓\n\nLangkah 2 dari 4:\nMasukkan *Nama Lengkap* Anda sesuai yang tertera di KTP:`;
     }
   } else if (session.step === 'ASK_NAME') {
-    session.name = userText;
-    session.step = 'ASK_DETAIL';
-    if (session.serviceSlug === 'surat-keterangan-usaha') {
-      botReply = `Langkah 3 dari 4:\nMasukkan *Nama Usaha & Alamat Usaha* Anda:\n_(Contoh: Toko Sembako Berkah, Dusun Krajan RT 02)_`;
+    const nameCheck = validateName(userText);
+    if (!nameCheck.isValid) {
+      botReply = nameCheck.errorAlert || `⚠️ Nama tidak valid. Silakan masukkan Nama Lengkap Anda:`;
     } else {
-      botReply = `Langkah 3 dari 4:\nMasukkan *Alamat Lengkap & Keperluan Surat* Anda:`;
+      session.name = nameCheck.cleanName;
+      session.step = 'ASK_DETAIL';
+      if (session.serviceSlug === 'surat-keterangan-usaha') {
+        botReply = `Langkah 3 dari 4:\nMasukkan *Nama Usaha & Alamat Usaha* Anda:\n_(Contoh: Toko Sembako Berkah, Dusun Krajan RT 02)_`;
+      } else {
+        botReply = `Langkah 3 dari 4:\nMasukkan *Alamat Lengkap & Keperluan Surat* Anda:`;
+      }
     }
   } else if (session.step === 'ASK_DETAIL') {
     session.detailValue = userText;
@@ -415,25 +467,31 @@ export const handleIncomingWhatsAppMessageInternal = async (
   // FLOW B: LAYANAN PENGADUAN & ASPIRASI WARGA
   // ==========================================
   else if (session.step === 'ASK_COMPLAINT_NIK') {
-    if (userText.length < 10) {
-      botReply = `Nomor NIK kurang valid. Silakan masukkan 16 digit NIK Anda:`;
+    const nikCheck = validateNik(userText);
+    if (!nikCheck.isValid) {
+      botReply = nikCheck.errorAlert || `⚠️ NIK tidak valid. Silakan masukkan tepat 16 digit angka NIK Anda:`;
     } else {
-      session.nik = userText;
+      session.nik = nikCheck.cleanNik;
       session.step = 'ASK_COMPLAINT_NAME';
-      botReply = `Langkah 2 dari 5:\nMasukkan *Nama Lengkap* Anda sebagai pelapor:`;
+      botReply = `NIK Pelapor (*${nikCheck.cleanNik}*) terverifikasi 16 digit ✓\n\nLangkah 2 dari 5:\nMasukkan *Nama Lengkap* Anda sebagai pelapor:`;
     }
   } else if (session.step === 'ASK_COMPLAINT_NAME') {
-    session.name = userText;
-    session.step = 'ASK_COMPLAINT_CATEGORY';
-    botReply =
-      `Langkah 3 dari 5:\n` +
-      `Pilih *Kategori Pengaduan* Anda:\n` +
-      `- Ketik *1* untuk Fasilitas Publik & Jalan Rusak\n` +
-      `- Ketik *2* untuk Pelayanan Kantor Desa\n` +
-      `- Ketik *3* untuk Kebersihan, Sampah & Saluran Air\n` +
-      `- Ketik *4* untuk Keamanan & Ketertiban Lingkungan\n` +
-      `- Ketik *5* untuk Bantuan Sosial & Lainnya\n\n` +
-      `_Ketik angka 1-5 atau tulis langsung kategorinya:_`;
+    const nameCheck = validateName(userText);
+    if (!nameCheck.isValid) {
+      botReply = nameCheck.errorAlert || `⚠️ Nama tidak valid. Silakan masukkan Nama Lengkap Anda:`;
+    } else {
+      session.name = nameCheck.cleanName;
+      session.step = 'ASK_COMPLAINT_CATEGORY';
+      botReply =
+        `Langkah 3 dari 5:\n` +
+        `Pilih *Kategori Pengaduan* Anda:\n` +
+        `- Ketik *1* untuk Fasilitas Publik & Jalan Rusak\n` +
+        `- Ketik *2* untuk Pelayanan Kantor Desa\n` +
+        `- Ketik *3* untuk Kebersihan, Sampah & Saluran Air\n` +
+        `- Ketik *4* untuk Keamanan & Ketertiban Lingkungan\n` +
+        `- Ketik *5* untuk Bantuan Sosial & Lainnya\n\n` +
+        `_Ketik angka 1-5 atau tulis langsung kategorinya:_`;
+    }
   } else if (session.step === 'ASK_COMPLAINT_CATEGORY') {
     let cat = userText;
     if (userText === '1' || upperText.includes('FASILITAS') || upperText.includes('JALAN')) cat = 'Fasilitas Publik & Jalan';
