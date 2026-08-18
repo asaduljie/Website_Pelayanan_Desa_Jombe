@@ -1173,68 +1173,20 @@ export default function OperatorDashboardPage() {
                   onChange={(e) => setComplaintStatusUpdate(e.target.value)}
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-bold"
                 >
-                  <option value="SUBMITTED">⏳ Menunggu Pemeriksaan Operator (SUBMITTED)</option>
-                  <option value="PROCESSING">🚀 Diterima & Diteruskan ke Petugas Lapangan (PROCESSING)</option>
-                  <option value="RESOLVED">✅ Selesai Ditangani Petugas Lapangan (RESOLVED)</option>
+                  <option value="SUBMITTED">⏳ Menunggu Pemeriksaan (SUBMITTED)</option>
+                  <option value="PROCESSING">🚀 Sedang Diproses Operator (PROCESSING)</option>
+                  <option value="RESOLVED">✅ Selesai Ditangani (RESOLVED)</option>
                   <option value="REJECTED">❌ Ditolak / Tidak Valid (REJECTED)</option>
                 </select>
               </div>
 
-              {/* Petugas Lapangan & Disposisi WhatsApp */}
-              <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200/80 space-y-3">
-                <div className="flex justify-between items-center">
-                  <span className="font-bold text-emerald-950 flex items-center gap-1.5">
-                    <UserCheck className="w-4 h-4 text-emerald-800" /> Disposisi Petugas Lapangan Desa:
-                  </span>
-                  <span className="text-[10px] text-emerald-700 font-bold uppercase">Layanan Koordinasi Lapangan</span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-700">Pilih Petugas / Unit Terkait:</label>
-                    <select
-                      value={assignedOfficer}
-                      onChange={(e) => setAssignedOfficer(e.target.value)}
-                      className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-xl text-slate-900 font-medium"
-                    >
-                      <option value="Kepala Dusun I (Krajan)">Kepala Dusun I (Krajan)</option>
-                      <option value="Kepala Dusun II (Jombe Barat)">Kepala Dusun II (Jombe Barat)</option>
-                      <option value="Kepala Dusun III (Jombe Timur)">Kepala Dusun III (Jombe Timur)</option>
-                      <option value="Seksi Kebersihan & Pengelolaan Sampah">Seksi Kebersihan & Pengelolaan Sampah</option>
-                      <option value="Seksi Ketertiban & Linmas Desa">Seksi Ketertiban & Linmas Desa</option>
-                      <option value="Seksi Pembangunan & Infrastruktur">Seksi Pembangunan & Infrastruktur</option>
-                      <option value="Bhabinkamtibmas / Babinsa Desa">Bhabinkamtibmas / Babinsa Desa</option>
-                    </select>
-                  </div>
-
-                  <div className="space-y-1">
-                    <label className="text-[11px] font-bold text-slate-700">Nomor WhatsApp Petugas:</label>
-                    <input
-                      type="text"
-                      value={officerPhone}
-                      onChange={(e) => setOfficerPhone(e.target.value)}
-                      placeholder="081234567890"
-                      className="w-full px-3 py-2 bg-white border border-emerald-200 rounded-xl text-slate-900 font-mono font-medium"
-                    />
-                  </div>
-                </div>
-
-                <button
-                  type="button"
-                  onClick={handleForwardToOfficerWhatsApp}
-                  className="w-full py-2.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl shadow-xs flex items-center justify-center gap-2 transition-colors"
-                >
-                  <MessageSquare className="w-4 h-4" /> Hubungi & Teruskan Laporan via WhatsApp Petugas
-                </button>
-              </div>
-
               <div className="space-y-1">
-                <label className="font-bold text-slate-800">Catatan Tanggapan Resmi Operator untuk Warga</label>
+                <label className="font-bold text-slate-800">Catatan Tanggapan Resmi Operator Desa</label>
                 <textarea
                   rows={3}
                   value={complaintAdminResponse}
                   onChange={(e) => setComplaintAdminResponse(e.target.value)}
-                  placeholder="Contoh: Laporan telah diterima oleh operator desa dan saat ini telah diteruskan kepada Kepala Dusun / Tim Terkait untuk penanganan langsung di lokasi."
+                  placeholder="Tuliskan keterangan resmi penanganan untuk warga..."
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 leading-relaxed font-sans"
                 />
               </div>
