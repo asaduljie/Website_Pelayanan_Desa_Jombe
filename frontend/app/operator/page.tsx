@@ -31,6 +31,8 @@ import {
   Trash2,
   Megaphone,
   Tag,
+  MessageSquare,
+  UserCheck,
 } from 'lucide-react';
 import api from '@/lib/api';
 
