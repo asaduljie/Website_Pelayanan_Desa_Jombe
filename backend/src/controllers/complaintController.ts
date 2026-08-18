@@ -22,6 +22,7 @@ export const createComplaint = async (req: AuthRequest, res: Response) => {
       return res.status(400).json({ status: 'error', message: 'Judul, Kategori, dan Deskripsi pengaduan wajib diisi.' });
     }
 
+    const resolvedPhotoUrl = req.body.photoUrl || (photoFile ? photoFile.path.replace(/\\/g, '/') : undefined);
     const ticketNumber = generateComplaintTicket();
 
     const newRecord: ComplaintRecord = {
@@ -35,7 +36,7 @@ export const createComplaint = async (req: AuthRequest, res: Response) => {
       category,
       description,
       location: location || 'Desa Jombe',
-      photoUrl: photoFile ? photoFile.path : undefined,
+      photoUrl: resolvedPhotoUrl,
       status: 'SUBMITTED',
       createdAt: new Date().toISOString(),
     };

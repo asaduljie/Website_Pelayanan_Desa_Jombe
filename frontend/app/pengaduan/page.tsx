@@ -51,15 +51,21 @@ export default function PengaduanPage() {
     setSuccessMessage('');
 
     try {
-      const formData = new FormData();
-      formData.append('title', title);
-      formData.append('category', category);
-      formData.append('description', description);
-      formData.append('location', location);
-      if (photo) formData.append('photo', photo);
+      let photoBase64 = '';
+      if (photo) {
+        photoBase64 = await new Promise<string>((resolve) => {
+          const reader = new FileReader();
+          reader.onloadend = () => resolve(reader.result as string);
+          reader.readAsDataURL(photo);
+        });
+      }
 
-      const res = await api.post('/complaints', formData, {
-        headers: { 'Content-Type': 'multipart/form-data' },
+      const res = await api.post('/complaints', {
+        title,
+        category,
+        description,
+        location,
+        photoUrl: photoBase64 || undefined,
       });
 
       if (res.data.status === 'success') {
