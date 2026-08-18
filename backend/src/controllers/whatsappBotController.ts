@@ -67,6 +67,40 @@ export const chatHistories: Record<string, ChatMessage[]> = {
   '6281299887766': [getInitialGreeting()],
 };
 
+export const sendNotificationToCitizenWhatsApp = (
+  phone: string,
+  appNumber: string,
+  serviceName: string,
+  letterNumber: string,
+  pdfUrl: string
+) => {
+  const cleanPhone = String(phone).replace(/\D/g, '') || '6281299887766';
+  if (!chatHistories[cleanPhone]) {
+    chatHistories[cleanPhone] = [getInitialGreeting()];
+  }
+
+  const notifMsg = `*SURAT RESMI TELAH SELESAI DITERBITKAN*\n\n` +
+    `Pemerintah Desa Jombe memberitahukan bahwa permohonan Anda:\n` +
+    `📄 Layanan: *${serviceName || 'Surat Keterangan'}*\n` +
+    `🔢 No. Registrasi: *${appNumber}*\n` +
+    `📜 No. Surat Resmi: *${letterNumber}*\n\n` +
+    `Surat telah disetujui dan ditandatangani oleh Kepala Desa Jombe.\n\n` +
+    `📥 *Unduh Berkas Surat PDF:* ${pdfUrl}\n\n` +
+    `Terima kasih telah menggunakan Layanan Mandiri Digital Desa Jombe.`;
+
+  const currentTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  chatHistories[cleanPhone].push({
+    id: `msg-notif-${Date.now()}`,
+    sender: 'bot',
+    text: notifMsg,
+    timestamp: currentTime,
+    pdfUrl: pdfUrl,
+    letterNumber: letterNumber,
+  });
+
+  return notifMsg;
+};
+
 // In-memory Session State Machine for WhatsApp Chat Bot
 interface SessionState {
   phone: string;
