@@ -30,7 +30,7 @@ import {
   getChatHistory,
   getBaileysStatus,
   startBaileysConnection,
-  disconnectBaileysSession,
+  disconnectBaileys,
 } from '../controllers/whatsappBotController';
 
 import { authenticateToken, authorizeRoles, verifyApplicationOwnership } from '../middleware/auth';
@@ -121,6 +121,6 @@ router.get('/whatsapp/history', waBotLimiter, getChatHistory);
 // Real Baileys WhatsApp Engine Endpoints
 router.get('/whatsapp/status', getBaileysStatus);
 router.post('/whatsapp/connect', startBaileysConnection);
-router.post('/whatsapp/disconnect', disconnectBaileysSession);
+router.post('/whatsapp/disconnect', disconnectBaileys);
 
 export default router;
