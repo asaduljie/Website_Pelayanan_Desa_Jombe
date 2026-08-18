@@ -3,6 +3,7 @@ import makeWASocket, {
   useMultiFileAuthState,
   WASocket,
   fetchLatestBaileysVersion,
+  downloadMediaMessage,
 } from '@whiskeysockets/baileys';
 import QRCode from 'qrcode';
 import path from 'path';
@@ -138,17 +139,51 @@ class WhatsAppBaileysEngine {
         if (remoteJid.includes('@g.us')) return;
 
         const senderPhone = remoteJid.replace('@s.whatsapp.net', '');
-        const messageText =
+        let messageText =
           msg.message.conversation ||
           msg.message.extendedTextMessage?.text ||
           msg.message.imageMessage?.caption ||
           '';
 
-        console.log(`📩 [Baileys] Pesan masuk dari ${senderPhone}: "${messageText}"`);
+        let imageUrl: string | undefined = undefined;
+        let imageCaption: string | undefined = undefined;
+
+        // Process incoming image from real WhatsApp
+        if (msg.message.imageMessage) {
+          try {
+            const buffer = await downloadMediaMessage(
+              msg,
+              'buffer',
+              {},
+              {
+                logger: pino({ level: 'silent' }),
+                reuploadRequest: this.sock!.updateMediaMessage,
+              }
+            );
+            if (buffer) {
+              const base64Str = (buffer as Buffer).toString('base64');
+              const mimeType = msg.message.imageMessage.mimetype || 'image/jpeg';
+              imageUrl = `data:${mimeType};base64,${base64Str}`;
+              imageCaption = msg.message.imageMessage.caption || 'Foto Dikirim via WhatsApp';
+              if (!messageText) {
+                messageText = 'FOTO_TERKIRIM';
+              }
+            }
+          } catch (imgErr) {
+            console.error('Failed to download incoming WhatsApp image:', imgErr);
+          }
+        }
+
+        console.log(`📩 [Baileys] Pesan masuk dari ${senderPhone}: "${messageText}" (Foto: ${!!imageUrl})`);
 
         try {
           const { handleIncomingWhatsAppMessageInternal } = await import('../controllers/whatsappBotController');
-          const botResponse = await handleIncomingWhatsAppMessageInternal(senderPhone, messageText);
+          const botResponse = await handleIncomingWhatsAppMessageInternal(
+            senderPhone,
+            messageText,
+            imageUrl,
+            imageCaption
+          );
 
           if (botResponse && botResponse.reply) {
             await this.sendMessage(remoteJid, botResponse.reply);
