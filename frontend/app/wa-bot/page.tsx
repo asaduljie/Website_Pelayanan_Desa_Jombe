@@ -42,12 +42,11 @@ const INITIAL_GREETING_MESSAGE: ChatBubble = {
   id: 'msg-init',
   sender: 'bot',
   text:
-    '*LAYANAN WHATSAPP RESMI DESA JOMBE*\n\n' +
-    'Silakan ketik kode surat yang ingin Anda ajukan:\n' +
-    '- Ketik *SKU* (Surat Keterangan Usaha)\n' +
-    '- Ketik *DOMISILI* (Surat Keterangan Domisili)\n' +
-    '- Ketik *SKTM* (Surat Keterangan Tidak Mampu)\n\n' +
-    '_Ketik salah satu kode layanan di atas:_',
+    '*PUSAT PELAYANAN WHATSAPP RESMI DESA JOMBE*\n\n' +
+    'Silakan pilih menu layanan yang Anda butuhkan:\n' +
+    '1️⃣ Ketik *1* untuk *Pengajuan Surat Online* (SKU, Domisili, SKTM)\n' +
+    '2️⃣ Ketik *2* untuk *Layanan Pengaduan & Aspirasi Warga*\n\n' +
+    '_Ketik nomor 1 atau 2, atau klik tombol Opsi Cepat di bawah:_',
   timestamp: '09:41',
 };
 
