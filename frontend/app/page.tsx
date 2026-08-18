@@ -116,34 +116,45 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-      {/* HERO SECTION */}
-      <section className="relative overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-800 text-white pt-16 pb-28 lg:pt-24 lg:pb-36 border-b border-emerald-800/40">
+      {/* HERO SECTION WITH REAL VILLAGE LANDSCAPE BACKGROUND */}
+      <section className="relative overflow-hidden text-white pt-20 pb-32 lg:pt-28 lg:pb-40 border-b border-emerald-900/40">
+        {/* Background Image with Ambient Overlay */}
+        <div
+          className="absolute inset-0 bg-cover bg-center bg-no-repeat scale-105 transition-transform duration-1000"
+          style={{
+            backgroundImage: "url('/images/hero-desa-jombe.jpg')",
+          }}
+        />
+        {/* Deep Emerald Gradient & Vignette Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-r from-emerald-950/95 via-emerald-950/80 to-emerald-900/70" />
+        <div className="absolute inset-0 bg-black/20 backdrop-blur-[0.5px]" />
+
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
           <div className="max-w-3xl text-center mx-auto space-y-6">
-            <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-800/80 border border-emerald-600/40 text-emerald-100 text-xs font-semibold backdrop-blur-md shadow-xs">
-              <Landmark className="w-3.5 h-3.5 text-emerald-300" />
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-emerald-950/80 border border-emerald-400/40 text-emerald-100 text-xs font-semibold backdrop-blur-md shadow-lg">
+              <Landmark className="w-4 h-4 text-emerald-300" />
               Portal Resmi Pelayanan Administrasi Desa Jombe
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight">
-              Pelayanan Publik Digital <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 to-teal-100">Desa Jombe</span>
+            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-extrabold text-white tracking-tight leading-tight drop-shadow-md">
+              Pelayanan Publik Digital <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-200 via-teal-100 to-amber-200">Desa Jombe</span>
             </h1>
 
-            <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed font-normal max-w-2xl mx-auto">
-              Layanan mandiri pengajuan surat administrasi kependudukan, perizinan usaha, dan pengaduan masyarakat secara transparan, cepat, dan terintegrasi.
+            <p className="text-sm sm:text-base text-emerald-100/95 leading-relaxed font-normal max-w-2xl mx-auto drop-shadow-xs">
+              Layanan mandiri pengajuan surat administrasi kependudukan, perizinan usaha, dan pengaduan masyarakat secara transparan, cepat, dan terintegrasi dalam genggaman warga.
             </p>
 
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5">
               <Link
                 href="/layanan"
-                className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-sm shadow-md hover:shadow-emerald-500/25 transition-all flex items-center justify-center gap-2 group"
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-sm shadow-xl hover:shadow-emerald-500/30 transition-all flex items-center justify-center gap-2 group transform hover:-translate-y-0.5"
               >
                 Ajukan Permohonan Surat
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
               <Link
                 href="/wa-bot"
-                className="w-full sm:w-auto px-7 py-3.5 rounded-xl bg-white/10 hover:bg-white/20 text-white font-semibold text-sm backdrop-blur-md border border-white/20 transition-all flex items-center justify-center gap-2"
+                className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-bold text-sm backdrop-blur-md border border-white/30 transition-all flex items-center justify-center gap-2 shadow-lg"
               >
                 <MessageSquare className="w-4 h-4 text-emerald-300" />
                 Layanan Chat WhatsApp
@@ -153,7 +164,7 @@ export default function HomePage() {
         </div>
 
         {/* Bottom Shape Separator */}
-        <div className="absolute bottom-0 left-0 right-0 h-10 bg-slate-50/50 rounded-t-[36px]" />
+        <div className="absolute bottom-0 left-0 right-0 h-12 bg-slate-50/50 rounded-t-[40px]" />
       </section>
 
       {/* TRACKING & WHATSAPP QUICK STATUS SECTION */}
