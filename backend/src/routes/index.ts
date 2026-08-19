@@ -34,6 +34,7 @@ import {
   startBaileysConnection,
   disconnectBaileys,
 } from '../controllers/whatsappBotController';
+import { verifyTteDocument } from '../controllers/verifyTteController';
 
 import { authenticateToken, authorizeRoles, verifyApplicationOwnership } from '../middleware/auth';
 import { authLimiter, waBotLimiter, sanitizeInputMiddleware } from '../middleware/security';
@@ -41,6 +42,9 @@ import { uploadMiddleware, verifyUploadedFileSignature } from '../middleware/upl
 import { logAuditTrail } from '../middleware/audit';
 
 const router = Router();
+
+// ==================== PUBLIC TTE VERIFICATION ROUTE ====================
+router.get('/public/verify-tte/:idOrNumber', verifyTteDocument);
 
 // Global sanitization on all incoming requests
 router.use(sanitizeInputMiddleware);

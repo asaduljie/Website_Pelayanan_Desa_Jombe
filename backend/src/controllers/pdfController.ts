@@ -1,5 +1,6 @@
 import { Response } from 'express';
 import PDFDocument from 'pdfkit';
+import QRCode from 'qrcode';
 import fs from 'fs';
 import path from 'path';
 import prisma from '../config/db';
@@ -103,25 +104,25 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
       .lineTo(545, doc.y)
       .lineWidth(2)
       .stroke();
-    doc.moveDown(1.5);
+    doc.moveDown(1.2);
 
     // Judul Surat & Nomor
     doc
-      .fontSize(14)
+      .fontSize(13)
       .font('Helvetica-Bold')
       .text((application.service?.name || 'SURAT KETERANGAN').toUpperCase(), { align: 'center', underline: true })
-      .fontSize(11)
+      .fontSize(10)
       .font('Helvetica')
       .text(`Nomor: ${letterNumber}`, { align: 'center' })
-      .moveDown(1.5);
+      .moveDown(1.2);
 
     // Isi Surat
     doc
-      .fontSize(11)
+      .fontSize(10.5)
       .text('Yang bertanda tangan di bawah ini Kepala Desa Jombe, Kecamatan Jombang, Kabupaten Jombang, menerangkan dengan sebenarnya bahwa:', {
         align: 'justify',
       })
-      .moveDown();
+      .moveDown(0.8);
 
     // Data Identitas Pemohon
     doc
@@ -129,7 +130,7 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
       .text(`NIK                           :  ${application.user.nik}`)
       .text(`Nomor Telepon / HP :  ${application.user.phone}`)
       .text(`Alamat                      :  ${application.user.address || 'Desa Jombe'}`)
-      .moveDown();
+      .moveDown(0.8);
 
     // Data Form Dinamis
     doc.font('Helvetica-Bold').text('Rincian Keterangan / Permohonan:').font('Helvetica');
@@ -140,26 +141,66 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
     }
 
     doc
-      .moveDown(1.5)
+      .moveDown(1)
       .text('Demikian surat keterangan ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.', {
         align: 'justify',
       })
-      .moveDown(3);
+      .moveDown(2);
 
-    // Tanda Tangan Kepala Desa
+    // Generate QR Code for Digital Signature (TTE BSrE)
+    const verifyUrl = `http://localhost:3000/verifikasi-ttd/${application.applicationNumber || application.id}`;
+    const qrBuffer = await QRCode.toBuffer(verifyUrl, {
+      width: 180,
+      margin: 1,
+      color: {
+        dark: '#0f172a',
+        light: '#ffffff',
+      },
+    });
+
+    // Tanda Tangan Elektronik Kepala Desa
     const todayStr = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
 
-    const rightAlignX = 350;
+    const rightAlignX = 335;
+    const startSigY = doc.y;
+
     doc
-      .text(`Jombe, ${todayStr}`, rightAlignX, doc.y, { align: 'center' })
-      .text('Kepala Desa Jombe', rightAlignX, doc.y + 15, { align: 'center' })
-      .moveDown(4)
+      .fontSize(10)
+      .font('Helvetica')
+      .text(`Jombe, ${todayStr}`, rightAlignX, startSigY, { align: 'center', width: 190 })
+      .text('Kepala Desa Jombe', rightAlignX, startSigY + 14, { align: 'center', width: 190 });
+
+    // Draw QR Code Image Barcode
+    doc.image(qrBuffer, rightAlignX + 55, startSigY + 30, { width: 80, height: 80 });
+
+    doc
+      .fontSize(7.5)
+      .font('Helvetica-Oblique')
+      .fillColor('#475569')
+      .text('Ditandatangani secara elektronik oleh:', rightAlignX, startSigY + 114, { align: 'center', width: 190 })
+      .fontSize(10)
       .font('Helvetica-Bold')
-      .text('( KEPALA DESA JOMBE )', rightAlignX, doc.y + 50, { align: 'center', underline: true });
+      .fillColor('#000000')
+      .text('H. AHMAD FAUZI, S.Sos.', rightAlignX, startSigY + 126, { align: 'center', width: 190, underline: true })
+      .fontSize(8)
+      .font('Helvetica')
+      .text('NIP. 19780512 200501 1 004', rightAlignX, startSigY + 139, { align: 'center', width: 190 });
+
+    // Catatan TTE di bagian bawah halaman
+    doc
+      .fontSize(7.5)
+      .font('Helvetica')
+      .fillColor('#64748b')
+      .text(
+        'Catatan: Dokumen ini telah ditandatangani secara elektronik menggunakan sertifikat elektronik yang diterbitkan oleh Balai Sertifikasi Elektronik (BSrE). Keaslian dokumen dapat diverifikasi dengan memindai QR Code di atas atau membuka portal resmi Desa Jombe.',
+        50,
+        735,
+        { align: 'justify', width: 495 }
+      );
 
     doc.end();
   } catch (error: any) {
