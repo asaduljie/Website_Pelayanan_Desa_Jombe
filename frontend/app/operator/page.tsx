@@ -36,6 +36,7 @@ import {
   Image as ImageIcon,
   Camera,
   ZoomIn,
+  ExternalLink,
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -1499,14 +1500,42 @@ export default function OperatorDashboardPage() {
                   <p>Demikian Surat Keterangan ini diberikan kepada yang bersangkutan untuk dipergunakan sebagaimana mestinya.</p>
                 </div>
 
-                {/* Tanda Tangan Kepala Desa */}
-                <div className="pt-3 flex justify-end text-xs font-sans">
-                  <div className="text-center space-y-10 w-48">
+                {/* Tanda Tangan Elektronik (TTE BSrE) Kepala Desa */}
+                <div className="pt-4 flex justify-end text-xs font-sans">
+                  <div className="text-center space-y-2 w-52 bg-slate-50/80 p-3.5 rounded-2xl border border-slate-200 shadow-xs">
                     <div>
-                      <p className="text-[11px] text-slate-600">Jombe, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                      <p className="font-bold text-slate-900">Kepala Desa Jombe</p>
+                      <p className="text-[10px] text-slate-500">Jombe, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                      <p className="font-bold text-slate-900 text-xs">Kepala Desa Jombe</p>
                     </div>
-                    <p className="font-bold underline text-slate-900">( KEPALA DESA JOMBE )</p>
+
+                    {/* QR Code Barcode TTE Box */}
+                    <div className="flex flex-col items-center justify-center p-2 bg-white rounded-xl border border-slate-200 shadow-xs">
+                      <img
+                        src={`https://api.qrserver.com/v1/create-qr-code/?size=150x150&data=${encodeURIComponent(`http://localhost:3000/verifikasi-ttd/${selectedApp.applicationNumber || selectedApp.id || 'JMB-2026-00012'}`)}`}
+                        alt="QR Code TTE BSrE"
+                        className="w-20 h-20 rounded-md bg-white p-0.5 border border-slate-200"
+                      />
+                      <span className="text-[8px] font-bold text-slate-500 tracking-wider uppercase mt-1">
+                        TTE Tersertifikasi BSrE
+                      </span>
+                    </div>
+
+                    <div className="space-y-0.5">
+                      <p className="text-[9px] text-slate-500 italic">Ditandatangani secara elektronik:</p>
+                      <p className="font-bold underline text-slate-950 text-xs">H. AHMAD FAUZI, S.Sos.</p>
+                      <p className="text-[9px] font-mono text-slate-500">NIP. 19780512 200501 1 004</p>
+                    </div>
+
+                    <div className="pt-1.5 border-t border-slate-200/80">
+                      <a
+                        href={`/verifikasi-ttd/${selectedApp.applicationNumber || selectedApp.id || 'JMB-2026-00012'}`}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="text-[9px] text-emerald-800 font-bold hover:underline inline-flex items-center gap-1 justify-center"
+                      >
+                        <ExternalLink className="w-2.5 h-2.5" /> Uji Scan / Verifikasi TTE
+                      </a>
+                    </div>
                   </div>
                 </div>
               </div>
