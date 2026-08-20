@@ -12,6 +12,7 @@ export const globalLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
 });
 
 // Strict rate limiter for Authentication
@@ -24,6 +25,7 @@ export const authLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
 });
 
 // Dedicated Anti-Spam & Anti-Brute-Force Rate Limiter for WhatsApp Bot
@@ -36,6 +38,7 @@ export const waBotLimiter = rateLimit({
   },
   standardHeaders: true,
   legacyHeaders: false,
+  validate: { trustProxy: false },
 });
 
 // Input Sanitizer & Anti-Injection Middleware
