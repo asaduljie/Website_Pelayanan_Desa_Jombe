@@ -1,15 +1,27 @@
-import makeWASocket, {
-  DisconnectReason,
-  useMultiFileAuthState,
-  WASocket,
-  fetchLatestBaileysVersion,
-  downloadMediaMessage,
-} from '@whiskeysockets/baileys';
+let makeWASocket: any = null;
+let DisconnectReason: any = null;
+let useMultiFileAuthState: any = null;
+let fetchLatestBaileysVersion: any = null;
+let downloadMediaMessage: any = null;
+
+// Dynamic safe loader for Baileys (to prevent cold-start crash on Vercel Serverless)
+if (!process.env.VERCEL) {
+  try {
+    const baileysPkg = require('@whiskeysockets/baileys');
+    makeWASocket = baileysPkg.default || baileysPkg.makeWASocket;
+    DisconnectReason = baileysPkg.DisconnectReason;
+    useMultiFileAuthState = baileysPkg.useMultiFileAuthState;
+    fetchLatestBaileysVersion = baileysPkg.fetchLatestBaileysVersion;
+    downloadMediaMessage = baileysPkg.downloadMediaMessage;
+  } catch (e) {
+    console.warn('Baileys package loaded in fallback mode');
+  }
+}
+
 import QRCode from 'qrcode';
 import path from 'path';
 import fs from 'fs';
 import pino from 'pino';
-import { Boom } from '@hapi/boom';
 
 export interface BaileysStatus {
   status: 'DISCONNECTED' | 'SCAN_QR' | 'CONNECTING' | 'CONNECTED';
@@ -25,7 +37,7 @@ const AUTH_DIR = process.env.VERCEL
   : path.join(__dirname, '../../auth_info_baileys');
 
 class WhatsAppBaileysEngine {
-  private sock: WASocket | null = null;
+  private sock: any = null;
   private qrCodeDataUrl: string | null = null;
   private pairingCode: string | null = null;
   private status: 'DISCONNECTED' | 'SCAN_QR' | 'CONNECTING' | 'CONNECTED' = 'DISCONNECTED';
@@ -54,6 +66,10 @@ class WhatsAppBaileysEngine {
   }
 
   public async startEngine(customPhoneNumber?: string): Promise<void> {
+    if (process.env.VERCEL) {
+      console.log('ℹ️ WhatsApp Baileys Engine runs on local village PC daemon, disabled on Vercel serverless.');
+      return;
+    }
     if (this.isInitializing || this.status === 'CONNECTED') return;
     this.isInitializing = true;
     this.status = 'CONNECTING';
