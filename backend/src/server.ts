@@ -58,6 +58,17 @@ app.use('/public-assets', express.static(path.join(__dirname, '../public')));
 // Register API Routes
 app.use('/api', router);
 
+// Root Welcome Endpoint
+app.get('/', (req: Request, res: Response) => {
+  res.status(200).json({
+    status: 'success',
+    system: 'JOMBE DIGITAL - Backend API Server',
+    status_db: 'Connected to Supabase PostgreSQL',
+    documentation: '/api/health',
+    timestamp: new Date().toISOString(),
+  });
+});
+
 // Enhanced High-Availability Healthcheck Endpoint
 app.get('/api/health', (req: Request, res: Response) => {
   const memoryUsage = process.memoryUsage();
@@ -79,15 +90,17 @@ app.get('/api/health', (req: Request, res: Response) => {
 // Global Error Handler
 app.use(errorHandler);
 
-const server = app.listen(PORT, () => {
-  console.log(`==================================================`);
-  console.log(`🚀 JOMBE DIGITAL Backend API Server running on port ${PORT}`);
-  console.log(`🛡️ ZERO-DOWNTIME SHIELD ACTIVE (Auto-Recovery, Crash Protection)`);
-  console.log(`🔒 Security Middlewares Active (Helmet, RateLimiter, AES-256)`);
-  console.log(`==================================================`);
+if (!process.env.VERCEL) {
+  const server = app.listen(PORT, () => {
+    console.log(`==================================================`);
+    console.log(`🚀 JOMBE DIGITAL Backend API Server running on port ${PORT}`);
+    console.log(`🛡️ ZERO-DOWNTIME SHIELD ACTIVE (Auto-Recovery, Crash Protection)`);
+    console.log(`🔒 Security Middlewares Active (Helmet, RateLimiter, AES-256)`);
+    console.log(`==================================================`);
 
-  // Start Supabase Auto-KeepAlive & Auto-Wakeup Engine
-  supabaseKeepAlive.startKeepAliveDaemon();
-});
+    // Start Supabase Auto-KeepAlive & Auto-Wakeup Engine
+    supabaseKeepAlive.startKeepAliveDaemon();
+  });
+}
 
 export default app;
