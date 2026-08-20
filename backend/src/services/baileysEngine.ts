@@ -109,7 +109,7 @@ class WhatsAppBaileysEngine {
         }, 3000);
       }
 
-      this.sock.ev.on('connection.update', async (update) => {
+      this.sock.ev.on('connection.update', async (update: any) => {
         const { connection, lastDisconnect, qr } = update;
 
         if (qr && !this.pairingCode) {
@@ -123,8 +123,8 @@ class WhatsAppBaileysEngine {
         }
 
         if (connection === 'close') {
-          const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
-          const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+          const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
+          const shouldReconnect = statusCode !== (DisconnectReason?.loggedOut || 401);
 
           this.status = 'DISCONNECTED';
           this.qrCodeDataUrl = null;
@@ -151,7 +151,7 @@ class WhatsAppBaileysEngine {
       });
 
       // Handle Incoming Messages
-      this.sock.ev.on('messages.upsert', async (m) => {
+      this.sock.ev.on('messages.upsert', async (m: any) => {
         const msg = m.messages[0];
         if (!msg || !msg.message || msg.key.fromMe) return;
 
