@@ -5,10 +5,15 @@ import { Request, Response, NextFunction } from 'express';
 import { validateMagicBytes } from '../utils/fileSignature';
 
 // Ensure private uploads directory exists
-const uploadDir = path.join(__dirname, '../../uploads/private');
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
+const uploadDir = process.env.VERCEL
+  ? path.join('/tmp', 'uploads', 'private')
+  : path.join(__dirname, '../../uploads/private');
+
+try {
+  if (!fs.existsSync(uploadDir)) {
+    fs.mkdirSync(uploadDir, { recursive: true });
+  }
+} catch (e) {}
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
