@@ -6,6 +6,12 @@ import path from 'path';
 import bcrypt from 'bcrypt';
 import { baileysEngine } from '../services/baileysEngine';
 import { PersistentDatabase, ComplaintRecord } from '../utils/persistentDb';
+import {
+  checkWhatsAppRateLimit,
+  sanitizeAndFilterWhatsAppText,
+  validateImageMagicBytes,
+  maskPiiData,
+} from '../middleware/whatsappSecurity';
 
 export interface WaUploadedPhoto {
   title: string;
@@ -183,6 +189,7 @@ interface SessionState {
   complaintTitle?: string;
   complaintDesc?: string;
   complaintLocation?: string;
+  lastActive?: number;
 }
 
 const chatSessions: Record<string, SessionState> = {};
@@ -208,9 +215,20 @@ export const validateNik = (nikStr: string): { isValid: boolean; errorAlert?: st
     return {
       isValid: false,
       cleanNik: clean,
-      errorAlert: `⚠️ *JUMLAH DIGIT NIK BERLEBIH*\n\nNIK yang Anda masukkan berjumlah *${clean.length} digit* (melebihi batas 16 digit).\n\nSilakan periksa kembali dan ketik ulang 16 digit NIK Anda:`,
+      errorAlert: `⚠️ *JUMLAH DIGIT NIK LEBIH*\n\nNIK yang Anda masukkan berjumlah *${clean.length} digit* (melebihi batas maksimal 16 digit).\n\nSilakan periksa kembali dan masukkan 16 digit NIK Anda yang benar:`,
     };
   }
+
+  // Validate province prefix (e.g., standard Indonesian province codes 11-99)
+  const provCode = parseInt(clean.slice(0, 2), 10);
+  if (isNaN(provCode) || provCode < 11 || provCode > 94) {
+    return {
+      isValid: false,
+      cleanNik: clean,
+      errorAlert: `⚠️ *KODE WILAYAH NIK TIDAK VALID*\n\n2 digit awal NIK (*${clean.slice(0, 2)}*) tidak sesuai dengan kode provinsi Republik Indonesia yang terdaftar di Kemendagri.\n\nSilakan periksa kembali NIK yang tertera pada e-KTP Anda:`,
+    };
+  }
+
   return { isValid: true, cleanNik: clean };
 };
 
@@ -279,6 +297,38 @@ export const handleIncomingWhatsAppMessageInternal = async (
   imageUrl?: string,
   imageCaption?: string
 ): Promise<{ reply: string; sessionStep: string; isCompleted: boolean }> => {
+  // ==========================================
+  // KEAMANAN LAYER 1: Anti-Spam & Anti-Flood Rate Limiting
+  // ==========================================
+  const rateLimitCheck = checkWhatsAppRateLimit(senderPhone);
+  if (!rateLimitCheck.allowed) {
+    return {
+      reply: rateLimitCheck.warningMsg || 'Aktivitas pengiriman pesan Anda dijeda sementara demi keamanan server.',
+      sessionStep: 'WELCOME',
+      isCompleted: false,
+    };
+  }
+
+  // ==========================================
+  // KEAMANAN LAYER 2: WAF & Sanitasi Anti-Injection (SQLi/XSS/Command/Prompt Injection)
+  // ==========================================
+  const sanitizeResult = sanitizeAndFilterWhatsAppText(userText, senderPhone);
+  userText = sanitizeResult.sanitizedText;
+
+  // ==========================================
+  // KEAMANAN LAYER 3: Binary Magic-Byte Inspection untuk Foto (Anti-Malware)
+  // ==========================================
+  if (imageUrl) {
+    const magicCheck = validateImageMagicBytes(imageUrl);
+    if (!magicCheck.isValid) {
+      return {
+        reply: `🛡️ *BERKAS DITOLAK SISTEM KEAMANAN*\n\n${magicCheck.error || 'Format berkas tidak valid.'}\n\nDemi keamanan data desa, hanya diperbolehkan mengunggah foto asli (JPG, PNG, WebP) dengan ukuran maksimal 5 MB.`,
+        sessionStep: chatSessions[senderPhone]?.step || 'WELCOME',
+        isCompleted: false,
+      };
+    }
+  }
+
   const upperText = userText.toUpperCase();
   const currentTime = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 
@@ -306,11 +356,35 @@ export const handleIncomingWhatsAppMessageInternal = async (
     imageCaption: imageCaption,
   });
 
-  let session = chatSessions[senderPhone] || {
-    phone: senderPhone,
-    step: 'WELCOME',
-    photos: [],
-  };
+  let session = chatSessions[senderPhone];
+  const now = Date.now();
+
+  // ==========================================
+  // KEAMANAN LAYER 4: Session Inactivity Timeout (TTL 15 Menit - Anti-Hijacking)
+  // ==========================================
+  const SESSION_TIMEOUT_MS = 15 * 60 * 1000;
+  if (session && session.lastActive && now - session.lastActive > SESSION_TIMEOUT_MS && session.step !== 'WELCOME') {
+    delete chatSessions[senderPhone];
+    session = { phone: senderPhone, step: 'WELCOME', photos: [], lastActive: now };
+    chatSessions[senderPhone] = session;
+    return {
+      reply: `🔒 *SESI KEAMANAN DITUTUP OTOMATIS*\n\nDemi menjaga kerahasiaan data kependudukan Anda, sesi pengajuan sebelumnya yang tidak aktif selama lebih dari 15 menit telah ditutup otomatis.\n\n` + getInitialGreeting().text,
+      sessionStep: 'WELCOME',
+      isCompleted: false,
+    };
+  }
+
+  if (!session) {
+    session = {
+      phone: senderPhone,
+      step: 'WELCOME',
+      photos: [],
+      lastActive: now,
+    };
+  }
+
+  session.lastActive = now;
+  chatSessions[senderPhone] = session;
 
   if (!session.photos) session.photos = [];
 
