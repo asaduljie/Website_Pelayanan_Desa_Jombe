@@ -28,29 +28,24 @@ app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
 // ============================================================================
-// GLOBAL CRASH SHIELD & SELF-HEALING GUARDS (ZERO DOWNTIME GUARANTEE)
+// GLOBAL CRASH SHIELD & SELF-HEALING GUARDS (Only in Persistent Server)
 // ============================================================================
-process.on('uncaughtException', (err: Error) => {
-  console.error('🛡️ [SELF-HEALING] Uncaught Exception intercepted (Server prevented from crashing):', err.message);
-  console.error(err.stack);
-});
+if (!process.env.VERCEL) {
+  process.on('uncaughtException', (err: Error) => {
+    console.error('🛡️ [SELF-HEALING] Uncaught Exception intercepted:', err.message);
+  });
 
-process.on('unhandledRejection', (reason: any, promise: Promise<any>) => {
-  console.error('🛡️ [SELF-HEALING] Unhandled Promise Rejection intercepted (Server prevented from crashing):', reason);
-});
+  process.on('unhandledRejection', (reason: any) => {
+    console.error('🛡️ [SELF-HEALING] Unhandled Promise Rejection intercepted:', reason);
+  });
 
-// Periodic Self-Healing & Memory Optimizer (Every 4 Hours)
-setInterval(() => {
-  try {
-    const memoryUsage = process.memoryUsage();
-    const heapUsedMB = Math.round(memoryUsage.heapUsed / 1024 / 1024);
-    const rssMB = Math.round(memoryUsage.rss / 1024 / 1024);
-    console.log(`🧹 [SELF-HEALING] Routine Check: Heap Used: ${heapUsedMB} MB | RSS: ${rssMB} MB | System Status: 100% HEALTHY`);
-    if (global.gc) {
-      global.gc();
-    }
-  } catch (e) {}
-}, 4 * 60 * 60 * 1000);
+  // Periodic Self-Healing & Memory Optimizer (Every 4 Hours)
+  setInterval(() => {
+    try {
+      if (global.gc) global.gc();
+    } catch (e) {}
+  }, 4 * 60 * 60 * 1000);
+}
 
 // Static public assets route
 app.use('/public-assets', express.static(path.join(__dirname, '../public')));
