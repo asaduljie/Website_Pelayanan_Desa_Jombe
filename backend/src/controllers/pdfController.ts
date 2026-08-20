@@ -270,7 +270,7 @@ export const generateLetterPdf = async (req: AuthRequest, res: Response) => {
       message: 'Surat PDF berhasil di-generate!',
       data: {
         letterNumber: `470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/2026`,
-        downloadUrl: `http://localhost:5000/api/operator/pdf/${applicationId}`,
+        downloadUrl: `http://localhost:5000/api/operator/pdf/${req.body?.applicationId || 'demo-app-1'}`,
       },
     });
   }

@@ -32,7 +32,7 @@ export const createComplaint = async (req: AuthRequest, res: Response) => {
       userId: req.user.id,
       userNik: req.user.nik || '3512345678900001',
       userName: req.user.name || 'Warga Desa',
-      userPhone: req.user.phone || '081234567890',
+      userPhone: (req.user as any)?.phone || '081234567890',
       title,
       category,
       description,

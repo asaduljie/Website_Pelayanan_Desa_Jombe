@@ -139,7 +139,7 @@ export const createNews = async (req: AuthRequest, res: Response) => {
           category: category || 'Pemerintahan',
           content,
           excerpt: newRecord.excerpt,
-          imageUrl: imageUrl || null,
+          thumbnail: imageUrl || null,
           authorId: req.user?.id || 'demo-operator-id-9',
           isPublished: true,
         },

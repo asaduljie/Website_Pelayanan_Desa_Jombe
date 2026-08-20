@@ -51,7 +51,7 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
       userId,
       userNik,
       userName,
-      userPhone: req.user?.phone || '085712345678',
+      userPhone: (req.user as any)?.phone || '085712345678',
       serviceId: serviceId || 'service-sku-1',
       serviceName,
       serviceSlug: serviceSlug || 'surat-keterangan-usaha',
