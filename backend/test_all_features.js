@@ -92,7 +92,6 @@ async function runAllTests() {
     operatorToken = res.body.data.token;
   });
 
-  // 4. Public Content - Profil Desa & Statistik
   await testStep('4. Public Content - Profil & Real Database Stats', async () => {
     const res = await request('/content/profile');
     if (res.status !== 200) throw new Error(`Status ${res.status}`);

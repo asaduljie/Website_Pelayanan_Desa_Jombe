@@ -6,6 +6,7 @@ import path from 'path';
 import router from './routes';
 import { globalLimiter } from './middleware/security';
 import { errorHandler } from './middleware/errorHandler';
+import { supabaseKeepAlive } from './services/supabaseKeepAlive';
 
 dotenv.config();
 
@@ -84,6 +85,9 @@ const server = app.listen(PORT, () => {
   console.log(`🛡️ ZERO-DOWNTIME SHIELD ACTIVE (Auto-Recovery, Crash Protection)`);
   console.log(`🔒 Security Middlewares Active (Helmet, RateLimiter, AES-256)`);
   console.log(`==================================================`);
+
+  // Start Supabase Auto-KeepAlive & Auto-Wakeup Engine
+  supabaseKeepAlive.startKeepAliveDaemon();
 });
 
 export default app;
