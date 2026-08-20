@@ -30,7 +30,9 @@ const WINDOW_MS = 10 * 1000; // per 10 detik
 const THROTTLE_PENALTY_MS = 25 * 1000; // Penalti jeda 25 detik
 
 // File Security Log Path
-const SECURITY_LOG_FILE = path.join(__dirname, '../../data/security_incidents.json');
+const SECURITY_LOG_FILE = process.env.VERCEL
+  ? path.join('/tmp', 'data', 'security_incidents.json')
+  : path.join(__dirname, '../../data/security_incidents.json');
 
 const logSecurityIncident = (incident: SecurityIncident) => {
   try {

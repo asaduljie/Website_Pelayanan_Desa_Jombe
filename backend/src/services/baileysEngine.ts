@@ -20,7 +20,9 @@ export interface BaileysStatus {
   lastConnected: string | null;
 }
 
-const AUTH_DIR = path.join(__dirname, '../../auth_info_baileys');
+const AUTH_DIR = process.env.VERCEL
+  ? path.join('/tmp', 'auth_info_baileys')
+  : path.join(__dirname, '../../auth_info_baileys');
 
 class WhatsAppBaileysEngine {
   private sock: WASocket | null = null;
@@ -33,9 +35,11 @@ class WhatsAppBaileysEngine {
   private isInitializing: boolean = false;
 
   constructor() {
-    if (!fs.existsSync(AUTH_DIR)) {
-      fs.mkdirSync(AUTH_DIR, { recursive: true });
-    }
+    try {
+      if (!fs.existsSync(AUTH_DIR)) {
+        fs.mkdirSync(AUTH_DIR, { recursive: true });
+      }
+    } catch (e) {}
   }
 
   public getStatus(): BaileysStatus {
