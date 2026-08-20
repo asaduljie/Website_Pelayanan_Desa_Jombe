@@ -52,8 +52,8 @@ export default function OperatorDashboardPage() {
   const [selectedApp, setSelectedApp] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState(false);
 
-  // Tab State: 'PERMOHONAN_WARGA' | 'PENGADUAN_WARGA' | 'KELOLA_BERITA' | 'KELOLA_PENGUMUMAN'
-  const [activeTab, setActiveTab] = useState<'PERMOHONAN_WARGA' | 'PENGADUAN_WARGA' | 'KELOLA_BERITA' | 'KELOLA_PENGUMUMAN'>('PERMOHONAN_WARGA');
+  // Tab State
+  const [activeTab, setActiveTab] = useState<'PERMOHONAN_WARGA' | 'PENGADUAN_WARGA' | 'KELOLA_BERITA' | 'KELOLA_PENGUMUMAN' | 'BERKAS_LAMPIRAN' | 'SURAT_BALASAN_SKU' | string>('PERMOHONAN_WARGA');
 
   // News & Announcement States
   const [newsList, setNewsList] = useState<any[]>([]);
