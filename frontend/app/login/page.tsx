@@ -26,6 +26,9 @@ export default function LoginPage() {
         const { token, user } = res.data.data;
         localStorage.setItem('jombe_token', token);
         localStorage.setItem('jombe_user', JSON.stringify(user));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('jombe-auth-changed'));
+        }
 
         if (user.role === 'OPERATOR' || user.role === 'ADMIN') {
           router.push('/operator');

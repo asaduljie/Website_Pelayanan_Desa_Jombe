@@ -18,22 +18,38 @@ export default function Navbar() {
     };
     window.addEventListener('scroll', handleScroll);
 
-    if (typeof window !== 'undefined') {
-      const storedUser = localStorage.getItem('jombe_user');
-      if (storedUser) {
-        try {
-          setUser(JSON.parse(storedUser));
-        } catch (e) {}
+    const syncUser = () => {
+      if (typeof window !== 'undefined') {
+        const storedUser = localStorage.getItem('jombe_user');
+        if (storedUser) {
+          try {
+            setUser(JSON.parse(storedUser));
+          } catch (e) {
+            setUser(null);
+          }
+        } else {
+          setUser(null);
+        }
       }
-    }
+    };
 
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
+    syncUser();
+
+    window.addEventListener('storage', syncUser);
+    window.addEventListener('jombe-auth-changed', syncUser);
+
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('storage', syncUser);
+      window.removeEventListener('jombe-auth-changed', syncUser);
+    };
+  }, [pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('jombe_token');
     localStorage.removeItem('jombe_user');
     setUser(null);
+    window.dispatchEvent(new Event('jombe-auth-changed'));
     router.push('/login');
   };
 
