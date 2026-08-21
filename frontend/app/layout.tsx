@@ -5,7 +5,7 @@ import Footer from '@/components/layout/Footer';
 import AiChatModal from '@/components/ai/AiChatModal';
 
 export const metadata: Metadata = {
-  title: 'JOMBE DIGITAL - Pelayanan Desa Jombe dalam Genggaman',
+  title: 'LENTERA DESA - Pelayanan Digital Desa Jombe dalam Genggaman',
   description: 'Platform resmi pelayanan administrasi desa digital Desa Jombe, Kecamatan Jombang. Pengajuan surat online, tracking status real-time, dan pengaduan masyarakat.',
 };
 

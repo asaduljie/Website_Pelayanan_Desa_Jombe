@@ -13,12 +13,12 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="md:col-span-1 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-jombe-600 text-white flex items-center justify-center shadow-lg">
-                <Building2 className="w-6 h-6" />
+              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-800 to-amber-600 text-amber-200 flex items-center justify-center shadow-lg border border-amber-400/30 font-black text-xs">
+                LD
               </div>
               <div>
-                <span className="text-lg font-bold tracking-tight text-white block">JOMBE DIGITAL</span>
-                <span className="text-[10px] text-jombe-300 uppercase tracking-widest block font-medium">Pelayanan Desa Terpadu</span>
+                <span className="text-lg font-heading font-black tracking-tight text-white block">LENTERA DESA</span>
+                <span className="text-[10px] text-emerald-300 uppercase tracking-widest block font-bold">Pelayanan Desa Jombe</span>
               </div>
             </div>
             <p className="text-xs text-gray-300 leading-relaxed">
