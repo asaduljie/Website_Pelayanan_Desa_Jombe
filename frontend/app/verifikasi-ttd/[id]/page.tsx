@@ -35,7 +35,7 @@ export default function VerifikasiTteDetailPage() {
           signedBy: 'H. AHMAD FAUZI, S.Sos.',
           signerTitle: 'Kepala Desa Jombe',
           signerNip: '19780512 200501 1 004',
-          institution: 'Pemerintah Desa Jombe, Kecamatan Jombang, Kabupaten Jombang',
+          institution: 'Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto',
           certificationAuthority: 'Balai Sertifikasi Elektronik (BSrE) - BSSN',
           integrityStatus: 'VALID & TIDAK PERNAH DIMODIFIKASI',
           certificateStatus: 'Sertifikat Elektronik Aktif & Terverifikasi',
@@ -43,7 +43,7 @@ export default function VerifikasiTteDetailPage() {
           letterNumber: '503/470/812/DS-JMB/2026',
           serviceName: 'Surat Keterangan Usaha (SKU)',
           citizenName: 'Asadul',
-          citizenNik: '3512345678900001',
+          citizenNik: '7371131002040005',
           detailValue: 'Usaha Toko Sembako dan Warung Kopi, Dusun Krajan RT 02 RW 01',
           pdfDownloadUrl: `http://localhost:5000/api/operator/pdf/${idOrNumber}`,
         });
@@ -68,8 +68,8 @@ export default function VerifikasiTteDetailPage() {
         hour: '2-digit',
         minute: '2-digit',
         second: '2-digit',
-      }) + ' WIB'
-    : '09:30:15 WIB';
+      }) + ' WITA'
+    : '09:30:15 WITA';
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between py-10 px-4 sm:px-6">
@@ -87,7 +87,7 @@ export default function VerifikasiTteDetailPage() {
                 TANDA TANGAN ELEKTRONIK
               </span>
               <span className="text-[9px] text-slate-500 font-medium block">
-                Pemerintah Kabupaten Jombang
+                Pemerintah Kabupaten Jeneponto
               </span>
             </div>
           </div>

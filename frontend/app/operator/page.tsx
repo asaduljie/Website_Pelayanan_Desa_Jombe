@@ -1436,10 +1436,10 @@ export default function OperatorDashboardPage() {
               <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-300 shadow-inner space-y-5 text-slate-900 font-serif">
                 {/* Kop Surat Resmi */}
                 <div className="text-center border-b-2 border-slate-900 pb-3 space-y-0.5">
-                  <h4 className="text-xs font-bold uppercase tracking-wide">Pemerintah Kabupaten Jombang</h4>
-                  <h4 className="text-xs font-bold uppercase tracking-wide">Kecamatan Jombang</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wide">Pemerintah Kabupaten Jeneponto</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wide">Kecamatan Turatea</h4>
                   <h3 className="text-base font-extrabold uppercase tracking-wide">Pemerintah Desa Jombe</h3>
-                  <p className="text-[10px] font-sans text-slate-600">Jl. Raya Desa Jombe No. 01, Kecamatan Jombang, Kode Pos 61419</p>
+                  <p className="text-[10px] font-sans text-slate-600">Kantor Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Kode Pos 92351</p>
                 </div>
 
                 {/* Judul & Nomor Surat Balasan */}
@@ -1466,7 +1466,7 @@ export default function OperatorDashboardPage() {
 
                 {/* Isi Surat Balasan */}
                 <div className="text-xs font-sans space-y-3 leading-relaxed text-slate-800">
-                  <p>Yang bertanda tangan di bawah ini Kepala Desa Jombe, Kecamatan Jombang, Kabupaten Jombang, menerangkan dengan sebenarnya bahwa:</p>
+                  <p>Yang bertanda tangan di bawah ini Kepala Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, menerangkan dengan sebenarnya bahwa:</p>
 
                   <div className="pl-4 space-y-1 bg-white p-3.5 rounded-xl border border-slate-200 font-sans">
                     <div className="grid grid-cols-3">
@@ -1479,7 +1479,7 @@ export default function OperatorDashboardPage() {
                     </div>
                     <div className="grid grid-cols-3">
                       <span className="text-slate-500 font-medium">Alamat Tinggal</span>
-                      <span className="col-span-2 font-medium text-slate-800">: {selectedApp.user?.address || 'Desa Jombe, Kec. Jombang'}</span>
+                      <span className="col-span-2 font-medium text-slate-800">: {selectedApp.user?.address || 'Desa Jombe, Kec. Turatea, Kab. Jeneponto'}</span>
                     </div>
                   </div>
 

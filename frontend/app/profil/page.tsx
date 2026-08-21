@@ -289,7 +289,7 @@ export default function UserProfilePage() {
               </div>
               <div>
                 <span className="text-[9px] uppercase text-sky-300 block">Desa / Kecamatan</span>
-                <span className="font-semibold">Desa Jombe, Kec. Jombang</span>
+                <span className="font-semibold">Desa Jombe, Kec. Turatea</span>
               </div>
             </div>
 
@@ -370,7 +370,7 @@ export default function UserProfilePage() {
                 <div className="sm:col-span-2 p-4 rounded-2xl bg-slate-50 border border-slate-200/60 space-y-1">
                   <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Alamat Domisili</span>
                   <span className="font-medium text-slate-800 leading-relaxed block">
-                    {formData.address || user.address || 'Desa Jombe RT 02 RW 01, Kecamatan Jombang'}
+                    {formData.address || user.address || 'Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto'}
                   </span>
                 </div>
               </div>

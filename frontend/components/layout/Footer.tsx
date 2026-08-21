@@ -22,7 +22,7 @@ export default function Footer() {
               </div>
             </div>
             <p className="text-xs text-gray-300 leading-relaxed">
-              Platform pelayanan administrasi digital resmi Pemerintah Desa Jombe, Kecamatan Jombang. Lebih mudah, cepat, transparan, dan dapat diakses 24 jam.
+              Platform pelayanan administrasi digital resmi Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Provinsi Sulawesi Selatan. Lebih mudah, cepat, transparan, dan dapat diakses 24 jam.
             </p>
             <div className="pt-2">
               <a
@@ -81,11 +81,11 @@ export default function Footer() {
             <ul className="space-y-3 text-xs text-gray-300">
               <li className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-jombe-400 shrink-0 mt-0.5" />
-                <span>Jl. Raya Desa Jombe No. 01, Kecamatan Jombang, Kabupaten Jombang, Jawa Timur 61419</span>
+                <span>Kantor Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Provinsi Sulawesi Selatan 92351</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-jombe-400 shrink-0" />
-                <span>(0321) 888-999 / WA: +62 812-3456-7890</span>
+                <span>WA Pelayanan: +62 812-3456-7890</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-jombe-400 shrink-0" />

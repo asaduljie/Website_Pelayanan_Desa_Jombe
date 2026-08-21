@@ -64,57 +64,14 @@ export default function Navbar() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between">
           {/* Brand Logo & Name */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-tr from-emerald-950 via-emerald-800 to-amber-700 p-0.5 shadow-md shadow-emerald-950/20 group-hover:shadow-amber-500/25 group-hover:scale-105 transition-all duration-300">
-              <div className="w-full h-full rounded-[14px] bg-gradient-to-b from-emerald-900/90 to-emerald-950 flex items-center justify-center relative overflow-hidden border border-amber-400/30">
-                {/* Glow Backdrop */}
-                <div className="absolute inset-0 bg-radial from-amber-400/20 via-transparent to-transparent opacity-75 group-hover:opacity-100 transition-opacity"></div>
-                
-                {/* Elegant Custom Lantern SVG */}
-                <svg
-                  className="w-6 h-6 text-amber-300 relative z-10 transition-transform group-hover:rotate-3"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  {/* Lantern Cap */}
-                  <path d="M8 6L12 3L16 6H8Z" fill="url(#lanternGold)" stroke="#FDE68A" strokeWidth="1.2" strokeLinejoin="round"/>
-                  {/* Lantern Ring */}
-                  <circle cx="12" cy="2.5" r="1.5" stroke="#FDE68A" strokeWidth="1" fill="none"/>
-                  {/* Glass Frame */}
-                  <path d="M7 6.5L6 17H18L17 6.5H7Z" fill="url(#glassGrad)" stroke="#FDE68A" strokeWidth="1.2" strokeLinejoin="round"/>
-                  {/* Internal Flame */}
-                  <path d="M12 9C12 9 10 12 10 13.5C10 14.88 10.9 16 12 16C13.1 16 14 14.88 14 13.5C14 12 12 9 12 9Z" fill="url(#flameGrad)"/>
-                  <circle cx="12" cy="13.5" r="1" fill="#FEF08A"/>
-                  {/* Base */}
-                  <path d="M5.5 17H18.5L17.5 20H6.5L5.5 17Z" fill="url(#lanternGold)" stroke="#FDE68A" strokeWidth="1.2" strokeLinejoin="round"/>
-                  
-                  {/* SVG Gradients */}
-                  <defs>
-                    <linearGradient id="lanternGold" x1="6" y1="3" x2="18" y2="20" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#FDE68A"/>
-                      <stop offset="1" stopColor="#D97706"/>
-                    </linearGradient>
-                    <linearGradient id="glassGrad" x1="6" y1="6.5" x2="18" y2="17" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#064E3B" stopOpacity="0.85"/>
-                      <stop offset="1" stopColor="#022C22" stopOpacity="0.95"/>
-                    </linearGradient>
-                    <linearGradient id="flameGrad" x1="10" y1="9" x2="14" y2="16" gradientUnits="userSpaceOnUse">
-                      <stop stopColor="#FEF08A"/>
-                      <stop offset="0.5" stopColor="#F59E0B"/>
-                      <stop offset="1" stopColor="#DC2626"/>
-                    </linearGradient>
-                  </defs>
-                </svg>
-              </div>
-            </div>
+          <Link href="/" className="flex items-center gap-2.5 group">
             <div>
-              <span className="text-lg sm:text-xl font-heading font-black tracking-tight text-slate-900 block leading-none group-hover:text-emerald-950 transition-colors">
-                <span className="text-emerald-950">LENTERA</span> <span className="bg-gradient-to-r from-amber-600 via-amber-500 to-emerald-700 bg-clip-text text-transparent">DESA</span>
+              <span className="text-xl sm:text-2xl font-heading font-black tracking-tight text-slate-900 block leading-none group-hover:text-emerald-950 transition-colors">
+                <span className="text-emerald-950">Lentera</span> <span className="bg-gradient-to-r from-emerald-800 to-amber-600 bg-clip-text text-transparent">Desa</span>
               </span>
-              <span className="text-[10px] uppercase font-extrabold tracking-widest text-emerald-800 block mt-1 flex items-center gap-1.5">
+              <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-800 block mt-1 flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                Pemerintah Desa Jombe
+                Desa Jombe, Kec. Turatea, Kab. Jeneponto
               </span>
             </div>
           </Link>

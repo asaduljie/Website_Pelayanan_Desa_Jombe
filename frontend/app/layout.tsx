@@ -5,8 +5,8 @@ import Footer from '@/components/layout/Footer';
 import AiChatModal from '@/components/ai/AiChatModal';
 
 export const metadata: Metadata = {
-  title: 'LENTERA DESA - Pelayanan Digital Desa Jombe dalam Genggaman',
-  description: 'Platform resmi pelayanan administrasi desa digital Desa Jombe, Kecamatan Jombang. Pengajuan surat online, tracking status real-time, dan pengaduan masyarakat.',
+  title: 'Lentera Desa - Pelayanan Digital Desa Jombe',
+  description: 'Platform resmi pelayanan administrasi desa digital Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Provinsi Sulawesi Selatan. Pengajuan surat online, tracking status real-time, dan pengaduan masyarakat.',
 };
 
 export default function RootLayout({
