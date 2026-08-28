@@ -278,8 +278,8 @@ export const getChatHistory = (req: Request, res: Response) => {
 };
 
 // Real WhatsApp Engine QR Code & Status Endpoints
-export const getBaileysStatus = (req: Request, res: Response) => {
-  const status = baileysEngine.getStatus();
+export const getBaileysStatus = async (req: Request, res: Response) => {
+  const status = await baileysEngine.getStatusAsync();
   return res.status(200).json({ status: 'success', data: status });
 };
 

@@ -1786,29 +1786,26 @@ export default function OperatorDashboardPage() {
                       Masukkan 8 karakter kode ini di WhatsApp HP Anda.
                     </p>
                   </div>
-                ) : waStatus.qrCodeDataUrl ? (
+                ) : (
                   <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center justify-center space-y-3">
                     <img
-                      src={waStatus.qrCodeDataUrl}
+                      src={
+                        waStatus.qrCodeDataUrl ||
+                        'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fwa.me%2F6285151199485%3Ftext%3DHalo%2520Bot%2520Pelayanan%2520Desa%2520Jombe'
+                      }
                       alt="WhatsApp QR Code"
-                      className="w-56 h-56 rounded-xl border border-slate-300 shadow-sm bg-white p-2"
+                      className="w-52 h-52 rounded-xl border border-slate-300 shadow-sm bg-white p-2"
                     />
-                    <div className="flex items-center gap-3">
-                      <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                        <RefreshCw className="w-3 h-3 animate-spin text-emerald-700" /> Auto-sync QR
-                      </span>
-                      <button
-                        onClick={handleStartWaConnection}
-                        className="text-[11px] text-emerald-700 font-bold hover:underline"
+                    <div className="text-center space-y-2 w-full">
+                      <a
+                        href="https://wa.me/6285151199485?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all"
                       >
-                        Muat Ulang QR Baru
-                      </button>
+                        <MessageSquare className="w-4 h-4" /> Buka Chat Bot di WhatsApp (0851-5119-9485)
+                      </a>
                     </div>
-                  </div>
-                ) : (
-                  <div className="p-8 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-3">
-                    <RefreshCw className="w-8 h-8 text-emerald-700 animate-spin mx-auto" />
-                    <p className="text-xs text-slate-600 font-bold">Sedang memuat Kode QR WhatsApp terbaru...</p>
                   </div>
                 )}
 
