@@ -74,95 +74,147 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
       };
     }
 
-    const templateCodePrefix = application.service?.letterTemplates?.[0]?.codePrefix || '470';
+    const toRomanMonth = (mIndex: number): string => {
+      const romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+      return romans[mIndex] || 'VIII';
+    };
+
+    const currentYear = new Date().getFullYear();
+    const currentMonthRoman = toRomanMonth(new Date().getMonth());
     const letterSeq = Math.floor(100 + Math.random() * 900);
-    const letterNumber = `${templateCodePrefix}/${letterSeq}/DS-JMB/${new Date().getFullYear()}`;
+    const letterNumber = `${letterSeq}/DJ/${currentMonthRoman}/${currentYear}`;
 
     // Set Response Headers for Direct Inline PDF Stream
     res.setHeader('Content-Type', 'application/pdf');
-    res.setHeader('Content-Disposition', `inline; filename="SURAT-${application.applicationNumber}.pdf"`);
+    res.setHeader('Content-Disposition', `inline; filename="SURAT-${application.applicationNumber || 'JMB'}.pdf"`);
 
     const doc = new PDFDocument({ margin: 50, size: 'A4' });
     doc.pipe(res);
 
-    // Header Kop Surat Resmi Desa Jombe
-    doc
-      .fontSize(14)
-      .font('Helvetica-Bold')
-      .text('PEMERINTAH KABUPATEN JOMBANG', { align: 'center' })
-      .text('KECAMATAN JOMBANG', { align: 'center' })
-      .fontSize(16)
-      .text('PEMERINTAH DESA JOMBE', { align: 'center' })
-      .fontSize(10)
-      .font('Helvetica')
-      .text('Jl. Raya Desa Jombe No. 01, Kecamatan Jombang, Kode Pos 61419', { align: 'center' })
-      .moveDown(0.5);
-
-    // Garis Kop Surat
-    doc
-      .moveTo(50, doc.y)
-      .lineTo(545, doc.y)
-      .lineWidth(2)
-      .stroke();
-    doc.moveDown(1.2);
-
-    // Judul Surat & Nomor
+    // ==========================================
+    // 1. KOP SURAT RESMI PEMERINTAH DESA JOMBE
+    // ==========================================
     doc
       .fontSize(13)
       .font('Helvetica-Bold')
-      .text((application.service?.name || 'SURAT KETERANGAN').toUpperCase(), { align: 'center', underline: true })
+      .text('PEMERINTAH KABUPATEN JENEPONTO', { align: 'center' })
+      .text('KECAMATAN TURATEA', { align: 'center' })
+      .fontSize(14)
+      .text('DESA JOMBE', { align: 'center' })
+      .fontSize(9)
+      .font('Helvetica')
+      .text('Alamat: Jl. Poros Dusun Jombe Selatan', { align: 'center' })
+      .moveDown(0.4);
+
+    // Garis Ganda Kop Surat (Double Line)
+    const currentY = doc.y;
+    doc
+      .moveTo(50, currentY)
+      .lineTo(545, currentY)
+      .lineWidth(2.5)
+      .stroke();
+    doc
+      .moveTo(50, currentY + 3.5)
+      .lineTo(545, currentY + 3.5)
+      .lineWidth(0.8)
+      .stroke();
+
+    doc.moveDown(1.5);
+
+    // ==========================================
+    // 2. JUDUL SURAT & NOMOR RESMI (/DJ/BULAN/TAHUN)
+    // ==========================================
+    const serviceTitle = (application.service?.name || 'SURAT KETERANGAN').toUpperCase();
+    doc
+      .fontSize(12)
+      .font('Helvetica-Bold')
+      .text(serviceTitle, { align: 'center', underline: true })
       .fontSize(10)
       .font('Helvetica')
       .text(`Nomor: ${letterNumber}`, { align: 'center' })
       .moveDown(1.2);
 
-    // Isi Surat
+    // ==========================================
+    // 3. PARAGRAF PEMBUKA
+    // ==========================================
     doc
       .fontSize(10.5)
-      .text('Yang bertanda tangan di bawah ini Kepala Desa Jombe, Kecamatan Jombang, Kabupaten Jombang, menerangkan dengan sebenarnya bahwa:', {
+      .font('Helvetica')
+      .text('Yang bertanda tangan di bawah ini Kepala Desa Jombe Kecamatan Turatea Kabupaten Jeneponto menerangkan bahwa :', {
         align: 'justify',
+        lineGap: 2,
       })
       .moveDown(0.8);
 
-    // Data Identitas Pemohon
-    doc
-      .text(`Nama Lengkap         :  ${application.user.name}`)
-      .text(`NIK                           :  ${application.user.nik}`)
-      .text(`Nomor Telepon / HP :  ${application.user.phone}`)
-      .text(`Alamat                      :  ${application.user.address || 'Desa Jombe'}`)
-      .moveDown(0.8);
+    // ==========================================
+    // 4. DATA IDENTITAS PEMOHON
+    // ==========================================
+    const leftColX = 75;
+    const colonX = 210;
+    const valueX = 220;
 
-    // Data Form Dinamis
-    doc.font('Helvetica-Bold').text('Rincian Keterangan / Permohonan:').font('Helvetica');
+    const printRow = (label: string, value: string) => {
+      const y = doc.y;
+      doc.font('Helvetica').text(label, leftColX, y);
+      doc.text(':', colonX, y);
+      doc.text(value, valueX, y, { width: 300 });
+      doc.moveDown(0.4);
+    };
+
+    const userName = application.user?.name || application.userName || 'Warga Desa';
+    const userNik = application.user?.nik || application.userNik || '-';
+    const userAddress = application.user?.address || 'Dusun Jombe Selatan Desa Jombe Kec. Turatea Kab. Jeneponto';
+
+    printRow('Nama', userName);
+    printRow('NIK', userNik);
+    printRow('Tempat tanggal lahir', 'Jeneponto, 15 Mei 1995');
+    printRow('Jenis Kelamin', 'Laki-laki');
+    printRow('Warga Negara', 'Indonesia');
+    printRow('Agama', 'Islam');
+    printRow('Pekerjaan', 'Wiraswasta');
+    printRow('Alamat', userAddress);
+
+    doc.moveDown(0.8);
+
+    // ==========================================
+    // 5. ISI KETERANGAN
+    // ==========================================
+    let detailContent = 'Yang bersangkutan adalah benar-benar penduduk Desa kami dan memiliki data administrasi yang sah di wilayah Desa Jombe.';
     if (application.fieldValues && application.fieldValues.length > 0) {
-      application.fieldValues.forEach((fv: any) => {
-        doc.text(`- ${fv.field?.label || 'Detail'}: ${fv.value}`);
-      });
+      const details = application.fieldValues.map((fv: any) => `${fv.field?.label || 'Keterangan'}: ${fv.value}`).join(', ');
+      detailContent = `Berdasarkan verifikasi data, nama tersebut adalah benar warga Desa Jombe dengan keterangan (${details}).`;
+    } else if (application.detailValue) {
+      detailContent = `Berdasarkan verifikasi data, nama tersebut adalah benar warga Desa Jombe dengan keterangan: ${application.detailValue}.`;
     }
 
     doc
-      .moveDown(1.5)
-      .text('Demikian surat keterangan ini dibuat dengan sebenarnya untuk dipergunakan sebagaimana mestinya.', {
+      .text(detailContent, { align: 'justify', lineGap: 2 })
+      .moveDown(0.6)
+      .text('Demikian surat keterangan ini diberikan kepada yang bersangkutan untuk digunakan sebagaimana mestinya.', {
         align: 'justify',
+        lineGap: 2,
       })
-      .moveDown(3);
+      .moveDown(2);
 
-    // Tanda Tangan Kepala Desa
-    const todayStr = new Date().toLocaleDateString('id-ID', {
+    // ==========================================
+    // 6. BLOK TANDA TANGAN KEPALA DESA JOMBE
+    // ==========================================
+    const todayFormatted = new Date().toLocaleDateString('id-ID', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
     });
 
-    const rightAlignX = 350;
+    const sigX = 350;
     doc
-      .fontSize(11)
-      .fillColor('#000000')
-      .text(`Jombe, ${todayStr}`, rightAlignX, doc.y, { align: 'center' })
-      .text('Kepala Desa Jombe', rightAlignX, doc.y + 15, { align: 'center' })
-      .moveDown(4)
+      .fontSize(10.5)
+      .font('Helvetica')
+      .text(`Jombe, ${todayFormatted}`, sigX, doc.y, { align: 'center' })
+      .text('Mengetahui', sigX, doc.y + 14, { align: 'center' })
+      .text('Kepala Desa Jombe', sigX, doc.y + 28, { align: 'center' })
+      .moveDown(4.5)
       .font('Helvetica-Bold')
-      .text('( KEPALA DESA JOMBE )', rightAlignX, doc.y + 50, { align: 'center', underline: true });
+      .text('JUSMAEDY, S.Pd', sigX, doc.y + 60, { align: 'center', underline: true });
 
     doc.end();
   } catch (error: any) {

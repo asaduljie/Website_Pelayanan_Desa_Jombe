@@ -201,10 +201,15 @@ export default function OperatorDashboardPage() {
     setSelectedApp(app);
     setActiveTab('PERMOHONAN_WARGA'); // Start by reviewing citizen's formal request letter & uploaded documents
     setIsEditingLetter(false);
-    setEditLetterNumber(app.letterNumber || `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/2026`);
+    const currentYear = new Date().getFullYear();
+    const romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+    const currentRomanMonth = romans[new Date().getMonth()] || 'VIII';
+    const defaultNum = `${Math.floor(100 + Math.random() * 900)}/DJ/${currentRomanMonth}/${currentYear}`;
+
+    setEditLetterNumber(app.letterNumber || defaultNum);
     setEditLetterContent(
       app.letterContent ||
-        `Yang bertanda tangan di bawah ini Kepala Desa Jombe, Kecamatan Jombang, Kabupaten Jombang, menerangkan dengan sebenarnya bahwa orang tersebut di atas benar-benar memiliki usaha ${app.fieldValues?.[0]?.value || 'Toko Sembako Berkah'} dan berdomisili di wilayah Desa Jombe.`
+        `Yang bersangkutan adalah benar-benar penduduk Desa kami yang berdomisili di wilayah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto.`
     );
   };
 
@@ -1435,17 +1440,21 @@ export default function OperatorDashboardPage() {
             {activeTab === 'SURAT_BALASAN_SKU' && (
               <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-300 shadow-inner space-y-5 text-slate-900 font-serif">
                 {/* Kop Surat Resmi */}
-                <div className="text-center border-b-2 border-slate-900 pb-3 space-y-0.5">
-                  <h4 className="text-xs font-bold uppercase tracking-wide">Pemerintah Kabupaten Jeneponto</h4>
-                  <h4 className="text-xs font-bold uppercase tracking-wide">Kecamatan Turatea</h4>
-                  <h3 className="text-base font-extrabold uppercase tracking-wide">Pemerintah Desa Jombe</h3>
-                  <p className="text-[10px] font-sans text-slate-600">Kantor Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Kode Pos 92351</p>
+                <div className="text-center pb-3 space-y-0.5 relative">
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-slate-900">PEMERINTAH KABUPATEN JENEPONTO</h4>
+                  <h4 className="text-xs font-bold uppercase tracking-wide text-slate-900">KECAMATAN TURATEA</h4>
+                  <h3 className="text-base font-extrabold uppercase tracking-wide text-slate-950">DESA JOMBE</h3>
+                  <p className="text-[10px] font-sans text-slate-600">Alamat: Jl. Poros Dusun Jombe Selatan</p>
+                  <div className="pt-2">
+                    <div className="w-full border-b-[2.5px] border-slate-900"></div>
+                    <div className="w-full border-b border-slate-900 mt-[2px]"></div>
+                  </div>
                 </div>
 
                 {/* Judul & Nomor Surat Balasan */}
                 <div className="text-center space-y-1">
                   <h3 className="text-sm font-bold uppercase underline tracking-wider font-sans">
-                    {selectedApp.service?.name || 'SURAT KETERANGAN USAHA (SKU)'}
+                    {selectedApp.service?.name || 'SURAT KETERANGAN KURANG MAMPU'}
                   </h3>
                   {isEditingLetter ? (
                     <div className="max-w-xs mx-auto pt-1 font-sans">
@@ -1454,7 +1463,7 @@ export default function OperatorDashboardPage() {
                         value={editLetterNumber}
                         onChange={(e) => setEditLetterNumber(e.target.value)}
                         className="w-full text-center text-xs font-bold border border-emerald-600 rounded-lg p-1 bg-white"
-                        placeholder="Nomor Surat: 503/470/XXX/DS-JMB/2026"
+                        placeholder="Nomor Surat: 341/DJ/VIII/2026"
                       />
                     </div>
                   ) : (
@@ -1466,11 +1475,11 @@ export default function OperatorDashboardPage() {
 
                 {/* Isi Surat Balasan */}
                 <div className="text-xs font-sans space-y-3 leading-relaxed text-slate-800">
-                  <p>Yang bertanda tangan di bawah ini Kepala Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, menerangkan dengan sebenarnya bahwa:</p>
+                  <p>Yang bertanda tangan di bawah ini Kepala Desa Jombe Kecamatan Turatea Kabupaten Jeneponto menerangkan bahwa :</p>
 
                   <div className="pl-4 space-y-1 bg-white p-3.5 rounded-xl border border-slate-200 font-sans">
                     <div className="grid grid-cols-3">
-                      <span className="text-slate-500 font-medium">Nama Pemohon</span>
+                      <span className="text-slate-500 font-medium">Nama</span>
                       <span className="col-span-2 font-bold text-slate-900">: {selectedApp.user?.name}</span>
                     </div>
                     <div className="grid grid-cols-3">
@@ -1478,8 +1487,24 @@ export default function OperatorDashboardPage() {
                       <span className="col-span-2 font-mono font-bold text-slate-900">: {selectedApp.user?.nik}</span>
                     </div>
                     <div className="grid grid-cols-3">
-                      <span className="text-slate-500 font-medium">Alamat Tinggal</span>
-                      <span className="col-span-2 font-medium text-slate-800">: {selectedApp.user?.address || 'Desa Jombe, Kec. Turatea, Kab. Jeneponto'}</span>
+                      <span className="text-slate-500 font-medium">Tempat tanggal lahir</span>
+                      <span className="col-span-2 text-slate-900">: Jeneponto, 15 Mei 1995</span>
+                    </div>
+                    <div className="grid grid-cols-3">
+                      <span className="text-slate-500 font-medium">Jenis Kelamin</span>
+                      <span className="col-span-2 text-slate-900">: Laki-laki</span>
+                    </div>
+                    <div className="grid grid-cols-3">
+                      <span className="text-slate-500 font-medium">Warga Negara</span>
+                      <span className="col-span-2 text-slate-900">: Indonesia</span>
+                    </div>
+                    <div className="grid grid-cols-3">
+                      <span className="text-slate-500 font-medium">Agama</span>
+                      <span className="col-span-2 text-slate-900">: Islam</span>
+                    </div>
+                    <div className="grid grid-cols-3">
+                      <span className="text-slate-500 font-medium">Alamat</span>
+                      <span className="col-span-2 font-medium text-slate-800">: {selectedApp.user?.address || 'Dusun Jombe Selatan Desa Jombe Kec. Turatea Kab. Jeneponto'}</span>
                     </div>
                   </div>
 
@@ -1497,7 +1522,7 @@ export default function OperatorDashboardPage() {
                     <p className="p-3.5 bg-white rounded-xl border border-slate-200 leading-relaxed">{editLetterContent}</p>
                   )}
 
-                  <p>Demikian Surat Keterangan ini diberikan kepada yang bersangkutan untuk dipergunakan sebagaimana mestinya.</p>
+                  <p>Demikian surat keterangan ini diberikan kepada yang bersangkutan untuk digunakan sebagaimana mestinya.</p>
                 </div>
 
                 {/* Tanda Tangan Kepala Desa */}
@@ -1505,9 +1530,10 @@ export default function OperatorDashboardPage() {
                   <div className="text-center space-y-12 w-48">
                     <div>
                       <p className="text-[11px] text-slate-600">Jombe, {new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+                      <p className="font-semibold text-slate-800">Mengetahui</p>
                       <p className="font-bold text-slate-900">Kepala Desa Jombe</p>
                     </div>
-                    <p className="font-bold underline text-slate-900">( KEPALA DESA JOMBE )</p>
+                    <p className="font-bold underline text-slate-900 uppercase">JUSMAEDY, S.Pd</p>
                   </div>
                 </div>
               </div>
