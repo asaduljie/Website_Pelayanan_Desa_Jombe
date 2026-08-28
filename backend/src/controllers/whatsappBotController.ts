@@ -52,17 +52,37 @@ export interface ChatMessage {
 const getInitialGreeting = (): ChatMessage => ({
   id: 'msg-init',
   sender: 'bot',
-  text: '*PUSAT PELAYANAN WHATSAPP RESMI DESA JOMBE*\n\nSelamat datang di Layanan Terpadu Desa Jombe.\nSilakan pilih menu layanan yang Anda butuhkan:\n\n1️⃣ *LAYANAN PENGAJUAN SURAT ONLINE*\n- Ketik *1* atau *SURAT* (atau langsung ketik *SKU*, *DOMISILI*, *SKTM*)\n\n2️⃣ *LAYANAN PENGADUAN & ASPIRASI WARGA*\n- Ketik *2* atau *PENGADUAN* (atau *LAPOR*)\n\n_Silakan ketik nomor atau nama menu pilihan Anda:_',
+  text:
+    '*PUSAT PELAYANAN WHATSAPP RESMI DESA JOMBE*\n\n' +
+    'Selamat datang di Layanan Mandiri Digital Desa Jombe.\n' +
+    'Silakan pilih menu layanan yang Anda butuhkan:\n\n' +
+    '🏛️ *PILIHAN SURAT KETERANGAN ONLINE:*\n' +
+    '1️⃣ Ketik *1* / *SKTM* : Surat Keterangan Kurang Mampu\n' +
+    '2️⃣ Ketik *2* / *WALI* : Surat Keterangan Wali\n' +
+    '3️⃣ Ketik *3* / *KENDARAAN* : Surat Kepemilikan Kendaraan\n' +
+    '4️⃣ Ketik *4* / *SKU* : Surat Keterangan Usaha\n' +
+    '5️⃣ Ketik *5* / *DOMISILI* : Surat Keterangan Domisili\n' +
+    '6️⃣ Ketik *6* / *SKKB* : Surat Keterangan Kelakuan Baik\n' +
+    '7️⃣ Ketik *7* / *LAJANG* : Surat Keterangan Belum Menikah\n' +
+    '8️⃣ Ketik *8* / *KEMATIAN* : Surat Keterangan Kematian\n' +
+    '9️⃣ Ketik *9* / *UMUM* : Surat Keterangan Umum\n\n' +
+    '📢 *LAYANAN PENGADUAN WARGA:*\n' +
+    '👉 Ketik *LAPOR* / *PENGADUAN* untuk mengirim keluhan/aspirasi warga.\n\n' +
+    '_Silakan ketik nomor (1-9) atau nama surat pilihan Anda:_',
   timestamp: '09:41',
 });
 
 // Requirements config per service
 export const SERVICE_PHOTO_REQUIREMENTS: Record<string, string[]> = {
+  'surat-keterangan-tidak-mampu': ['Foto e-KTP Asli Pemohon', 'Foto Kartu Keluarga (KK)'],
+  'surat-keterangan-wali': ['Foto e-KTP Wali', 'Foto Kartu Keluarga (KK)', 'Foto Identitas / NISN Anak'],
+  'surat-keterangan-kepemilikan-kendaraan-bermotor': ['Foto e-KTP Pemilik', 'Foto STNK / BPKB', 'Foto Kendaraan & Plat Nomor'],
   'surat-keterangan-usaha': ['Foto e-KTP Asli Pemohon', 'Foto Tempat / Kegiatan Usaha'],
   'surat-keterangan-domisili': ['Foto e-KTP Asli Pemohon', 'Foto Kartu Keluarga (KK)'],
-  'surat-keterangan-tidak-mampu': ['Foto e-KTP Asli Pemohon', 'Foto Kartu Keluarga (KK)'],
-  'surat-keterangan-kelahiran': ['Foto Kartu Keluarga (KK)', 'Foto e-KTP Orang Tua', 'Surat Bidan / RS'],
-  'surat-keterangan-kematian': ['Foto Kartu Keluarga (KK)', 'Foto e-KTP Jenazah', 'Surat Kematian RS / RT'],
+  'surat-keterangan-kelakuan-baik': ['Foto e-KTP Asli Pemohon', 'Foto Kartu Keluarga (KK)'],
+  'surat-keterangan-belum-menikah': ['Foto e-KTP Asli Pemohon', 'Foto Kartu Keluarga (KK)'],
+  'surat-keterangan-kematian': ['Foto Kartu Keluarga (KK)', 'Foto e-KTP Pelapor / Jenazah'],
+  'surat-keterangan-umum': ['Foto e-KTP Asli Pemohon', 'Foto Kartu Keluarga (KK)'],
 };
 
 // Global In-Memory Shared Store for WhatsApp Applications (Synced with Persistent Database)
@@ -397,9 +417,8 @@ export const handleIncomingWhatsAppMessageInternal = async (
   if (session.step === 'WELCOME') {
     session.photos = [];
 
-    // Opsi 2: Pengaduan & Aspirasi Warga
+    // Pengaduan & Aspirasi Warga
     if (
-      upperText === '2' ||
       upperText.includes('PENGADUAN') ||
       upperText.includes('LAPOR') ||
       upperText.includes('ASPIRASI') ||
@@ -409,31 +428,79 @@ export const handleIncomingWhatsAppMessageInternal = async (
       session.step = 'ASK_COMPLAINT_NIK';
       botReply = `*LAYANAN PENGADUAN & ASPIRASI WARGA DESA JOMBE*\n\nLaporan Anda akan langsung diteruskan ke Kepala Desa & Petugas Pelayanan.\n\nLangkah 1 dari 5:\nSilakan masukkan 16 Digit *NIK (Nomor Induk Kependudukan)* Anda:`;
     }
-    // Opsi 1 / Direct Service Codes: Surat Keterangan
-    else if (upperText.includes('SKU') || upperText.includes('USAHA')) {
+    // 1. SKTM / Kurang Mampu
+    else if (upperText === '1' || upperText.includes('SKTM') || upperText.includes('KURANG MAMPU') || upperText.includes('BANTUAN') || upperText.includes('DTKS')) {
+      session.mode = 'SURAT';
+      session.serviceSlug = 'surat-keterangan-tidak-mampu';
+      session.serviceName = 'Surat Keterangan Kurang Mampu (SKTM)';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Kurang Mampu (SKTM)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK (Nomor Induk Kependudukan)* Anda:`;
+    }
+    // 2. Surat Wali
+    else if (upperText === '2' || upperText.includes('WALI') || upperText.includes('PERWALIAN')) {
+      session.mode = 'SURAT';
+      session.serviceSlug = 'surat-keterangan-wali';
+      session.serviceName = 'Surat Keterangan Wali';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Wali*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK Wali* Anda:`;
+    }
+    // 3. Surat Kendaraan
+    else if (upperText === '3' || upperText.includes('KENDARAAN') || upperText.includes('MOTOR') || upperText.includes('MOBIL') || upperText.includes('BPKB') || upperText.includes('STNK')) {
+      session.mode = 'SURAT';
+      session.serviceSlug = 'surat-keterangan-kepemilikan-kendaraan-bermotor';
+      session.serviceName = 'Surat Keterangan Kepemilikan Kendaraan Bermotor';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Kepemilikan Kendaraan Bermotor*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK Pemilik* Anda:`;
+    }
+    // 4. SKU
+    else if (upperText === '4' || upperText.includes('SKU') || upperText.includes('USAHA') || upperText.includes('DAGANG')) {
       session.mode = 'SURAT';
       session.serviceSlug = 'surat-keterangan-usaha';
       session.serviceName = 'Surat Keterangan Usaha (SKU)';
       session.step = 'ASK_NIK';
-      botReply = `Anda mengajukan *Surat Keterangan Usaha (SKU)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK (Nomor Induk Kependudukan)* Anda:`;
-    } else if (upperText.includes('DOMISILI') || upperText.includes('TINGGAL')) {
+      botReply = `Anda mengajukan *Surat Keterangan Usaha (SKU)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK Pemohon* Anda:`;
+    }
+    // 5. Domisili
+    else if (upperText === '5' || upperText.includes('DOMISILI') || upperText.includes('TINGGAL') || upperText.includes('DUSUN')) {
       session.mode = 'SURAT';
       session.serviceSlug = 'surat-keterangan-domisili';
       session.serviceName = 'Surat Keterangan Domisili';
       session.step = 'ASK_NIK';
       botReply = `Anda mengajukan *Surat Keterangan Domisili*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
-    } else if (upperText.includes('SKTM') || upperText.includes('BANTUAN')) {
+    }
+    // 6. SKKB
+    else if (upperText === '6' || upperText.includes('SKKB') || upperText.includes('KELAKUAN') || upperText.includes('SKCK')) {
       session.mode = 'SURAT';
-      session.serviceSlug = 'surat-keterangan-tidak-mampu';
-      session.serviceName = 'Surat Keterangan Tidak Mampu (SKTM)';
+      session.serviceSlug = 'surat-keterangan-kelakuan-baik';
+      session.serviceName = 'Surat Keterangan Kelakuan Baik (SKKB)';
       session.step = 'ASK_NIK';
-      botReply = `Anda mengajukan *Surat Keterangan Tidak Mampu (SKTM)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
-    } else if (upperText === '1' || upperText.includes('SURAT') || upperText.includes('PENGAJUAN')) {
+      botReply = `Anda mengajukan *Surat Keterangan Kelakuan Baik (SKKB)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+    }
+    // 7. Belum Menikah
+    else if (upperText === '7' || upperText.includes('LAJANG') || upperText.includes('BELUM MENIKAH') || upperText.includes('NIKAH')) {
       session.mode = 'SURAT';
-      session.step = 'ASK_SERVICE';
-      botReply = `*LAYANAN PENGAJUAN SURAT ONLINE*\n\nSilakan pilih surat yang ingin Anda ajukan:\n- Ketik *SKU* (Surat Keterangan Usaha)\n- Ketik *DOMISILI* (Surat Keterangan Domisili)\n- Ketik *SKTM* (Surat Keterangan Tidak Mampu)\n\n_Ketik salah satu kode surat di atas:_`;
+      session.serviceSlug = 'surat-keterangan-belum-menikah';
+      session.serviceName = 'Surat Keterangan Belum Menikah';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Belum Menikah*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+    }
+    // 8. Kematian
+    else if (upperText === '8' || upperText.includes('KEMATIAN') || upperText.includes('MENINGGAL') || upperText.includes('WARIS')) {
+      session.mode = 'SURAT';
+      session.serviceSlug = 'surat-keterangan-kematian';
+      session.serviceName = 'Surat Keterangan Kematian';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Kematian*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK Pelapor / Ahli Waris* Anda:`;
+    }
+    // 9. Umum
+    else if (upperText === '9' || upperText.includes('UMUM') || upperText.includes('PENGANTAR') || upperText.includes('LAINNYA')) {
+      session.mode = 'SURAT';
+      session.serviceSlug = 'surat-keterangan-umum';
+      session.serviceName = 'Surat Keterangan Umum / Lainnya';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Umum / Lainnya*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
     } else {
-      botReply = `*PUSAT PELAYANAN WHATSAPP RESMI DESA JOMBE*\n\nSilakan pilih menu layanan:\n1️⃣ Ketik *1* untuk *Pengajuan Surat Online* (SKU, Domisili, SKTM)\n2️⃣ Ketik *2* untuk *Layanan Pengaduan & Aspirasi Warga*\n\n_Ketik nomor atau kode di atas:_`;
+      botReply = getInitialGreeting().text;
     }
   }
 
@@ -441,23 +508,53 @@ export const handleIncomingWhatsAppMessageInternal = async (
   // FLOW A: PENGAJUAN SURAT ONLINE
   // ==========================================
   else if (session.step === 'ASK_SERVICE') {
-    if (upperText.includes('SKU') || upperText.includes('USAHA')) {
+    if (upperText === '1' || upperText.includes('SKTM') || upperText.includes('KURANG MAMPU') || upperText.includes('BANTUAN')) {
+      session.serviceSlug = 'surat-keterangan-tidak-mampu';
+      session.serviceName = 'Surat Keterangan Kurang Mampu (SKTM)';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Kurang Mampu (SKTM)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+    } else if (upperText === '2' || upperText.includes('WALI')) {
+      session.serviceSlug = 'surat-keterangan-wali';
+      session.serviceName = 'Surat Keterangan Wali';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Wali*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK Wali* Anda:`;
+    } else if (upperText === '3' || upperText.includes('KENDARAAN') || upperText.includes('MOTOR') || upperText.includes('MOBIL')) {
+      session.serviceSlug = 'surat-keterangan-kepemilikan-kendaraan-bermotor';
+      session.serviceName = 'Surat Keterangan Kepemilikan Kendaraan Bermotor';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Kepemilikan Kendaraan Bermotor*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+    } else if (upperText === '4' || upperText.includes('SKU') || upperText.includes('USAHA')) {
       session.serviceSlug = 'surat-keterangan-usaha';
       session.serviceName = 'Surat Keterangan Usaha (SKU)';
       session.step = 'ASK_NIK';
       botReply = `Anda mengajukan *Surat Keterangan Usaha (SKU)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
-    } else if (upperText.includes('DOMISILI') || upperText.includes('TINGGAL')) {
+    } else if (upperText === '5' || upperText.includes('DOMISILI')) {
       session.serviceSlug = 'surat-keterangan-domisili';
       session.serviceName = 'Surat Keterangan Domisili';
       session.step = 'ASK_NIK';
       botReply = `Anda mengajukan *Surat Keterangan Domisili*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
-    } else if (upperText.includes('SKTM') || upperText.includes('BANTUAN')) {
-      session.serviceSlug = 'surat-keterangan-tidak-mampu';
-      session.serviceName = 'Surat Keterangan Tidak Mampu (SKTM)';
+    } else if (upperText === '6' || upperText.includes('SKKB') || upperText.includes('KELAKUAN')) {
+      session.serviceSlug = 'surat-keterangan-kelakuan-baik';
+      session.serviceName = 'Surat Keterangan Kelakuan Baik (SKKB)';
       session.step = 'ASK_NIK';
-      botReply = `Anda mengajukan *Surat Keterangan Tidak Mampu (SKTM)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+      botReply = `Anda mengajukan *Surat Keterangan Kelakuan Baik (SKKB)*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+    } else if (upperText === '7' || upperText.includes('LAJANG') || upperText.includes('BELUM MENIKAH')) {
+      session.serviceSlug = 'surat-keterangan-belum-menikah';
+      session.serviceName = 'Surat Keterangan Belum Menikah';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Belum Menikah*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+    } else if (upperText === '8' || upperText.includes('KEMATIAN') || upperText.includes('MENINGGAL')) {
+      session.serviceSlug = 'surat-keterangan-kematian';
+      session.serviceName = 'Surat Keterangan Kematian';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Kematian*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
+    } else if (upperText === '9' || upperText.includes('UMUM') || upperText.includes('LAINNYA')) {
+      session.serviceSlug = 'surat-keterangan-umum';
+      session.serviceName = 'Surat Keterangan Umum / Lainnya';
+      session.step = 'ASK_NIK';
+      botReply = `Anda mengajukan *Surat Keterangan Umum / Lainnya*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
     } else {
-      botReply = `Ketik *SKU*, *DOMISILI*, atau *SKTM* untuk melanjutkan permohonan surat.`;
+      botReply = `Ketik nomor *1 sampai 9* atau ketik nama surat yang ingin Anda ajukan.`;
     }
   } else if (session.step === 'ASK_NIK') {
     const nikCheck = validateNik(userText);
