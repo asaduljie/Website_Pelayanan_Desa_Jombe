@@ -90,35 +90,16 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3 bg-jombe-800 hover:bg-jombe-900 disabled:opacity-50 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
           >
-            {loading ? 'Memverifikasi Akun...' : 'Masuk ke Sistem'}
+            {loading ? 'Memverifikasi Akun...' : 'Masuk ke Akun'}
             <ArrowRight className="w-4 h-4" />
           </button>
         </form>
 
-        {/* Demo Accounts Quick Fill */}
-        <div className="pt-4 border-t border-gray-100 space-y-2 text-center">
-          <span className="text-[11px] font-bold text-gray-400 block uppercase tracking-wider">Akun Demo Sistem</span>
-          <div className="flex flex-wrap justify-center gap-2">
-            <button
-              onClick={() => { setNik('3512345678900001'); setPassword('password123'); }}
-              className="px-2.5 py-1 bg-jombe-50 text-jombe-800 rounded-lg text-[10px] font-bold border border-jombe-200 hover:bg-jombe-100"
-            >
-              Demo Warga
-            </button>
-            <button
-              onClick={() => { setNik('3512345678900009'); setPassword('password123'); }}
-              className="px-2.5 py-1 bg-amber-50 text-amber-800 rounded-lg text-[10px] font-bold border border-amber-200 hover:bg-amber-100"
-            >
-              Demo Operator
-            </button>
-          </div>
-        </div>
-
-        <p className="text-center text-xs text-gray-600 pt-2">
-          Belum memiliki akun?{' '}
-          <Link href="/register" className="font-bold text-jombe-800 hover:underline">
+        <p className="text-center text-xs text-slate-600 pt-2 border-t border-slate-100">
+          Belum memiliki akun warga?{' '}
+          <Link href="/register" className="font-bold text-emerald-800 hover:underline">
             Daftar Warga Baru
           </Link>
         </p>
