@@ -5,7 +5,7 @@ import Footer from '@/components/layout/Footer';
 import AiChatModal from '@/components/ai/AiChatModal';
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://lentera-desa.vercel.app'),
+  metadataBase: new URL('https://lenteradesajombe.biz.id'),
   title: {
     default: 'Lentera Desa - Pelayanan Digital Desa Jombe',
     template: '%s | Lentera Desa Jombe',
@@ -15,6 +15,7 @@ export const metadata: Metadata = {
     'Desa Jombe',
     'Lentera Desa',
     'Pelayanan Desa Jombe',
+    'lenteradesajombe.biz.id',
     'Kecamatan Turatea',
     'Kabupaten Jeneponto',
     'Surat Keterangan Usaha Jombe',
@@ -33,7 +34,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'Lentera Desa - Pelayanan Digital Desa Jombe',
     description: 'Layanan administrasi dan surat desa online resmi Desa Jombe, Kec. Turatea, Kab. Jeneponto, Sulawesi Selatan.',
-    url: 'https://lentera-desa.vercel.app',
+    url: 'https://lenteradesajombe.biz.id',
     siteName: 'Lentera Desa Jombe',
     locale: 'id_ID',
     type: 'website',

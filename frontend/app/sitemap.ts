@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = 'https://lentera-desa.vercel.app';
+  const baseUrl = 'https://lenteradesajombe.biz.id';
   const currentDate = new Date().toISOString();
 
   // Public searchable routes

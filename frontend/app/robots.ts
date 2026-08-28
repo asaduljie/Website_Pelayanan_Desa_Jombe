@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function robots(): MetadataRoute.Robots {
-  const baseUrl = 'https://lentera-desa.vercel.app';
+  const baseUrl = 'https://lenteradesajombe.biz.id';
 
   return {
     rules: [
