@@ -134,6 +134,8 @@ export default function ServiceApplicationFormPage() {
       .then((res) => {
         if (res.data.status === 'success') {
           setService(res.data.data);
+        }
+      })
       .catch(() => {
         const fallbackTitles: Record<string, string> = {
           'surat-keterangan-tidak-mampu': 'Surat Keterangan Kurang Mampu (SKTM)',
