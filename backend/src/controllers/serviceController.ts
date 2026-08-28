@@ -3,46 +3,133 @@ import prisma from '../config/db';
 
 const getFallbackServiceList = () => [
   {
-    id: 'service-sku-1',
+    id: 'service-sktm-1',
+    name: 'Surat Keterangan Kurang Mampu (SKTM)',
+    slug: 'surat-keterangan-tidak-mampu',
+    category: 'Bantuan Sosial',
+    description: 'Surat keterangan resmi keluarga berpenghasilan rendah / kurang mampu untuk keperluan DTKS, beasiswa, dan bantuan sosial.',
+    requirements: 'e-KTP Pemohon/Orang Tua, Kartu Keluarga (KK), Keterangan Keperluan',
+    estimatedDays: 1,
+    isActive: true,
+    fields: [
+      { id: 'f_sktm_1', label: 'Tujuan Permohonan SKTM', fieldName: 'tujuan_sktm', fieldType: 'SELECT', options: JSON.stringify(['Data Terpadu Kesejahteraan Sosial (DTKS)', 'Beasiswa Sekolah / Kuliah (PIP / KIP-K)', 'Keringanan Biaya Rumah Sakit / Kesehatan', 'Bantuan Sosial Pemerintah']), isRequired: true },
+      { id: 'f_sktm_2', label: 'Nama Anggota Keluarga yang Dibiayai', fieldName: 'nama_anggota', fieldType: 'TEXT', placeholder: 'Contoh: Nama Anak / Pelajar / Pasien', isRequired: true },
+    ],
+  },
+  {
+    id: 'service-wali-2',
+    name: 'Surat Keterangan Wali',
+    slug: 'surat-keterangan-wali',
+    category: 'Administrasi',
+    description: 'Surat keterangan pengakuan hak perwalian anak/siswa/mahasiswa untuk kelengkapan administrasi pendidikan atau instansi.',
+    requirements: 'e-KTP Wali, Kartu Keluarga (KK), NISN / Data Anak',
+    estimatedDays: 1,
+    isActive: true,
+    fields: [
+      { id: 'f_wali_1', label: 'Nama Anak / Siswa / Mahasiswa', fieldName: 'nama_anak', fieldType: 'TEXT', placeholder: 'Contoh: Ahmad Hidayat', isRequired: true },
+      { id: 'f_wali_2', label: 'NISN / NIK Anak', fieldName: 'nisn_nik_anak', fieldType: 'TEXT', placeholder: 'Contoh: 0115783332', isRequired: true },
+      { id: 'f_wali_3', label: 'Tempat, Tanggal Lahir Anak', fieldName: 'ttl_anak', fieldType: 'TEXT', placeholder: 'Contoh: Jeneponto, 10 Oktober 2011', isRequired: true },
+      { id: 'f_wali_4', label: 'Hubungan Perwalian', fieldName: 'hubungan_wali', fieldType: 'TEXT', placeholder: 'Contoh: Orang Tua Kandung / Paman / Kakek', isRequired: true },
+    ],
+  },
+  {
+    id: 'service-kendaraan-3',
+    name: 'Surat Keterangan Kepemilikan Kendaraan Bermotor',
+    slug: 'surat-keterangan-kepemilikan-kendaraan-bermotor',
+    category: 'Surat Keterangan',
+    description: 'Surat keterangan resmi kepemilikan sah sepeda motor/mobil dan legalitas kendaraan belum balik nama.',
+    requirements: 'e-KTP Pemilik, STNK/BPKB, Foto Kendaraan (No. Polisi, No. Rangka, No. Mesin)',
+    estimatedDays: 1,
+    isActive: true,
+    fields: [
+      { id: 'f_knd_1', label: 'Nomor Polisi (Plat Kendaraan)', fieldName: 'nomor_polisi', fieldType: 'TEXT', placeholder: 'Contoh: DD 3442 LW', isRequired: true },
+      { id: 'f_knd_2', label: 'Merk / Tipe / Jenis Kendaraan', fieldName: 'merk_type', fieldType: 'TEXT', placeholder: 'Contoh: Yamaha / 54P AT (Sepeda Motor)', isRequired: true },
+      { id: 'f_knd_3', label: 'Tahun Pembuatan & Warna', fieldName: 'tahun_warna', fieldType: 'TEXT', placeholder: 'Contoh: 2012 / Merah', isRequired: true },
+      { id: 'f_knd_4', label: 'Nomor Rangka & Nomor Mesin', fieldName: 'no_rangka_mesin', fieldType: 'TEXT', placeholder: 'Contoh: MH354P00ACJ179171 / 54P-179417', isRequired: true },
+      { id: 'f_knd_5', label: 'Nomor BPKB / Nama Pemilik Lama', fieldName: 'bpkb_pemilik_lama', fieldType: 'TEXT', placeholder: 'Contoh: J00291903 R (Belum Balik Nama)', isRequired: true },
+    ],
+  },
+  {
+    id: 'service-sku-4',
     name: 'Surat Keterangan Usaha (SKU)',
     slug: 'surat-keterangan-usaha',
     category: 'Surat Keterangan',
-    description: 'Pengantar resmi untuk Izin Usaha / Keterangan Usaha mikro dan UMKM warga Desa Jombe.',
-    requirements: 'Kartu Tanda Penduduk (KTP), Kartu Keluarga (KK), Foto Lokasi Usaha',
+    description: 'Pengantar resmi untuk izin legalitas dan bantuan modal usaha mikro serta UMKM warga Desa Jombe.',
+    requirements: 'e-KTP Pemilik Usaha, Kartu Keluarga (KK), Foto Usaha/Toko',
     estimatedDays: 1,
     isActive: true,
     fields: [
-      { id: 'f1', label: 'Nama Usaha', fieldName: 'nama_usaha', fieldType: 'TEXT', placeholder: 'Contoh: Toko Sembako Berkah', isRequired: true },
-      { id: 'f2', label: 'Jenis Usaha / Komoditas', fieldName: 'jenis_usaha', fieldType: 'TEXT', placeholder: 'Contoh: Perdagangan Sembako', isRequired: true },
-      { id: 'f3', label: 'Alamat Usaha', fieldName: 'alamat_usaha', fieldType: 'TEXTAREA', placeholder: 'Contoh: Dusun Krajan RT 02 RW 01 Desa Jombe', isRequired: true },
+      { id: 'f_sku_1', label: 'Nama Usaha / Toko', fieldName: 'nama_usaha', fieldType: 'TEXT', placeholder: 'Contoh: Toko Kelontong Berkah', isRequired: true },
+      { id: 'f_sku_2', label: 'Jenis Usaha / Komoditas', fieldName: 'jenis_usaha', fieldType: 'TEXT', placeholder: 'Contoh: Perdagangan Sembako & Pertanian', isRequired: true },
+      { id: 'f_sku_3', label: 'Alamat / Lokasi Usaha', fieldName: 'alamat_usaha', fieldType: 'TEXTAREA', placeholder: 'Contoh: Dusun Jombe Selatan, Desa Jombe', isRequired: true },
     ],
   },
   {
-    id: 'service-domisili-2',
+    id: 'service-domisili-5',
     name: 'Surat Keterangan Domisili',
     slug: 'surat-keterangan-domisili',
     category: 'Surat Keterangan',
-    description: 'Surat keterangan resmi domisili tempat tinggal warga di wilayah Desa Jombe.',
-    requirements: 'Kartu Tanda Penduduk (KTP), Kartu Keluarga (KK)',
+    description: 'Surat keterangan resmi tempat tinggal dan domisili warga di wilayah dusun Desa Jombe.',
+    requirements: 'e-KTP Pemohon, Kartu Keluarga (KK)',
     estimatedDays: 1,
     isActive: true,
     fields: [
-      { id: 'f4', label: 'Alamat Domisili Lengkap', fieldName: 'alamat_domisili', fieldType: 'TEXTAREA', placeholder: 'Dusun, RT, RW Desa Jombe', isRequired: true },
-      { id: 'f5', label: 'Keperluan Surat', fieldName: 'keperluan', fieldType: 'TEXT', placeholder: 'Contoh: Pembukaan Rekening Bank', isRequired: true },
+      { id: 'f_dom_1', label: 'Alamat Domisili Lengkap', fieldName: 'alamat_domisili', fieldType: 'TEXTAREA', placeholder: 'Dusun, RT, RW Desa Jombe', isRequired: true },
+      { id: 'f_dom_2', label: 'Keperluan Surat', fieldName: 'keperluan', fieldType: 'TEXT', placeholder: 'Contoh: Pembukaan Rekening Bank / Melamar Kerja', isRequired: true },
     ],
   },
   {
-    id: 'service-sktm-3',
-    name: 'Surat Keterangan Tidak Mampu (SKTM)',
-    slug: 'surat-keterangan-tidak-mampu',
-    category: 'Bantuan Sosial',
-    description: 'Surat pengantar untuk keringanan beasiswa, kesehatan, dan bantuan sosial.',
-    requirements: 'KTP Orang Tua/Pemohon, Kartu Keluarga (KK), Pengantar RT/RW',
+    id: 'service-skkb-6',
+    name: 'Surat Keterangan Kelakuan Baik (SKKB)',
+    slug: 'surat-keterangan-kelakuan-baik',
+    category: 'Surat Keterangan',
+    description: 'Surat pengantar berkelakuan baik dari pemerintah desa untuk persyaratan kerja, lamaran, atau SKCK.',
+    requirements: 'e-KTP Pemohon, Kartu Keluarga (KK), Pas Foto',
     estimatedDays: 1,
     isActive: true,
     fields: [
-      { id: 'f6', label: 'Keperluan SKTM', fieldName: 'keperluan_sktm', fieldType: 'SELECT', options: JSON.stringify(['Beasiswa Sekolah / Kuliah', 'Pengobatan / Rumah Sakit', 'Bantuan Sosial / PKH']), isRequired: true },
-      { id: 'f7', label: 'Nama Anggota Keluarga Dibiayai', fieldName: 'nama_anggota', fieldType: 'TEXT', placeholder: 'Nama Anak / Pasien', isRequired: true },
+      { id: 'f_skkb_1', label: 'Keperluan Surat Kelakuan Baik', fieldName: 'keperluan_skkb', fieldType: 'TEXT', placeholder: 'Contoh: Persyaratan Pengurusan SKCK / Melamar Pekerjaan', isRequired: true },
+    ],
+  },
+  {
+    id: 'service-belum-menikah-7',
+    name: 'Surat Keterangan Belum Menikah',
+    slug: 'surat-keterangan-belum-menikah',
+    category: 'Administrasi',
+    description: 'Surat keterangan resmi status belum pernah menikah/lajang untuk persyaratan kerja atau pernikahan.',
+    requirements: 'e-KTP Pemohon, Kartu Keluarga (KK)',
+    estimatedDays: 1,
+    isActive: true,
+    fields: [
+      { id: 'f_bm_1', label: 'Keperluan Surat', fieldName: 'keperluan_belum_menikah', fieldType: 'TEXT', placeholder: 'Contoh: Pendaftaran Kerja / Berkas Pernikahan KUA', isRequired: true },
+    ],
+  },
+  {
+    id: 'service-kematian-8',
+    name: 'Surat Keterangan Kematian',
+    slug: 'surat-keterangan-kematian',
+    category: 'Administrasi',
+    description: 'Penerbitan surat keterangan meninggal dunia untuk pengurusan ahli waris, akta kematian, atau perbankan.',
+    requirements: 'e-KTP Pelapor, KK Almarhum, Keterangan Tanggal & Tempat Meninggal',
+    estimatedDays: 1,
+    isActive: true,
+    fields: [
+      { id: 'f_km_1', label: 'Nama Lengkap Almarhum / Almarhumah', fieldName: 'nama_almarhum', fieldType: 'TEXT', placeholder: 'Nama Almarhum/ah', isRequired: true },
+      { id: 'f_km_2', label: 'Tanggal & Tempat Meninggal Dunia', fieldName: 'tgl_tempat_kematian', fieldType: 'TEXT', placeholder: 'Contoh: 12 Agustus 2026 di Jeneponto', isRequired: true },
+      { id: 'f_km_3', label: 'Penyebab Kematian', fieldName: 'penyebab_kematian', fieldType: 'TEXT', placeholder: 'Contoh: Sakit / Usia Lanjut', isRequired: true },
+    ],
+  },
+  {
+    id: 'service-umum-9',
+    name: 'Surat Keterangan Umum / Lainnya',
+    slug: 'surat-keterangan-umum',
+    category: 'Surat Keterangan',
+    description: 'Surat keterangan resmi pemerintah desa untuk keperluan administrasi lainnya.',
+    requirements: 'e-KTP Pemohon, Kartu Keluarga (KK), Detail Keterangan Permohonan',
+    estimatedDays: 1,
+    isActive: true,
+    fields: [
+      { id: 'f_um_1', label: 'Perihal / Keterangan yang Dimohonkan', fieldName: 'keterangan_umum', fieldType: 'TEXTAREA', placeholder: 'Jelaskan rincian keterangan yang Anda butuhkan', isRequired: true },
     ],
   },
 ];
@@ -51,31 +138,18 @@ export const getServices = async (req: Request, res: Response) => {
   try {
     const { category, search } = req.query;
 
-    let services: any[] = [];
-    try {
-      const whereCondition: any = { isActive: true };
-      if (category && category !== 'ALL') whereCondition.category = String(category);
-      if (search) {
-        whereCondition.OR = [
-          { name: { contains: String(search), mode: 'insensitive' } },
-          { description: { contains: String(search), mode: 'insensitive' } },
-        ];
-      }
+    const allServices = getFallbackServiceList();
+    let filtered = allServices;
 
-      services = await prisma.service.findMany({
-        where: whereCondition,
-        include: {
-          fields: { orderBy: { order: 'asc' } },
-        },
-        orderBy: { createdAt: 'desc' },
-      });
-    } catch (dbErr) {}
-
-    if (!services || services.length === 0) {
-      services = getFallbackServiceList();
+    if (category && category !== 'ALL') {
+      filtered = filtered.filter((s) => s.category === String(category));
+    }
+    if (search) {
+      const q = String(search).toLowerCase();
+      filtered = filtered.filter((s) => s.name.toLowerCase().includes(q) || s.description.toLowerCase().includes(q));
     }
 
-    return res.status(200).json({ status: 'success', data: services });
+    return res.status(200).json({ status: 'success', data: filtered });
   } catch (error) {
     return res.status(200).json({ status: 'success', data: getFallbackServiceList() });
   }
