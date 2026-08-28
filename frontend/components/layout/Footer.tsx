@@ -3,8 +3,8 @@ import Link from 'next/link';
 import { Building2, Phone, Mail, MapPin, MessageSquare, ShieldCheck, Heart } from 'lucide-react';
 
 export default function Footer() {
-  const operatorWa = process.env.NEXT_PUBLIC_OPERATOR_WA || '6281234567890';
-  const waUrl = `https://wa.me/${operatorWa}?text=Halo%20Operator%20Desa%20Jombe%2C%20saya%20ingin%20menanyakan%20pelayanan%20desa.`;
+  const operatorWa = process.env.NEXT_PUBLIC_OPERATOR_WA || '6285151199485';
+  const waUrl = `https://wa.me/${operatorWa}?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20menanyakan%20pelayanan%20desa.`;
 
   return (
     <footer className="bg-jombe-950 text-white pt-16 pb-8 border-t border-jombe-900">
@@ -85,7 +85,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-2.5">
                 <Phone className="w-4 h-4 text-jombe-400 shrink-0" />
-                <span>WA Pelayanan: +62 812-3456-7890</span>
+                <span>WA Pelayanan: +62 851-5119-9485</span>
               </li>
               <li className="flex items-center gap-2.5">
                 <Mail className="w-4 h-4 text-jombe-400 shrink-0" />

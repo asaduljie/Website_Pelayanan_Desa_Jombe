@@ -17,7 +17,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/berita',
     '/profil',
     '/pengaduan',
-    '/wa-bot',
     '/login',
     '/register',
   ];
