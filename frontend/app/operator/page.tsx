@@ -1441,6 +1441,11 @@ export default function OperatorDashboardPage() {
               <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-300 shadow-inner space-y-5 text-slate-900 font-serif">
                 {/* Kop Surat Resmi */}
                 <div className="text-center pb-3 space-y-0.5 relative">
+                  <img
+                    src="/logo_jeneponto.png"
+                    alt="Logo Kabupaten Jeneponto"
+                    className="w-12 h-auto mx-auto mb-2 object-contain"
+                  />
                   <h4 className="text-xs font-bold uppercase tracking-wide text-slate-900">PEMERINTAH KABUPATEN JENEPONTO</h4>
                   <h4 className="text-xs font-bold uppercase tracking-wide text-slate-900">KECAMATAN TURATEA</h4>
                   <h3 className="text-base font-extrabold uppercase tracking-wide text-slate-950">DESA JOMBE</h3>

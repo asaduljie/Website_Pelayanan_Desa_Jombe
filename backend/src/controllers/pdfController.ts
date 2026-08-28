@@ -94,6 +94,17 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
     // ==========================================
     // 1. KOP SURAT RESMI PEMERINTAH DESA JOMBE
     // ==========================================
+    const logoPath = path.join(__dirname, '../../public/logo_jeneponto.png');
+    const altLogoPath = path.join(process.cwd(), 'public/logo_jeneponto.png');
+    const targetLogo = fs.existsSync(logoPath) ? logoPath : fs.existsSync(altLogoPath) ? altLogoPath : null;
+
+    if (targetLogo) {
+      try {
+        doc.image(targetLogo, 272, 45, { width: 52 });
+        doc.y = 105;
+      } catch (imgErr) {}
+    }
+
     doc
       .fontSize(13)
       .font('Helvetica-Bold')
