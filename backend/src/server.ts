@@ -103,6 +103,13 @@ if (!process.env.VERCEL) {
 
     // Start Supabase Auto-KeepAlive & Auto-Wakeup Engine
     supabaseKeepAlive.startKeepAliveDaemon();
+
+    // Auto-start WhatsApp Baileys Engine on local daemon
+    try {
+      const { baileysEngine } = require('./services/baileysEngine');
+      baileysEngine.startEngine();
+      console.log('📱 [WHATSAPP] Baileys Engine diaktifkan otomatis.');
+    } catch (e) {}
   });
 }
 
