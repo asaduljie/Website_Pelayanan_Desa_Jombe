@@ -20,27 +20,47 @@ import api from '@/lib/api';
 
 // Requirement definitions by service slug
 const SERVICE_REQUIREMENTS: Record<string, Array<{ id: string; label: string; description: string; required: boolean }>> = {
+  'surat-keterangan-tidak-mampu': [
+    { id: 'ktp', label: 'Foto e-KTP Pemohon / Orang Tua', description: 'Foto e-KTP pemohon atau orang tua (jelas & terbaca)', required: true },
+    { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemohon', required: true },
+    { id: 'pendukung', label: 'Bukti Pendukung / Keterangan DTKS (Opsional)', description: 'Foto kartu KIS/PKH/KIP atau surat pengantar (jika ada)', required: false },
+  ],
+  'surat-keterangan-wali': [
+    { id: 'ktp_wali', label: 'Foto e-KTP Wali / Orang Tua', description: 'Foto e-KTP wali yang bersangkutan', required: true },
+    { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemohon/wali', required: true },
+    { id: 'identitas_anak', label: 'Foto Rapor / Kartu Pelajar / NISN Anak', description: 'Foto bukti identitas anak / siswa yang diwakilkan', required: true },
+  ],
+  'surat-keterangan-kepemilikan-kendaraan-bermotor': [
+    { id: 'ktp', label: 'Foto e-KTP Pemilik Kendaraan', description: 'Foto e-KTP pemohon yang sah', required: true },
+    { id: 'stnk_bpkb', label: 'Foto STNK / BPKB Kendaraan', description: 'Foto STNK atau BPKB kendaraan bermotor', required: true },
+    { id: 'kendaraan', label: 'Foto Fisik Kendaraan & Plat Nomor', description: 'Foto kendaraan yang memuat plat nomor polisi jelas', required: true },
+  ],
   'surat-keterangan-usaha': [
-    { id: 'ktp', label: 'Foto KTP Pemohon', description: 'Foto e-KTP asli yang masih berlaku (jelas & tidak buram)', required: true },
-    { id: 'usaha', label: 'Foto Tempat / Kegiatan Usaha', description: 'Foto papan nama / toko / aktivitas usaha warga', required: true },
+    { id: 'ktp', label: 'Foto e-KTP Pemilik Usaha', description: 'Foto e-KTP asli yang masih berlaku (jelas & tidak buram)', required: true },
+    { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemilik usaha', required: true },
+    { id: 'usaha', label: 'Foto Tempat / Aktivitas Usaha', description: 'Foto toko / tempat dagang / aktivitas usaha warga', required: true },
   ],
   'surat-keterangan-domisili': [
-    { id: 'ktp', label: 'Foto KTP Pemohon', description: 'Foto e-KTP pemohon yang masih berlaku', required: true },
+    { id: 'ktp', label: 'Foto e-KTP Pemohon', description: 'Foto e-KTP pemohon yang masih berlaku', required: true },
     { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga tempat tinggal pemohon', required: true },
   ],
-  'surat-keterangan-tidak-mampu': [
-    { id: 'ktp', label: 'Foto KTP Pemohon / Orang Tua', description: 'Foto e-KTP pemohon atau orang tua', required: true },
+  'surat-keterangan-kelakuan-baik': [
+    { id: 'ktp', label: 'Foto e-KTP Pemohon', description: 'Foto e-KTP pemohon', required: true },
     { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemohon', required: true },
+    { id: 'pas_foto', label: 'Pas Foto Formal (3x4 atau 4x6)', description: 'Foto formal latar belakang merah / biru', required: false },
   ],
-  'surat-keterangan-kelahiran': [
-    { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto KK keluarga pemohon', required: true },
-    { id: 'ktp_ortu', label: 'Foto KTP Kedua Orang Tua', description: 'Foto e-KTP Ayah dan Ibu', required: true },
-    { id: 'surat_bidan', label: 'Surat Pengantar Bidan / Rumah Sakit', description: 'Surat keterangan kelahiran dari bidan / klinik / RS', required: true },
+  'surat-keterangan-belum-menikah': [
+    { id: 'ktp', label: 'Foto e-KTP Pemohon', description: 'Foto e-KTP pemohon yang masih berlaku', required: true },
+    { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemohon', required: true },
   ],
   'surat-keterangan-kematian': [
     { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga almarhum/ah', required: true },
-    { id: 'ktp_jenazah', label: 'Foto KTP Almarhum / Jenazah', description: 'Foto e-KTP almarhum/ah', required: true },
-    { id: 'surat_rs', label: 'Surat Kematian RS / Pengantar RT', description: 'Surat kematian dari dokter / rumah sakit / pengantar RT', required: true },
+    { id: 'ktp_pelapor', label: 'Foto e-KTP Pelapor / Ahli Waris', description: 'Foto e-KTP anggota keluarga yang melaporkan', required: true },
+    { id: 'surat_rs', label: 'Surat Kematian RS / Pengantar Dusun', description: 'Surat kematian dari RS / bidan / pengantar dusun (jika ada)', required: false },
+  ],
+  'surat-keterangan-umum': [
+    { id: 'ktp', label: 'Foto e-KTP Pemohon', description: 'Foto e-KTP pemohon yang masih berlaku', required: true },
+    { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemohon', required: true },
   ],
 };
 
@@ -114,9 +134,26 @@ export default function ServiceApplicationFormPage() {
       .then((res) => {
         if (res.data.status === 'success') {
           setService(res.data.data);
-        }
+      .catch(() => {
+        const fallbackTitles: Record<string, string> = {
+          'surat-keterangan-tidak-mampu': 'Surat Keterangan Kurang Mampu (SKTM)',
+          'surat-keterangan-wali': 'Surat Keterangan Wali',
+          'surat-keterangan-kepemilikan-kendaraan-bermotor': 'Surat Keterangan Kepemilikan Kendaraan Bermotor',
+          'surat-keterangan-usaha': 'Surat Keterangan Usaha (SKU)',
+          'surat-keterangan-domisili': 'Surat Keterangan Domisili',
+          'surat-keterangan-kelakuan-baik': 'Surat Keterangan Kelakuan Baik (SKKB)',
+          'surat-keterangan-belum-menikah': 'Surat Keterangan Belum Menikah',
+          'surat-keterangan-kematian': 'Surat Keterangan Kematian',
+          'surat-keterangan-umum': 'Surat Keterangan Umum / Lainnya',
+        };
+        setService({
+          id: `srv-${slug}`,
+          name: fallbackTitles[slug] || 'Surat Keterangan Resmi',
+          slug: slug,
+          category: 'Pelayanan Publik',
+          description: 'Pengajuan dokumen resmi Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto.',
+        });
       })
-      .catch(() => {})
       .finally(() => setLoading(false));
   }, [slug]);
 
