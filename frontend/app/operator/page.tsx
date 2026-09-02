@@ -1440,16 +1440,20 @@ export default function OperatorDashboardPage() {
             {activeTab === 'SURAT_BALASAN_SKU' && (
               <div className="bg-slate-50 p-6 sm:p-8 rounded-2xl border border-slate-300 shadow-inner space-y-5 text-slate-900 font-serif">
                 {/* Kop Surat Resmi */}
-                <div className="text-center pb-3 space-y-0.5 relative">
-                  <img
-                    src="/logo_jeneponto.png"
-                    alt="Logo Kabupaten Jeneponto"
-                    className="w-12 h-auto mx-auto mb-2 object-contain"
-                  />
-                  <h4 className="text-xs font-bold uppercase tracking-wide text-slate-900">PEMERINTAH KABUPATEN JENEPONTO</h4>
-                  <h4 className="text-xs font-bold uppercase tracking-wide text-slate-900">KECAMATAN TURATEA</h4>
-                  <h3 className="text-base font-extrabold uppercase tracking-wide text-slate-950">DESA JOMBE</h3>
-                  <p className="text-[10px] font-sans text-slate-600">Alamat: Jl. Poros Dusun Jombe Selatan</p>
+                <div className="pb-3 space-y-0.5 relative">
+                  <div className="relative flex items-center justify-center min-h-[64px]">
+                    <img
+                      src="/logo_jeneponto.png"
+                      alt="Logo Kabupaten Jeneponto"
+                      className="w-14 h-auto absolute left-2 top-0 object-contain"
+                    />
+                    <div className="text-center px-16">
+                      <h4 className="text-xs font-bold uppercase tracking-wide text-slate-900">PEMERINTAH KABUPATEN JENEPONTO</h4>
+                      <h4 className="text-xs font-bold uppercase tracking-wide text-slate-900">KECAMATAN TURATEA</h4>
+                      <h3 className="text-base font-extrabold uppercase tracking-wide text-slate-950">DESA JOMBE</h3>
+                      <p className="text-[10px] font-sans text-slate-600">Alamat: Jl. Poros Dusun Jombe Selatan</p>
+                    </div>
+                  </div>
                   <div className="pt-2">
                     <div className="w-full border-b-[2.5px] border-slate-900"></div>
                     <div className="w-full border-b border-slate-900 mt-[2px]"></div>

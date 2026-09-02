@@ -100,25 +100,24 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
 
     if (targetLogo) {
       try {
-        doc.image(targetLogo, 272, 45, { width: 52 });
-        doc.y = 105;
+        // Logo di sebelah kiri kop surat
+        doc.image(targetLogo, 55, 45, { width: 56 });
       } catch (imgErr) {}
     }
 
     doc
       .fontSize(13)
       .font('Helvetica-Bold')
-      .text('PEMERINTAH KABUPATEN JENEPONTO', { align: 'center' })
-      .text('KECAMATAN TURATEA', { align: 'center' })
+      .text('PEMERINTAH KABUPATEN JENEPONTO', 50, 45, { align: 'center', width: 495 })
+      .text('KECAMATAN TURATEA', 50, doc.y + 1, { align: 'center', width: 495 })
       .fontSize(14)
-      .text('DESA JOMBE', { align: 'center' })
+      .text('DESA JOMBE', 50, doc.y + 1, { align: 'center', width: 495 })
       .fontSize(9)
       .font('Helvetica')
-      .text('Alamat: Jl. Poros Dusun Jombe Selatan', { align: 'center' })
-      .moveDown(0.4);
+      .text('Alamat: Jl. Poros Dusun Jombe Selatan', 50, doc.y + 2, { align: 'center', width: 495 });
 
-    // Garis Ganda Kop Surat (Double Line)
-    const currentY = doc.y;
+    // Garis Ganda Kop Surat (Double Line) di bawah Kop
+    const currentY = Math.max(doc.y + 10, 115);
     doc
       .moveTo(50, currentY)
       .lineTo(545, currentY)
@@ -130,7 +129,7 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
       .lineWidth(0.8)
       .stroke();
 
-    doc.moveDown(1.5);
+    doc.y = currentY + 16;
 
     // ==========================================
     // 2. JUDUL SURAT & NOMOR RESMI (/DJ/BULAN/TAHUN)
@@ -139,10 +138,10 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
     doc
       .fontSize(12)
       .font('Helvetica-Bold')
-      .text(serviceTitle, { align: 'center', underline: true })
+      .text(serviceTitle, 50, doc.y, { align: 'center', width: 495, underline: true })
       .fontSize(10)
       .font('Helvetica')
-      .text(`Nomor: ${letterNumber}`, { align: 'center' })
+      .text(`Nomor: ${letterNumber}`, 50, doc.y + 2, { align: 'center', width: 495 })
       .moveDown(1.2);
 
     // ==========================================
@@ -151,7 +150,8 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
     doc
       .fontSize(10.5)
       .font('Helvetica')
-      .text('Yang bertanda tangan di bawah ini Kepala Desa Jombe Kecamatan Turatea Kabupaten Jeneponto menerangkan bahwa :', {
+      .text('Yang bertanda tangan di bawah ini Kepala Desa Jombe Kecamatan Turatea Kabupaten Jeneponto menerangkan bahwa :', 50, doc.y, {
+        width: 495,
         align: 'justify',
         lineGap: 2,
       })
@@ -188,7 +188,7 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
     doc.moveDown(0.8);
 
     // ==========================================
-    // 5. ISI KETERANGAN
+    // 5. ISI KETERANGAN (RATA KIRI SEJAJAR DENGAN PARAGRAF ATAS)
     // ==========================================
     let detailContent = 'Yang bersangkutan adalah benar-benar penduduk Desa kami dan memiliki data administrasi yang sah di wilayah Desa Jombe.';
     if (application.fieldValues && application.fieldValues.length > 0) {
@@ -199,9 +199,12 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
     }
 
     doc
-      .text(detailContent, { align: 'justify', lineGap: 2 })
+      .fontSize(10.5)
+      .font('Helvetica')
+      .text(detailContent, 50, doc.y, { width: 495, align: 'justify', lineGap: 2 })
       .moveDown(0.6)
-      .text('Demikian surat keterangan ini diberikan kepada yang bersangkutan untuk digunakan sebagaimana mestinya.', {
+      .text('Demikian surat keterangan ini diberikan kepada yang bersangkutan untuk digunakan sebagaimana mestinya.', 50, doc.y, {
+        width: 495,
         align: 'justify',
         lineGap: 2,
       })
