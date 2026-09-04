@@ -73,10 +73,6 @@ class WhatsAppBaileysEngine {
   }
 
   public async startEngine(customPhoneNumber?: string): Promise<void> {
-    if (process.env.VERCEL) {
-      console.log('ℹ️ WhatsApp Baileys Engine runs on local village PC daemon, disabled on Vercel serverless.');
-      return;
-    }
     if (this.isInitializing || this.status === 'CONNECTED') return;
     this.isInitializing = true;
     this.status = 'CONNECTING';
