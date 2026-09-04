@@ -31,9 +31,9 @@ export default function LoginPage() {
         }
 
         if (user.role === 'OPERATOR' || user.role === 'ADMIN') {
-          router.push('/operator');
+          window.location.href = '/operator';
         } else {
-          router.push('/dashboard');
+          window.location.href = '/dashboard';
         }
       }
     } catch (err: any) {
@@ -62,7 +62,7 @@ export default function LoginPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form action="javascript:void(0);" onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
             <label className="block text-xs font-bold text-gray-800">NIK (Nomor Induk Kependudukan)</label>
             <input
