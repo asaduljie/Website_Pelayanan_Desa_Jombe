@@ -1,7 +1,12 @@
 import { Response } from 'express';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
-import { waApplicationsStore, sendNotificationToCitizenWhatsApp, SERVICE_PHOTO_REQUIREMENTS } from './whatsappBotController';
+import {
+  waApplicationsStore,
+  sendNotificationToCitizenWhatsApp,
+  sendRevisionNotificationToCitizenWhatsApp,
+  SERVICE_PHOTO_REQUIREMENTS
+} from './whatsappBotController';
 import { PersistentDatabase } from '../utils/persistentDb';
 
 export const getOperatorDashboardStats = async (req: AuthRequest, res: Response) => {
@@ -139,15 +144,19 @@ export const approveAndSendLetter = async (req: AuthRequest, res: Response) => {
       }).catch(() => null);
     } catch (e) {}
 
-    const pdfUrl = `http://localhost:5000/api/operator/pdf/${id}`;
+    const host = req.get('host') || 'quinoa-legal-ostrich.abasthan.app';
+    const protocol = host.includes('localhost') ? req.protocol : 'https';
+    const pdfUrl = `${protocol}://${host}/api/operator/pdf/${id}`;
 
-    // 3. Send Notification to Citizen's WhatsApp
-    sendNotificationToCitizenWhatsApp(
+    // 3. Send Notification & PDF Document to Citizen's WhatsApp
+    await sendNotificationToCitizenWhatsApp(
       targetPhone,
       targetAppNumber || 'JMB-2026-00012',
       targetServiceName,
       officialLetterNum,
-      pdfUrl
+      pdfUrl,
+      id,
+      letterContent
     );
 
     return res.status(200).json({
@@ -194,6 +203,16 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
         },
       }).catch(() => null);
     } catch (e) {}
+
+    // Send WhatsApp notification for rejection / revision
+    if (updated && (status === 'NEED_REVISION' || status === 'REJECTED')) {
+      const targetPhone = updated.userPhone;
+      const targetAppNum = updated.applicationNumber;
+      const targetService = updated.serviceName;
+      if (targetPhone) {
+        sendRevisionNotificationToCitizenWhatsApp(targetPhone, targetAppNum, targetService, revisionNotes).catch(() => {});
+      }
+    }
 
     return res.status(200).json({
       status: 'success',

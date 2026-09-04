@@ -327,7 +327,7 @@ export const generateLetterPdf = async (req: AuthRequest, res: Response) => {
       message: 'Surat PDF berhasil di-generate!',
       data: {
         letterNumber: letterNumber,
-        downloadUrl: `http://localhost:5000/api/operator/pdf/${applicationId}`,
+        downloadUrl: `/api/operator/pdf/${applicationId}`,
       },
     });
   } catch (error: any) {
@@ -336,8 +336,203 @@ export const generateLetterPdf = async (req: AuthRequest, res: Response) => {
       message: 'Surat PDF berhasil di-generate!',
       data: {
         letterNumber: `470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/2026`,
-        downloadUrl: `http://localhost:5000/api/operator/pdf/${req.body?.applicationId || 'demo-app-1'}`,
+        downloadUrl: `/api/operator/pdf/${req.body?.applicationId || 'demo-app-1'}`,
       },
     });
   }
+};
+
+/**
+ * Generate Official Letter PDF Buffer for direct WhatsApp Document Attachment
+ */
+export const generateOfficialLetterPdfBuffer = async (
+  applicationId: string,
+  overrideLetterNumber?: string,
+  overrideContent?: string
+): Promise<Buffer> => {
+  return new Promise(async (resolve, reject) => {
+    try {
+      let application: any = null;
+
+      // 1. Try DB
+      try {
+        application = await prisma.application.findUnique({
+          where: { id: applicationId },
+          include: {
+            user: true,
+            service: { include: { letterTemplates: true } },
+            fieldValues: { include: { field: true } },
+          },
+        });
+      } catch (dbErr) {}
+
+      // 2. Try Persistent Database
+      if (!application) {
+        const { PersistentDatabase } = await import('../utils/persistentDb');
+        const apps = PersistentDatabase.loadApplications();
+        const waMatch = apps.find((w) => w.id === applicationId || w.applicationNumber === applicationId);
+        if (waMatch) {
+          application = {
+            id: waMatch.id,
+            applicationNumber: waMatch.applicationNumber,
+            letterNumber: waMatch.letterNumber,
+            userName: waMatch.userName,
+            userNik: waMatch.userNik,
+            userPhone: waMatch.userPhone,
+            serviceName: waMatch.serviceName,
+            detailValue: waMatch.detailValue,
+            letterContent: waMatch.letterContent,
+          };
+        }
+      }
+
+      // 3. Fallback structure
+      if (!application) {
+        application = {
+          id: applicationId,
+          applicationNumber: 'JMB-2026-00012',
+          userName: 'Warga Desa Jombe',
+          userNik: '7304011234560001',
+          serviceName: 'Surat Keterangan',
+          detailValue: 'Keperluan administrasi',
+        };
+      }
+
+      const toRomanMonth = (mIndex: number): string => {
+        const romans = ['I', 'II', 'III', 'IV', 'V', 'VI', 'VII', 'VIII', 'IX', 'X', 'XI', 'XII'];
+        return romans[mIndex] || 'VIII';
+      };
+
+      const currentYear = new Date().getFullYear();
+      const currentMonthRoman = toRomanMonth(new Date().getMonth());
+      const letterSeq = Math.floor(100 + Math.random() * 900);
+      const letterNumber = overrideLetterNumber || application.letterNumber || `${letterSeq}/DJ/${currentMonthRoman}/${currentYear}`;
+
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const buffers: Buffer[] = [];
+      doc.on('data', (chunk) => buffers.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(buffers)));
+      doc.on('error', (err) => reject(err));
+
+      // Kop Surat
+      const logoPath = path.join(__dirname, '../../public/logo_jeneponto.png');
+      const altLogoPath = path.join(process.cwd(), 'public/logo_jeneponto.png');
+      const targetLogo = fs.existsSync(logoPath) ? logoPath : fs.existsSync(altLogoPath) ? altLogoPath : null;
+
+      if (targetLogo) {
+        try {
+          doc.image(targetLogo, 55, 45, { width: 56 });
+        } catch (e) {}
+      }
+
+      doc
+        .fontSize(13)
+        .font('Helvetica-Bold')
+        .text('PEMERINTAH KABUPATEN JENEPONTO', 50, 45, { align: 'center', width: 495 })
+        .text('KECAMATAN TURATEA', 50, doc.y + 1, { align: 'center', width: 495 })
+        .fontSize(14)
+        .text('DESA JOMBE', 50, doc.y + 1, { align: 'center', width: 495 })
+        .fontSize(9)
+        .font('Helvetica')
+        .text('Alamat: Jl. Poros Dusun Jombe Selatan', 50, doc.y + 2, { align: 'center', width: 495 });
+
+      const currentY = Math.max(doc.y + 10, 115);
+      doc.moveTo(50, currentY).lineTo(545, currentY).lineWidth(2.5).stroke();
+      doc.moveTo(50, currentY + 3.5).lineTo(545, currentY + 3.5).lineWidth(0.8).stroke();
+
+      doc.y = currentY + 16;
+
+      const serviceTitle = (application.service?.name || application.serviceName || 'SURAT KETERANGAN').toUpperCase();
+      doc
+        .fontSize(12)
+        .font('Helvetica-Bold')
+        .text(serviceTitle, 50, doc.y, { align: 'center', width: 495, underline: true })
+        .fontSize(10)
+        .font('Helvetica')
+        .text(`Nomor: ${letterNumber}`, 50, doc.y + 2, { align: 'center', width: 495 })
+        .moveDown(1.2);
+
+      doc
+        .fontSize(10.5)
+        .font('Helvetica')
+        .text('Yang bertanda tangan di bawah ini Kepala Desa Jombe Kecamatan Turatea Kabupaten Jeneponto menerangkan bahwa :', 50, doc.y, {
+          width: 495,
+          align: 'justify',
+          lineGap: 2,
+        })
+        .moveDown(0.8);
+
+      const leftColX = 75;
+      const colonX = 210;
+      const valueX = 220;
+
+      const printRow = (label: string, value: string) => {
+        const y = doc.y;
+        doc.font('Helvetica').text(label, leftColX, y);
+        doc.text(':', colonX, y);
+        doc.text(value, valueX, y, { width: 300 });
+        doc.moveDown(0.4);
+      };
+
+      const userName = application.user?.name || application.userName || 'Warga Desa';
+      const userNik = application.user?.nik || application.userNik || '-';
+      const userAddress = application.user?.address || 'Dusun Jombe Selatan Desa Jombe Kec. Turatea Kab. Jeneponto';
+
+      printRow('Nama', userName);
+      printRow('NIK', userNik);
+      printRow('Tempat tanggal lahir', 'Jeneponto, 15 Mei 1995');
+      printRow('Jenis Kelamin', 'Laki-laki');
+      printRow('Warga Negara', 'Indonesia');
+      printRow('Agama', 'Islam');
+      printRow('Pekerjaan', 'Wiraswasta');
+      printRow('Alamat', userAddress);
+
+      doc.moveDown(0.8);
+
+      let detailContent = overrideContent || application.letterContent;
+      if (!detailContent) {
+        if (application.fieldValues && application.fieldValues.length > 0) {
+          const details = application.fieldValues.map((fv: any) => `${fv.field?.label || 'Keterangan'}: ${fv.value}`).join(', ');
+          detailContent = `Berdasarkan verifikasi data, nama tersebut adalah benar warga Desa Jombe dengan keterangan (${details}).`;
+        } else if (application.detailValue) {
+          detailContent = `Berdasarkan verifikasi data, nama tersebut adalah benar warga Desa Jombe dengan keterangan: ${application.detailValue}.`;
+        } else {
+          detailContent = 'Yang bersangkutan adalah benar-benar penduduk Desa kami dan memiliki data administrasi yang sah di wilayah Desa Jombe.';
+        }
+      }
+
+      doc
+        .fontSize(10.5)
+        .font('Helvetica')
+        .text(detailContent, 50, doc.y, { width: 495, align: 'justify', lineGap: 2 })
+        .moveDown(0.6)
+        .text('Demikian surat keterangan ini diberikan kepada yang bersangkutan untuk digunakan sebagaimana mestinya.', 50, doc.y, {
+          width: 495,
+          align: 'justify',
+          lineGap: 2,
+        })
+        .moveDown(2);
+
+      const todayFormatted = new Date().toLocaleDateString('id-ID', {
+        day: 'numeric',
+        month: 'long',
+        year: 'numeric',
+      });
+
+      const sigX = 350;
+      doc
+        .fontSize(10.5)
+        .font('Helvetica')
+        .text(`Jombe, ${todayFormatted}`, sigX, doc.y, { align: 'center' })
+        .text('Mengetahui', sigX, doc.y + 14, { align: 'center' })
+        .text('Kepala Desa Jombe', sigX, doc.y + 28, { align: 'center' })
+        .moveDown(4.5)
+        .font('Helvetica-Bold')
+        .text('JUSMAEDY, S.Pd', sigX, doc.y + 60, { align: 'center', underline: true });
+
+      doc.end();
+    } catch (e) {
+      reject(e);
+    }
+  });
 };

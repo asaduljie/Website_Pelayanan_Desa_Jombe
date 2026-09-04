@@ -93,25 +93,30 @@ export const chatHistories: Record<string, ChatMessage[]> = {
   '6281299887766': [getInitialGreeting()],
 };
 
-export const sendNotificationToCitizenWhatsApp = (
+export const sendNotificationToCitizenWhatsApp = async (
   phone: string,
   appNumber: string,
   serviceName: string,
   letterNumber: string,
-  pdfUrl: string
+  pdfUrl: string,
+  applicationId?: string,
+  letterContent?: string
 ) => {
   const cleanPhone = String(phone).replace(/\D/g, '') || '6281299887766';
+  const formattedPhone = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
+
   if (!chatHistories[cleanPhone]) {
     chatHistories[cleanPhone] = [getInitialGreeting()];
   }
 
-  const notifMsg = `*SURAT RESMI TELAH SELESAI DITERBITKAN*\n\n` +
+  const notifMsg = `✅ *SURAT RESMI TELAH SELESAI DITERBITKAN*\n\n` +
     `Pemerintah Desa Jombe memberitahukan bahwa permohonan Anda:\n` +
     `📄 Layanan: *${serviceName || 'Surat Keterangan'}*\n` +
     `🔢 No. Registrasi: *${appNumber}*\n` +
     `📜 No. Surat Resmi: *${letterNumber}*\n\n` +
     `Surat telah disetujui dan ditandatangani oleh Kepala Desa Jombe.\n\n` +
-    `📥 *Unduh Berkas Surat PDF:* ${pdfUrl}\n\n` +
+    `📥 *Unduh Berkas Surat:* ${pdfUrl}\n\n` +
+    `_Berkas dokumen resmi PDF terlampir di bawah ini._\n\n` +
     `Terima kasih telah menggunakan Layanan Mandiri Digital Desa Jombe.`;
 
   const currentTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
@@ -123,6 +128,74 @@ export const sendNotificationToCitizenWhatsApp = (
     pdfUrl: pdfUrl,
     letterNumber: letterNumber,
   });
+
+  // 1. Send Text Message via Real Baileys WhatsApp Engine
+  try {
+    const { baileysEngine } = await import('../services/baileysEngine');
+    await baileysEngine.sendMessage(formattedPhone, notifMsg);
+    console.log(`📱 [WHATSAPP NOTIF] Pesan persetujuan surat terkirim ke: ${formattedPhone}`);
+
+    // 2. Generate and Send Real PDF Document via Baileys WhatsApp Engine
+    if (applicationId) {
+      try {
+        const { generateOfficialLetterPdfBuffer } = await import('./pdfController');
+        const pdfBuffer = await generateOfficialLetterPdfBuffer(applicationId, letterNumber, letterContent);
+        if (pdfBuffer && pdfBuffer.length > 0) {
+          await baileysEngine.sendPdfDocument(
+            formattedPhone,
+            pdfBuffer,
+            `SURAT-${appNumber}.pdf`,
+            `📜 *Surat Resmi Desa Jombe* - No: ${letterNumber}`
+          );
+          console.log(`📎 [WHATSAPP PDF] Dokumen PDF surat resmi berhasil dikirim ke: ${formattedPhone}`);
+        }
+      } catch (pdfErr: any) {
+        console.error('Failed to attach PDF to WhatsApp:', pdfErr.message);
+      }
+    }
+  } catch (err: any) {
+    console.warn('Notice sending WhatsApp approval notification:', err.message);
+  }
+
+  return notifMsg;
+};
+
+export const sendRevisionNotificationToCitizenWhatsApp = async (
+  phone: string,
+  appNumber: string,
+  serviceName: string,
+  revisionNotes?: string
+) => {
+  const cleanPhone = String(phone).replace(/\D/g, '') || '6281299887766';
+  const formattedPhone = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
+
+  if (!chatHistories[cleanPhone]) {
+    chatHistories[cleanPhone] = [getInitialGreeting()];
+  }
+
+  const notifMsg = `⚠️ *PEMBERITAHUAN PERBAIKAN PERMOHONAN SURAT*\n\n` +
+    `Pemerintah Desa Jombe memberitahukan bahwa permohonan surat Anda:\n` +
+    `📄 Layanan: *${serviceName || 'Surat Keterangan'}*\n` +
+    `🔢 No. Registrasi: *${appNumber}*\n\n` +
+    `Status: *MEMERLUKAN PERBAIKAN / DITOLAK*\n` +
+    `💬 *Catatan Petugas Operator:* \n"${revisionNotes || 'Dokumen foto lampiran kurang jelas atau belum lengkap.'}"\n\n` +
+    `Silakan ajukan kembali permohonan surat melalui bot ini dengan melengkapi berkas yang diminta. Terima kasih.`;
+
+  const currentTime = new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+  chatHistories[cleanPhone].push({
+    id: `msg-revision-notif-${Date.now()}`,
+    sender: 'bot',
+    text: notifMsg,
+    timestamp: currentTime,
+  });
+
+  try {
+    const { baileysEngine } = await import('../services/baileysEngine');
+    await baileysEngine.sendMessage(formattedPhone, notifMsg);
+    console.log(`📱 [WHATSAPP NOTIF] Pesan penolakan/revisi terkirim ke: ${formattedPhone}`);
+  } catch (err: any) {
+    console.warn('Notice sending WhatsApp revision notification:', err.message);
+  }
 
   return notifMsg;
 };
