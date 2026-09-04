@@ -66,12 +66,8 @@ class WhatsAppBaileysEngine {
   }
 
   public async getStatusAsync(): Promise<BaileysStatus> {
-    if (!this.qrCodeDataUrl) {
-      try {
-        const directWaLink = 'https://wa.me/6287853617893?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20surat.';
-        this.qrCodeDataUrl = await QRCode.toDataURL(directWaLink, { width: 320, margin: 2 });
-        this.status = 'SCAN_QR';
-      } catch (e) {}
+    if (!this.sock && !this.isInitializing && this.status === 'DISCONNECTED') {
+      this.startEngine().catch(() => {});
     }
     return this.getStatus();
   }
