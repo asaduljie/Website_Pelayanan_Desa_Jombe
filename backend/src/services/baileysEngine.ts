@@ -36,6 +36,8 @@ const AUTH_DIR = process.env.VERCEL
   ? path.join('/tmp', 'auth_info_baileys')
   : path.join(__dirname, '../../auth_info_baileys');
 
+const STATUS_CACHE_FILE = path.join(AUTH_DIR, 'live_status.json');
+
 class WhatsAppBaileysEngine {
   private sock: any = null;
   private qrCodeDataUrl: string | null = null;
@@ -54,7 +56,30 @@ class WhatsAppBaileysEngine {
     } catch (e) {}
   }
 
+  private saveStatusCache(): void {
+    try {
+      if (!fs.existsSync(AUTH_DIR)) fs.mkdirSync(AUTH_DIR, { recursive: true });
+      fs.writeFileSync(STATUS_CACHE_FILE, JSON.stringify({
+        status: this.status === 'DISCONNECTED' && this.qrCodeDataUrl ? 'SCAN_QR' : this.status,
+        qrCodeDataUrl: this.qrCodeDataUrl,
+        pairingCode: this.pairingCode,
+        phoneNumber: this.phoneNumber,
+        userName: this.userName,
+        lastConnected: this.lastConnected,
+      }));
+    } catch (e) {}
+  }
+
   public getStatus(): BaileysStatus {
+    try {
+      if (fs.existsSync(STATUS_CACHE_FILE)) {
+        const cached = JSON.parse(fs.readFileSync(STATUS_CACHE_FILE, 'utf-8'));
+        if (cached.qrCodeDataUrl && !this.qrCodeDataUrl) this.qrCodeDataUrl = cached.qrCodeDataUrl;
+        if (cached.pairingCode && !this.pairingCode) this.pairingCode = cached.pairingCode;
+        if (cached.status && this.status === 'DISCONNECTED') this.status = cached.status;
+      }
+    } catch (e) {}
+
     return {
       status: this.status === 'DISCONNECTED' && this.qrCodeDataUrl ? 'SCAN_QR' : this.status,
       qrCodeDataUrl: this.qrCodeDataUrl,
@@ -66,8 +91,13 @@ class WhatsAppBaileysEngine {
   }
 
   public async getStatusAsync(): Promise<BaileysStatus> {
-    if (!this.sock && !this.isInitializing && this.status === 'DISCONNECTED') {
+    if (!this.sock && !this.isInitializing && (this.status === 'DISCONNECTED' || !this.qrCodeDataUrl)) {
       this.startEngine().catch(() => {});
+      // Tunggu hingga 4 detik agar QR code siap jika sedang digenerate
+      for (let i = 0; i < 8; i++) {
+        if (this.qrCodeDataUrl || this.pairingCode || this.status === 'CONNECTED') break;
+        await new Promise((r) => setTimeout(r, 500));
+      }
     }
     return this.getStatus();
   }
@@ -119,6 +149,7 @@ class WhatsAppBaileysEngine {
           try {
             this.qrCodeDataUrl = await QRCode.toDataURL(qr, { width: 320, margin: 2 });
             this.status = 'SCAN_QR';
+            this.saveStatusCache();
             console.log('📱 [Baileys] QR Code baru siap di-scan dari HP!');
           } catch (e) {
             console.error('Failed to generate QR code:', e);
