@@ -58,8 +58,9 @@ if (!process.env.VERCEL) {
 // Static public assets route
 app.use('/public-assets', express.static(path.join(__dirname, '../public')));
 
-// Register API Routes
+// Register API Routes (support both /api and root rewrites)
 app.use('/api', router);
+app.use('/', router);
 
 // Root Welcome Endpoint
 app.get('/', (req: Request, res: Response) => {
