@@ -111,7 +111,7 @@ export default function Navbar() {
               Pengaduan Warga
             </Link>
             <a
-              href="https://wa.me/6285151199485?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
+              href="https://wa.me/6287853617893?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
               target="_blank"
               rel="noopener noreferrer"
               className="px-3.5 py-2 rounded-xl text-xs font-semibold transition-colors flex items-center gap-1.5 text-emerald-800 bg-emerald-50/80 hover:bg-emerald-100/70 border border-emerald-200/80 shadow-xs"
@@ -258,14 +258,14 @@ export default function Navbar() {
               Pengaduan Warga
             </Link>
             <a
-              href="https://wa.me/6285151199485?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
+              href="https://wa.me/6287853617893?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
               target="_blank"
               rel="noopener noreferrer"
               onClick={() => setMobileMenuOpen(false)}
               className="block px-3.5 py-2.5 rounded-xl text-emerald-800 bg-emerald-50/80 font-bold border border-emerald-200/80 flex items-center gap-2"
             >
               <MessageSquare className="w-4 h-4 text-emerald-700" />
-              Layanan WhatsApp (0851-5119-9485)
+              Layanan WhatsApp (0878-5361-7893)
             </a>
           </nav>
 

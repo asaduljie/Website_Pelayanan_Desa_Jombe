@@ -1795,19 +1795,19 @@ export default function OperatorDashboardPage() {
                     <img
                       src={
                         waStatus.qrCodeDataUrl ||
-                        'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fwa.me%2F6285151199485%3Ftext%3DHalo%2520Bot%2520Pelayanan%2520Desa%2520Jombe'
+                        'https://api.qrserver.com/v1/create-qr-code/?size=300x300&data=https%3A%2F%2Fwa.me%2F6287853617893%3Ftext%3DHalo%2520Bot%2520Pelayanan%2520Desa%2520Jombe'
                       }
                       alt="WhatsApp QR Code"
                       className="w-52 h-52 rounded-xl border border-slate-300 shadow-sm bg-white p-2"
                     />
                     <div className="text-center space-y-2 w-full">
                       <a
-                        href="https://wa.me/6285151199485?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
+                        href="https://wa.me/6287853617893?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
                         target="_blank"
                         rel="noopener noreferrer"
                         className="w-full py-2.5 px-4 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl font-bold text-xs flex items-center justify-center gap-2 shadow-xs transition-all"
                       >
-                        <MessageSquare className="w-4 h-4" /> Buka Chat Bot di WhatsApp (0851-5119-9485)
+                        <MessageSquare className="w-4 h-4" /> Buka Chat Bot di WhatsApp (0878-5361-7893)
                       </a>
                     </div>
                   </div>

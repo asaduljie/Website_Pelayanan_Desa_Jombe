@@ -59,7 +59,7 @@ class WhatsAppBaileysEngine {
       status: this.status === 'DISCONNECTED' && this.qrCodeDataUrl ? 'SCAN_QR' : this.status,
       qrCodeDataUrl: this.qrCodeDataUrl,
       pairingCode: this.pairingCode,
-      phoneNumber: this.phoneNumber || '085151199485',
+      phoneNumber: this.phoneNumber || '087853617893',
       userName: this.userName || 'Bot Resmi Desa Jombe',
       lastConnected: this.lastConnected,
     };
@@ -68,7 +68,7 @@ class WhatsAppBaileysEngine {
   public async getStatusAsync(): Promise<BaileysStatus> {
     if (!this.qrCodeDataUrl) {
       try {
-        const directWaLink = 'https://wa.me/6285151199485?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20surat.';
+        const directWaLink = 'https://wa.me/6287853617893?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20surat.';
         this.qrCodeDataUrl = await QRCode.toDataURL(directWaLink, { width: 320, margin: 2 });
         this.status = 'SCAN_QR';
       } catch (e) {}

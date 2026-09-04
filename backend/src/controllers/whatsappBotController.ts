@@ -705,6 +705,23 @@ export const handleIncomingWhatsAppMessageInternal = async (
         }
       } catch (dbErr) {}
 
+      // Notifikasi Instan Langsung ke WhatsApp Operator
+      const opNumber = process.env.OPERATOR_WHATSAPP_NUMBER || '6287853617893';
+      if (opNumber && opNumber !== senderPhone) {
+        const opMsg =
+          `📢 *PEMBERITAHUAN PERMOHONAN SURAT BARU*\n\n` +
+          `Telah masuk permohonan surat baru dari warga via WhatsApp Bot:\n` +
+          `• *No. Registrasi:* ${appNumber}\n` +
+          `• *Layanan:* ${targetServiceName}\n` +
+          `• *Nama Pemohon:* ${targetName}\n` +
+          `• *NIK:* ${targetNik}\n` +
+          `• *No. HP Pemohon:* +${senderPhone}\n` +
+          `• *Keterangan:* "${session.detailValue || '-'}"\n` +
+          `• *Lampiran:* ${submittedPhotos.length} Dokumen Foto Sah\n\n` +
+          `👉 Silakan buka Panel Operator Desa untuk menyetujui & menerbitkan surat balasan resmi.`;
+        baileysEngine.sendMessage(opNumber, opMsg).catch(() => {});
+      }
+
       delete chatSessions[senderPhone];
       isCompleted = true;
 
@@ -861,6 +878,22 @@ export const handleIncomingWhatsAppMessageInternal = async (
             .catch(() => null);
         }
       } catch (dbErr) {}
+
+      // Notifikasi Instan Pengaduan Langsung ke WhatsApp Operator
+      const opComplaintNumber = process.env.OPERATOR_WHATSAPP_NUMBER || '6287853617893';
+      if (opComplaintNumber && opComplaintNumber !== senderPhone) {
+        const opMsg =
+          `📢 *PEMBERITAHUAN PENGADUAN WARGA BARU*\n\n` +
+          `Telah masuk pengaduan/keluhan warga via WhatsApp Bot Desa:\n` +
+          `• *No. Tiket:* ${ticketNumber}\n` +
+          `• *Kategori:* ${newComplaint.category}\n` +
+          `• *Judul:* ${newComplaint.title}\n` +
+          `• *Pelapor:* ${targetName} (+${senderPhone})\n` +
+          `• *Lokasi:* ${newComplaint.location}\n` +
+          `• *Uraian:* "${newComplaint.description}"\n\n` +
+          `👉 Silakan buka Panel Operator Desa untuk menindaklanjuti laporan ini.`;
+        baileysEngine.sendMessage(opComplaintNumber, opMsg).catch(() => {});
+      }
 
       delete chatSessions[senderPhone];
       isCompleted = true;
