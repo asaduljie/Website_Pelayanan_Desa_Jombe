@@ -56,6 +56,15 @@ class WhatsAppBaileysEngine {
         fs.mkdirSync(AUTH_DIR, { recursive: true });
       }
     } catch (e) {}
+
+    // Jaga status Online selalu aktif di WhatsApp setiap 30 detik
+    setInterval(async () => {
+      if (this.sock && this.status === 'CONNECTED') {
+        try {
+          await this.sock.sendPresenceUpdate('available');
+        } catch (e) {}
+      }
+    }, 30000);
   }
 
   private saveStatusCache(): void {
@@ -155,6 +164,8 @@ class WhatsAppBaileysEngine {
         connectTimeoutMs: 60000,
         defaultQueryTimeoutMs: 60000,
         keepAliveIntervalMs: 10000,
+        markOnlineOnConnect: true,
+        syncFullHistory: false,
       });
 
       // PENTING: Wajib simpan credentials update saat handshake pairing / scan QR berlangsung
@@ -225,6 +236,11 @@ class WhatsAppBaileysEngine {
           console.log(`✅ [Baileys] WhatsApp Resmi Desa TERHUBUNG 24/7! Nomor: ${this.phoneNumber}`);
           this.isInitializing = false;
           this.saveStatusCache();
+
+          // Kirim sinyal Online Aktif ke server WhatsApp
+          try {
+            await this.sock.sendPresenceUpdate('available');
+          } catch (e) {}
         }
       });
 
@@ -291,6 +307,10 @@ class WhatsAppBaileysEngine {
         console.log(`📩 [Baileys] Pesan masuk dari ${senderPhone}: "${messageText}" (Foto: ${!!imageUrl})`);
 
         try {
+          try {
+            await this.sock.readMessages([msg.key]);
+          } catch (e) {}
+
           const { handleIncomingWhatsAppMessageInternal } = await import('../controllers/whatsappBotController');
           const botResponse = await handleIncomingWhatsAppMessageInternal(
             senderPhone,
