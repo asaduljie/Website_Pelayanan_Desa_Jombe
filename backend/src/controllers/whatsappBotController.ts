@@ -286,10 +286,20 @@ export const getBaileysStatus = async (req: Request, res: Response) => {
 export const startBaileysConnection = async (req: Request, res: Response) => {
   try {
     const phoneNumber = req.body?.phoneNumber || req.query?.phone;
-    baileysEngine.startEngine(phoneNumber ? String(phoneNumber) : undefined);
+    await baileysEngine.startEngine(phoneNumber ? String(phoneNumber) : undefined);
+    
+    // Tunggu hingga QR atau Pairing code siap digenerate
+    for (let i = 0; i < 10; i++) {
+      const current = baileysEngine.getStatus();
+      if (current.qrCodeDataUrl || current.pairingCode || current.status === 'CONNECTED') {
+        break;
+      }
+      await new Promise((r) => setTimeout(r, 600));
+    }
+
     return res.status(200).json({
       status: 'success',
-      message: 'Inisialisasi sesi WhatsApp Engine berhasil dimulai.',
+      message: 'Inisialisasi sesi WhatsApp Engine berhasil.',
       data: baileysEngine.getStatus(),
     });
   } catch (e: any) {
