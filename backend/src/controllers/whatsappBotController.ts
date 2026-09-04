@@ -6,6 +6,7 @@ import path from 'path';
 import bcrypt from 'bcrypt';
 import { baileysEngine } from '../services/baileysEngine';
 import { PersistentDatabase, ComplaintRecord } from '../utils/persistentDb';
+import { realtimeEvents } from '../services/realtimeEvents';
 import {
   checkWhatsAppRateLimit,
   sanitizeAndFilterWhatsAppText,
@@ -399,6 +400,7 @@ export const startBaileysConnection = async (req: Request, res: Response) => {
 export const disconnectBaileys = async (req: Request, res: Response) => {
   try {
     await baileysEngine.disconnect();
+    realtimeEvents.publish('whatsapp.status', { status: 'DISCONNECTED', reason: 'manual_disconnect' });
     return res.status(200).json({
       status: 'success',
       message: 'Sesi WhatsApp berhasil diputuskan.',
@@ -761,6 +763,7 @@ export const handleIncomingWhatsAppMessageInternal = async (
 
       waApplicationsStore.unshift(newWaApp);
       PersistentDatabase.addApplication(newWaApp);
+      realtimeEvents.publish('application.changed', { action: 'created', source: 'whatsapp', applicationId: newWaApp.id });
 
       try {
         let citizen = await prisma.user.findUnique({ where: { nik: targetNik } }).catch(() => null);

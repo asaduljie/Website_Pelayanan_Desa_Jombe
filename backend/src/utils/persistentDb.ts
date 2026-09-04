@@ -15,7 +15,7 @@ try {
   if (!fs.existsSync(DATA_DIR)) {
     fs.mkdirSync(DATA_DIR, { recursive: true });
   }
-} catch (e) {}
+} catch (e) { }
 
 export interface ComplaintRecord {
   id: string;
@@ -75,7 +75,11 @@ export class PersistentDatabase {
 
   public static saveApplications(records: WaApplicationRecord[]): void {
     try {
-      fs.writeFileSync(DB_FILE, JSON.stringify(records, null, 2), 'utf-8');
+      // Write then atomically replace: a power loss can at worst retain the
+      // previous complete file, never leave a half-written JSON database.
+      const tempFile = `${DB_FILE}.${process.pid}.tmp`;
+      fs.writeFileSync(tempFile, JSON.stringify(records, null, 2), 'utf-8');
+      fs.renameSync(tempFile, DB_FILE);
     } catch (e) {
       console.error('Error saving persistent applications DB:', e);
     }
@@ -234,7 +238,9 @@ export class PersistentDatabase {
 
   public static saveComplaints(records: ComplaintRecord[]): void {
     try {
-      fs.writeFileSync(COMPLAINTS_FILE, JSON.stringify(records, null, 2), 'utf-8');
+      const tempFile = `${COMPLAINTS_FILE}.${process.pid}.tmp`;
+      fs.writeFileSync(tempFile, JSON.stringify(records, null, 2), 'utf-8');
+      fs.renameSync(tempFile, COMPLAINTS_FILE);
     } catch (e) {
       console.error('Error saving complaints DB:', e);
     }

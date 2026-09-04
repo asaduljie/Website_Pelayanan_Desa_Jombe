@@ -88,6 +88,18 @@ flutter pub get
 flutter run
 ```
 
+### Menjaga sesi WhatsApp tetap terhubung
+
+Jalankan backend WhatsApp pada server Node.js yang selalu hidup (misalnya PC kantor dengan PM2, VPS, Railway/Render dengan persistent disk), bukan function serverless. Tambahkan variabel berikut pada environment backend dan arahkan ke volume/disk yang **tidak dihapus saat restart**:
+
+```env
+WHATSAPP_AUTH_DIR=/data/jombe-whatsapp-session
+```
+
+Pada Windows lokal, gunakan path tetap, misalnya `C:\JombeData\whatsapp-session`. Setelah satu kali scan QR/kode pairing, kredensial sesi akan dimuat ulang otomatis ketika browser, backend, atau laptop dinyalakan kembali. Sesi hanya dihapus oleh tombol **Putuskan Sesi** (atau jika WhatsApp sendiri membatalkan perangkat tertaut).
+
+> Vercel tidak dapat menjadi host engine WhatsApp 24/7 karena filesystem function-nya sementara dan koneksi proses panjang dihentikan. Frontend boleh di Vercel, tetapi backend/engine WhatsApp harus berada di layanan persistent di atas.
+
 ---
 
 ## 🔑 Akun Demo Testing

@@ -8,6 +8,7 @@ import {
   SERVICE_PHOTO_REQUIREMENTS
 } from './whatsappBotController';
 import { PersistentDatabase } from '../utils/persistentDb';
+import { realtimeEvents } from '../services/realtimeEvents';
 
 export const getOperatorDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
@@ -119,6 +120,7 @@ export const approveAndSendLetter = async (req: AuthRequest, res: Response) => {
       letterNumber: officialLetterNum,
       letterContent: letterContent || undefined,
     });
+    if (updated) realtimeEvents.publish('application.changed', { action: 'updated', applicationId: updated.id });
 
     if (updated) {
       targetAppNumber = updated.applicationNumber;
@@ -186,6 +188,7 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
       status,
       detailValue: revisionNotes ? `Catatan: ${revisionNotes}` : undefined,
     });
+    if (updated) realtimeEvents.publish('application.changed', { action: 'updated', applicationId: updated.id });
 
     try {
       await prisma.application.update({
@@ -259,6 +262,7 @@ export const createApplicationForCitizen = async (req: AuthRequest, res: Respons
     };
 
     PersistentDatabase.addApplication(newRecord);
+    realtimeEvents.publish('application.changed', { action: 'created', source: 'operator', applicationId: newAppId });
 
     return res.status(201).json({
       status: 'success',
@@ -274,6 +278,7 @@ export const deleteOperatorApplication = async (req: AuthRequest, res: Response)
   try {
     const { id } = req.params;
     PersistentDatabase.deleteApplication(id);
+    realtimeEvents.publish('application.changed', { action: 'deleted', applicationId: id });
     try {
       await prisma.application.delete({ where: { id } }).catch(() => null);
     } catch (e) {}
@@ -290,6 +295,7 @@ export const deleteOperatorApplication = async (req: AuthRequest, res: Response)
 export const clearAllOperatorApplications = async (req: AuthRequest, res: Response) => {
   try {
     PersistentDatabase.clearApplications();
+    realtimeEvents.publish('application.changed', { action: 'cleared' });
     return res.status(200).json({
       status: 'success',
       message: 'Seluruh berkas permohonan berhasil dikosongkan.',
@@ -298,4 +304,3 @@ export const clearAllOperatorApplications = async (req: AuthRequest, res: Respon
     return res.status(500).json({ status: 'error', message: 'Gagal mengosongkan berkas.' });
   }
 };
-

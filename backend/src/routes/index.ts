@@ -35,6 +35,7 @@ import {
   disconnectBaileys,
 } from '../controllers/whatsappBotController';
 import { verifyTteDocument } from '../controllers/verifyTteController';
+import { realtimeEvents } from '../services/realtimeEvents';
 
 import { authenticateToken, authorizeRoles, verifyApplicationOwnership } from '../middleware/auth';
 import { authLimiter, waBotLimiter, sanitizeInputMiddleware } from '../middleware/security';
@@ -88,6 +89,9 @@ router.get('/applications/:id', authenticateToken, verifyApplicationOwnership, g
 // ==================== OPERATOR & ADMIN ROUTES ====================
 router.get('/operator/stats', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), getOperatorDashboardStats);
 router.get('/operator/applications', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), getOperatorApplications);
+router.get('/operator/events', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), (req, res) => {
+  realtimeEvents.subscribe(res);
+});
 router.patch('/operator/applications/:id/status', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), logAuditTrail('UPDATE_APP_STATUS'), updateApplicationStatus);
 router.post('/operator/applications/:id/approve-and-send', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), logAuditTrail('APPROVE_SEND_LETTER'), approveAndSendLetter);
 
@@ -128,8 +132,11 @@ router.post('/whatsapp/bot', waBotLimiter, handleIncomingWhatsAppMessage);
 router.get('/whatsapp/history', waBotLimiter, getChatHistory);
 
 // Real Baileys WhatsApp Engine Endpoints
-router.get('/whatsapp/status', getBaileysStatus);
-router.post('/whatsapp/connect', startBaileysConnection);
-router.post('/whatsapp/disconnect', disconnectBaileys);
+// Pairing credentials and the disconnect action are operator-only.  Exposing
+// these endpoints publicly would allow a third party to view a QR code or
+// intentionally remove the linked-device session.
+router.get('/whatsapp/status', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), getBaileysStatus);
+router.post('/whatsapp/connect', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), startBaileysConnection);
+router.post('/whatsapp/disconnect', authenticateToken, authorizeRoles('OPERATOR', 'ADMIN'), disconnectBaileys);
 
 export default router;

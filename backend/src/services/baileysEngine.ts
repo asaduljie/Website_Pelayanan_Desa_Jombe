@@ -24,6 +24,7 @@ import QRCode from 'qrcode';
 import path from 'path';
 import fs from 'fs';
 import pino from 'pino';
+import { realtimeEvents } from './realtimeEvents';
 
 export interface BaileysStatus {
   status: 'DISCONNECTED' | 'SCAN_QR' | 'CONNECTING' | 'CONNECTED';
@@ -34,9 +35,12 @@ export interface BaileysStatus {
   lastConnected: string | null;
 }
 
-const AUTH_DIR = process.env.VERCEL
+// Set WHATSAPP_AUTH_DIR to a mounted, persistent disk in production.  /tmp on
+// serverless hosts is intentionally only a fallback and cannot preserve a WA
+// login across cold starts.
+const AUTH_DIR = process.env.WHATSAPP_AUTH_DIR || (process.env.VERCEL
   ? path.join('/tmp', 'auth_info_baileys')
-  : path.join(__dirname, '../../auth_info_baileys');
+  : path.join(__dirname, '../../auth_info_baileys'));
 
 const STATUS_CACHE_FILE = path.join(AUTH_DIR, 'live_status.json');
 
@@ -49,20 +53,22 @@ class WhatsAppBaileysEngine {
   private userName: string | null = null;
   private lastConnected: string | null = null;
   private isInitializing: boolean = false;
+  private manualDisconnect: boolean = false;
+  private reconnectTimer: NodeJS.Timeout | null = null;
 
   constructor() {
     try {
       if (!fs.existsSync(AUTH_DIR)) {
         fs.mkdirSync(AUTH_DIR, { recursive: true });
       }
-    } catch (e) {}
+    } catch (e) { }
 
     // Jaga status Online selalu aktif di WhatsApp setiap 30 detik
     setInterval(async () => {
       if (this.sock && this.status === 'CONNECTED') {
         try {
           await this.sock.sendPresenceUpdate('available');
-        } catch (e) {}
+        } catch (e) { }
       }
     }, 30000);
   }
@@ -77,8 +83,9 @@ class WhatsAppBaileysEngine {
         phoneNumber: this.phoneNumber,
         userName: this.userName,
         lastConnected: this.lastConnected,
+        manualDisconnect: this.manualDisconnect,
       }));
-    } catch (e) {}
+    } catch (e) { }
   }
 
   public getStatus(): BaileysStatus {
@@ -88,8 +95,9 @@ class WhatsAppBaileysEngine {
         if (cached.qrCodeDataUrl && !this.qrCodeDataUrl) this.qrCodeDataUrl = cached.qrCodeDataUrl;
         if (cached.pairingCode && !this.pairingCode) this.pairingCode = cached.pairingCode;
         if (cached.status && this.status === 'DISCONNECTED') this.status = cached.status;
+        if (typeof cached.manualDisconnect === 'boolean') this.manualDisconnect = cached.manualDisconnect;
       }
-    } catch (e) {}
+    } catch (e) { }
 
     return {
       status: this.status === 'DISCONNECTED' && this.qrCodeDataUrl ? 'SCAN_QR' : this.status,
@@ -102,8 +110,8 @@ class WhatsAppBaileysEngine {
   }
 
   public async getStatusAsync(): Promise<BaileysStatus> {
-    if (!this.sock && !this.isInitializing && (this.status === 'DISCONNECTED' || !this.qrCodeDataUrl)) {
-      this.startEngine().catch(() => {});
+    if (!this.manualDisconnect && !this.sock && !this.isInitializing && (this.status === 'DISCONNECTED' || !this.qrCodeDataUrl)) {
+      this.startEngine().catch(() => { });
       // Tunggu hingga 4 detik agar QR code siap jika sedang digenerate
       for (let i = 0; i < 8; i++) {
         if (this.qrCodeDataUrl || this.pairingCode || this.status === 'CONNECTED') break;
@@ -138,7 +146,7 @@ class WhatsAppBaileysEngine {
       console.warn('Socket requestPairingCode notice, recreating socket for pairing:', err.message);
       try {
         await this.disconnect();
-      } catch (e) {}
+      } catch (e) { }
       await this.startEngine(formatted);
       return this.pairingCode;
     }
@@ -147,9 +155,17 @@ class WhatsAppBaileysEngine {
   }
 
   public async startEngine(customPhoneNumber?: string): Promise<void> {
-    if (this.status === 'CONNECTED') return;
+    // A cached CONNECTED value only says that the previous process was online;
+    // after a restart a fresh socket still must be opened with the saved creds.
+    if (this.status === 'CONNECTED' && this.sock) return;
+    this.manualDisconnect = false;
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
     this.isInitializing = true;
     this.status = 'CONNECTING';
+    this.saveStatusCache();
 
     try {
       const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
@@ -208,14 +224,18 @@ class WhatsAppBaileysEngine {
         if (connection === 'close') {
           const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
           const isLoggedOut = statusCode === (DisconnectReason?.loggedOut || 401);
-          const shouldReconnect = !isLoggedOut;
+          const shouldReconnect = !isLoggedOut && !this.manualDisconnect;
 
           this.status = 'DISCONNECTED';
           this.isInitializing = false;
+          realtimeEvents.publish('whatsapp.status', { status: this.status, reason: isLoggedOut ? 'logged_out' : 'reconnecting' });
 
           if (shouldReconnect) {
             console.log(`📱 [Baileys] Jaringan sementara terjeda (Status ${statusCode}). Menghubungkan ulang otomatis dalam 3 detik agar sesi selalu aktif 24/7...`);
-            setTimeout(() => this.startEngine(), 3000);
+            this.reconnectTimer = setTimeout(() => {
+              this.reconnectTimer = null;
+              this.startEngine().catch(() => {});
+            }, 3000);
           } else {
             console.log(`📱 [Baileys] Sesi resmi logout. Sesi siap untuk pairing baru.`);
             this.qrCodeDataUrl = null;
@@ -236,11 +256,12 @@ class WhatsAppBaileysEngine {
           console.log(`✅ [Baileys] WhatsApp Resmi Desa TERHUBUNG 24/7! Nomor: ${this.phoneNumber}`);
           this.isInitializing = false;
           this.saveStatusCache();
+          realtimeEvents.publish('whatsapp.status', { status: this.status, phoneNumber: this.phoneNumber });
 
           // Kirim sinyal Online Aktif ke server WhatsApp
           try {
             await this.sock.sendPresenceUpdate('available');
-          } catch (e) {}
+          } catch (e) { }
         }
       });
 
@@ -309,7 +330,7 @@ class WhatsAppBaileysEngine {
         try {
           try {
             await this.sock.readMessages([msg.key]);
-          } catch (e) {}
+          } catch (e) { }
 
           const { handleIncomingWhatsAppMessageInternal } = await import('../controllers/whatsappBotController');
           const botResponse = await handleIncomingWhatsAppMessageInternal(
@@ -376,8 +397,13 @@ class WhatsAppBaileysEngine {
 
   public async disconnect(): Promise<void> {
     try {
+      this.manualDisconnect = true;
+      if (this.reconnectTimer) {
+        clearTimeout(this.reconnectTimer);
+        this.reconnectTimer = null;
+      }
       if (this.sock) {
-        await this.sock.logout().catch(() => {});
+        await this.sock.logout().catch(() => { });
       }
       this.status = 'DISCONNECTED';
       this.qrCodeDataUrl = null;
@@ -388,6 +414,11 @@ class WhatsAppBaileysEngine {
       if (fs.existsSync(AUTH_DIR)) {
         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
       }
+      // Recreate only the explicit manual-disconnect marker.  This prevents a
+      // status request or a restarted process from silently opening a session.
+      fs.mkdirSync(AUTH_DIR, { recursive: true });
+      this.saveStatusCache();
+      realtimeEvents.publish('whatsapp.status', { status: 'DISCONNECTED', reason: 'manual_disconnect' });
     } catch (e) {
       console.error('Error logging out Baileys:', e);
     }

@@ -14,7 +14,10 @@ export interface AuthRequest extends Request {
 
 export const authenticateToken = (req: AuthRequest, res: Response, next: NextFunction) => {
   const authHeader = req.headers['authorization'];
-  const token = authHeader && authHeader.split(' ')[1];
+  // EventSource cannot send an Authorization header. The query-token fallback
+  // is only used by the authenticated, HTTPS SSE endpoint.
+  const token = (authHeader && authHeader.split(' ')[1]) ||
+    (typeof req.query.access_token === 'string' ? req.query.access_token : undefined);
 
   if (!token) {
     return res.status(401).json({ status: 'error', message: 'Akses ditolak. Token autentikasi tidak ditemukan.' });

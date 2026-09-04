@@ -133,7 +133,7 @@ export default function OperatorDashboardPage() {
       if (res.data.status === 'success') {
         setWaStatus(res.data.data);
       }
-    } catch (e) {}
+    } catch (e) { }
   };
 
   const handleStartWaConnection = async () => {
@@ -180,7 +180,7 @@ export default function OperatorDashboardPage() {
       await api.post('/whatsapp/disconnect');
       fetchWaStatus();
       alert('Sesi WhatsApp berhasil diputuskan.');
-    } catch (e) {}
+    } catch (e) { }
     finally {
       setWaLoading(false);
     }
@@ -201,6 +201,21 @@ export default function OperatorDashboardPage() {
     setOperator(userObj);
 
     fetchDashboardData();
+  }, [statusFilter, search]);
+
+  // A request made through WhatsApp or the public website is pushed to an
+  // already-open operator dashboard immediately. EventSource reconnects by
+  // itself after a short network interruption, so a browser refresh is not
+  // needed to keep receiving new applications.
+  useEffect(() => {
+    const token = localStorage.getItem('jombe_token');
+    if (!token) return;
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
+    const stream = new EventSource(`${baseUrl}/operator/events?access_token=${encodeURIComponent(token)}`);
+    const refresh = () => fetchDashboardData();
+    stream.addEventListener('application.changed', refresh);
+    stream.addEventListener('whatsapp.status', fetchWaStatus);
+    return () => stream.close();
   }, [statusFilter, search]);
 
   const fetchDashboardData = async () => {
@@ -234,7 +249,7 @@ export default function OperatorDashboardPage() {
     setEditLetterNumber(app.letterNumber || defaultNum);
     setEditLetterContent(
       app.letterContent ||
-        `Yang bersangkutan adalah benar-benar penduduk Desa kami yang berdomisili di wilayah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto.`
+      `Yang bersangkutan adalah benar-benar penduduk Desa kami yang berdomisili di wilayah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto.`
     );
   };
 
@@ -504,11 +519,10 @@ export default function OperatorDashboardPage() {
                 handleStartWaConnection();
               }
             }}
-            className={`px-4 py-3 font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 border ${
-              waStatus.status === 'CONNECTED'
+            className={`px-4 py-3 font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 border ${waStatus.status === 'CONNECTED'
                 ? 'bg-emerald-500 hover:bg-emerald-400 text-emerald-950 border-emerald-300'
                 : 'bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border-emerald-600'
-            }`}
+              }`}
           >
             <Phone className="w-4 h-4" />
             {waStatus.status === 'CONNECTED' ? (
@@ -535,11 +549,10 @@ export default function OperatorDashboardPage() {
       <div className="flex flex-wrap items-center gap-3">
         <button
           onClick={() => setActiveTab('PERMOHONAN_WARGA')}
-          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${
-            activeTab === 'PERMOHONAN_WARGA'
+          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${activeTab === 'PERMOHONAN_WARGA'
               ? 'bg-emerald-900 text-white shadow-md'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-          }`}
+            }`}
         >
           <FileCheck className="w-4 h-4" /> Pemeriksaan Berkas Permohonan ({applications.length})
         </button>
@@ -549,11 +562,10 @@ export default function OperatorDashboardPage() {
             setActiveTab('PENGADUAN_WARGA');
             fetchComplaints();
           }}
-          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${
-            activeTab === 'PENGADUAN_WARGA'
+          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${activeTab === 'PENGADUAN_WARGA'
               ? 'bg-emerald-900 text-white shadow-md'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-          }`}
+            }`}
         >
           <MessageSquare className="w-4 h-4" /> Pengaduan Warga ({complaintsList.length})
         </button>
@@ -563,11 +575,10 @@ export default function OperatorDashboardPage() {
             setActiveTab('KELOLA_BERITA');
             fetchNewsAndAnnouncements();
           }}
-          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${
-            activeTab === 'KELOLA_BERITA'
+          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${activeTab === 'KELOLA_BERITA'
               ? 'bg-emerald-900 text-white shadow-md'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-          }`}
+            }`}
         >
           <Newspaper className="w-4 h-4" /> Kelola & Tulis Berita ({newsList.length})
         </button>
@@ -577,11 +588,10 @@ export default function OperatorDashboardPage() {
             setActiveTab('KELOLA_PENGUMUMAN');
             fetchNewsAndAnnouncements();
           }}
-          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${
-            activeTab === 'KELOLA_PENGUMUMAN'
+          className={`px-5 py-3 rounded-2xl font-extrabold text-xs flex items-center gap-2 transition-all shadow-xs ${activeTab === 'KELOLA_PENGUMUMAN'
               ? 'bg-emerald-900 text-white shadow-md'
               : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
-          }`}
+            }`}
         >
           <Megaphone className="w-4 h-4" /> Pengumuman ({announcementsList.length})
         </button>
@@ -625,11 +635,10 @@ export default function OperatorDashboardPage() {
                   <button
                     key={st}
                     onClick={() => setStatusFilter(st)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${
-                      statusFilter === st
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${statusFilter === st
                         ? 'bg-emerald-900 text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
-                    }`}
+                      }`}
                   >
                     {st === 'ALL' ? 'Semua Berkas' : st}
                   </button>
@@ -704,13 +713,12 @@ export default function OperatorDashboardPage() {
                         </td>
                         <td className="px-6 py-4">
                           <span
-                            className={`px-3 py-1 rounded-full text-[10px] font-bold ${
-                              app.status === 'COMPLETED'
+                            className={`px-3 py-1 rounded-full text-[10px] font-bold ${app.status === 'COMPLETED'
                                 ? 'bg-emerald-100 text-emerald-900'
                                 : app.status === 'PROCESSING'
-                                ? 'bg-sky-100 text-sky-900'
-                                : 'bg-amber-100 text-amber-900'
-                            }`}
+                                  ? 'bg-sky-100 text-sky-900'
+                                  : 'bg-amber-100 text-amber-900'
+                              }`}
                           >
                             {app.status}
                           </span>
@@ -813,15 +821,14 @@ export default function OperatorDashboardPage() {
                       </td>
                       <td className="px-6 py-4">
                         <span
-                          className={`px-3 py-1 rounded-full text-[10px] font-bold ${
-                            comp.status === 'RESOLVED'
+                          className={`px-3 py-1 rounded-full text-[10px] font-bold ${comp.status === 'RESOLVED'
                               ? 'bg-emerald-100 text-emerald-900'
                               : comp.status === 'PROCESSING'
-                              ? 'bg-sky-100 text-sky-900'
-                              : comp.status === 'REJECTED'
-                              ? 'bg-rose-100 text-rose-900'
-                              : 'bg-amber-100 text-amber-900'
-                          }`}
+                                ? 'bg-sky-100 text-sky-900'
+                                : comp.status === 'REJECTED'
+                                  ? 'bg-rose-100 text-rose-900'
+                                  : 'bg-amber-100 text-amber-900'
+                            }`}
                         >
                           {comp.status === 'RESOLVED' ? 'Selesai Ditangani' : comp.status === 'PROCESSING' ? 'Sedang Ditindaklanjuti' : comp.status === 'REJECTED' ? 'Ditolak' : 'Menunggu Tindakan'}
                         </span>
@@ -1271,22 +1278,20 @@ export default function OperatorDashboardPage() {
             <div className="flex gap-2 bg-slate-100 p-1.5 rounded-2xl">
               <button
                 onClick={() => setActiveTab('PERMOHONAN_WARGA')}
-                className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
-                  activeTab === 'PERMOHONAN_WARGA'
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${activeTab === 'PERMOHONAN_WARGA'
                     ? 'bg-white text-emerald-950 shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 <FileText className="w-4 h-4 text-emerald-700" />
                 1. Surat Permohonan & Foto Dokumen Warga
               </button>
               <button
                 onClick={() => setActiveTab('SURAT_BALASAN_SKU')}
-                className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${
-                  activeTab === 'SURAT_BALASAN_SKU'
+                className={`flex-1 py-2.5 px-4 rounded-xl text-xs font-extrabold transition-all flex items-center justify-center gap-2 ${activeTab === 'SURAT_BALASAN_SKU'
                     ? 'bg-emerald-900 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
-                }`}
+                  }`}
               >
                 <Landmark className="w-4 h-4 text-emerald-300" />
                 2. Surat Balasan Keterangan Resmi (SKU Otomatis)
@@ -1371,9 +1376,9 @@ export default function OperatorDashboardPage() {
                     {(selectedApp.uploadedPhotos && selectedApp.uploadedPhotos.length > 0
                       ? selectedApp.uploadedPhotos
                       : [
-                          { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
-                          { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
-                        ]
+                        { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
+                        { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
+                      ]
                     ).map((photo: any, pIdx: number) => {
                       const isKtp = photo.type === 'KTP' || photo.title.toLowerCase().includes('ktp');
                       const isUsaha = photo.type === 'USAHA' || photo.title.toLowerCase().includes('usaha');
@@ -1587,11 +1592,10 @@ export default function OperatorDashboardPage() {
                 {activeTab === 'SURAT_BALASAN_SKU' && (
                   <button
                     onClick={() => setIsEditingLetter(!isEditingLetter)}
-                    className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${
-                      isEditingLetter
+                    className={`px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shrink-0 ${isEditingLetter
                         ? 'bg-emerald-800 text-white shadow-xs'
                         : 'bg-white text-emerald-900 border border-emerald-300 hover:bg-emerald-100/60'
-                    }`}
+                      }`}
                   >
                     <Edit3 className="w-3.5 h-3.5" />
                     {isEditingLetter ? 'Simpan Edit' : 'Edit Surat'}
@@ -1799,11 +1803,10 @@ export default function OperatorDashboardPage() {
                   <button
                     type="button"
                     onClick={() => setWaConnectMode('PAIRING')}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                      waConnectMode === 'PAIRING'
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${waConnectMode === 'PAIRING'
                         ? 'bg-emerald-700 text-white shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                      }`}
                   >
                     🔢 Kode 8 Digit (Mudah & Cepat)
                   </button>
@@ -1813,11 +1816,10 @@ export default function OperatorDashboardPage() {
                       setWaConnectMode('QR');
                       handleStartWaConnection();
                     }}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${
-                      waConnectMode === 'QR'
+                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${waConnectMode === 'QR'
                         ? 'bg-emerald-700 text-white shadow-xs'
                         : 'text-slate-600 hover:text-slate-900'
-                    }`}
+                      }`}
                   >
                     📷 Scan QR Code
                   </button>

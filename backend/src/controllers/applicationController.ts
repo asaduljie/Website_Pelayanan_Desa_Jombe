@@ -4,6 +4,7 @@ import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import { waApplicationsStore } from './whatsappBotController';
 import { PersistentDatabase } from '../utils/persistentDb';
+import { realtimeEvents } from '../services/realtimeEvents';
 
 export const createApplication = async (req: AuthRequest, res: Response) => {
   try {
@@ -68,6 +69,7 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
 
     waApplicationsStore.unshift(newAppRecord);
     PersistentDatabase.addApplication(newAppRecord);
+    realtimeEvents.publish('application.changed', { action: 'created', source: 'website', applicationId: newAppId });
 
     return res.status(201).json({
       status: 'success',
