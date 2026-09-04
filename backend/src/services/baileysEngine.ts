@@ -59,8 +59,8 @@ class WhatsAppBaileysEngine {
       status: this.status === 'DISCONNECTED' && this.qrCodeDataUrl ? 'SCAN_QR' : this.status,
       qrCodeDataUrl: this.qrCodeDataUrl,
       pairingCode: this.pairingCode,
-      phoneNumber: this.phoneNumber || '087853617893',
-      userName: this.userName || 'Bot Resmi Desa Jombe',
+      phoneNumber: this.status === 'CONNECTED' ? (this.phoneNumber || '087853617893') : null,
+      userName: this.status === 'CONNECTED' ? (this.userName || 'Bot Resmi Desa Jombe') : null,
       lastConnected: this.lastConnected,
     };
   }
