@@ -653,7 +653,7 @@ export const handleIncomingWhatsAppMessageInternal = async (
       session.step = 'ASK_NIK';
       botReply = `Anda mengajukan *Surat Keterangan Umum / Lainnya*.\n\nLangkah 1 dari 4:\nSilakan masukkan 16 Digit *NIK* Anda:`;
     } else {
-      botReply = `Ketik nomor *1 sampai 9* atau ketik nama surat yang ingin Anda ajukan.`;
+      botReply = getInitialGreeting().text;
     }
   } else if (session.step === 'ASK_NIK') {
     const nikCheck = validateNik(userText);
