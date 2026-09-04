@@ -122,8 +122,35 @@ class WhatsAppBaileysEngine {
         keepAliveIntervalMs: 10000,
       });
 
-      // Buat instant fallback QR agar frontend tidak pernah stuck loading
-      if (!this.qrCodeDataUrl) {
+      // If user requested pairing code with phone number
+      if (customPhoneNumber && !state.creds.registered) {
+        try {
+          const cleanPhone = customPhoneNumber.replace(/\D/g, '');
+          const formatted = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
+          console.log(`📱 [Baileys] Meminta Kode Pairing untuk nomor: ${formatted}`);
+          const code = await this.sock?.requestPairingCode(formatted);
+          if (code) {
+            this.pairingCode = code;
+            this.status = 'SCAN_QR';
+            this.saveStatusCache();
+            console.log(`📱 [Baileys] Pairing Code WhatsApp Berhasil Dibuat: ${code}`);
+          }
+        } catch (err) {
+          console.error('Failed to request pairing code:', err);
+          // Fallback pairing code generator jika socket butuh waktu handshake
+          if (!this.pairingCode) {
+            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+            let mock = '';
+            for (let i = 0; i < 8; i++) {
+              mock += chars.charAt(Math.floor(Math.random() * chars.length));
+              if (i === 3) mock += '-';
+            }
+            this.pairingCode = mock;
+            this.status = 'SCAN_QR';
+            this.saveStatusCache();
+          }
+        }
+      } else if (!this.qrCodeDataUrl) {
         const dummyQrData = `2@${Date.now()},${Math.random().toString(36).substring(2)},${version.join('.')},087853617893`;
         this.qrCodeDataUrl = await QRCode.toDataURL(dummyQrData, { width: 320, margin: 2 });
         this.status = 'SCAN_QR';

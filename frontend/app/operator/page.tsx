@@ -161,6 +161,9 @@ export default function OperatorDashboardPage() {
     try {
       const res = await api.post('/whatsapp/connect', { phoneNumber: pairingPhone });
       if (res.data.status === 'success') {
+        if (res.data.data) {
+          setWaStatus(res.data.data);
+        }
         fetchWaStatus();
       }
     } catch (e: any) {
