@@ -196,16 +196,21 @@ class WhatsAppBaileysEngine {
 
         if (connection === 'close') {
           const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
-          const shouldReconnect = statusCode !== (DisconnectReason?.loggedOut || 401);
+          const isLoggedOut = statusCode === (DisconnectReason?.loggedOut || 401);
+          const shouldReconnect = !isLoggedOut;
 
           this.status = 'DISCONNECTED';
-          this.qrCodeDataUrl = null;
-          this.pairingCode = null;
-          console.log(`📱 [Baileys] Koneksi terputus (Status ${statusCode}). Reconnect:`, shouldReconnect);
-
           this.isInitializing = false;
+
           if (shouldReconnect) {
-            setTimeout(() => this.startEngine(), 4000);
+            console.log(`📱 [Baileys] Jaringan sementara terjeda (Status ${statusCode}). Menghubungkan ulang otomatis dalam 3 detik agar sesi selalu aktif 24/7...`);
+            setTimeout(() => this.startEngine(), 3000);
+          } else {
+            console.log(`📱 [Baileys] Sesi resmi logout. Sesi siap untuk pairing baru.`);
+            this.qrCodeDataUrl = null;
+            this.pairingCode = null;
+            this.phoneNumber = null;
+            this.saveStatusCache();
           }
         } else if (connection === 'open') {
           this.status = 'CONNECTED';
@@ -217,8 +222,9 @@ class WhatsAppBaileysEngine {
           this.phoneNumber = userJid.split(':')[0] || userJid.split('@')[0] || 'Nomor Terhubung';
           this.userName = this.sock?.user?.name || 'Layanan Resmi Desa Jombe';
 
-          console.log(`✅ [Baileys] WhatsApp Resmi Desa TERHUBUNG! Nomor: ${this.phoneNumber}`);
+          console.log(`✅ [Baileys] WhatsApp Resmi Desa TERHUBUNG 24/7! Nomor: ${this.phoneNumber}`);
           this.isInitializing = false;
+          this.saveStatusCache();
         }
       });
 
@@ -230,7 +236,10 @@ class WhatsAppBaileysEngine {
         const remoteJid = msg.key.remoteJid || '';
         if (remoteJid.includes('@g.us') || remoteJid === 'status@broadcast') return;
 
-        const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace(/:\d+/, '');
+        // Keep full remoteJid if it's @lid or format to pure phone number
+        const senderPhone = remoteJid.endsWith('@lid')
+          ? remoteJid
+          : remoteJid.replace('@s.whatsapp.net', '').replace(/:\d+/, '');
 
         // Unwrap nested message types (Ephemeral, ViewOnce, etc.)
         const realMsg =
@@ -307,11 +316,17 @@ class WhatsAppBaileysEngine {
   public async sendMessage(toJid: string, text: string): Promise<boolean> {
     if (!this.sock || this.status !== 'CONNECTED') return false;
     try {
-      const target = toJid.includes('@') ? toJid : `${toJid}@s.whatsapp.net`;
+      let target = toJid;
+      if (!target.includes('@')) {
+        const clean = target.replace(/\D/g, '');
+        const formatted = clean.startsWith('0') ? `62${clean.slice(1)}` : clean;
+        target = `${formatted}@s.whatsapp.net`;
+      }
       await this.sock.sendMessage(target, { text });
+      console.log(`✅ [Baileys] Pesan berhasil terkirim ke WhatsApp: ${target}`);
       return true;
-    } catch (e) {
-      console.error('Failed to send Baileys message:', e);
+    } catch (e: any) {
+      console.error('Failed to send Baileys message:', e.message);
       return false;
     }
   }
@@ -319,16 +334,22 @@ class WhatsAppBaileysEngine {
   public async sendPdfDocument(toJid: string, pdfBuffer: Buffer, fileName: string, caption: string): Promise<boolean> {
     if (!this.sock || this.status !== 'CONNECTED') return false;
     try {
-      const target = toJid.includes('@') ? toJid : `${toJid}@s.whatsapp.net`;
+      let target = toJid;
+      if (!target.includes('@')) {
+        const clean = target.replace(/\D/g, '');
+        const formatted = clean.startsWith('0') ? `62${clean.slice(1)}` : clean;
+        target = `${formatted}@s.whatsapp.net`;
+      }
       await this.sock.sendMessage(target, {
         document: pdfBuffer,
         mimetype: 'application/pdf',
         fileName: fileName,
         caption: caption,
       });
+      console.log(`✅ [Baileys] Dokumen PDF "${fileName}" berhasil terkirim ke WhatsApp: ${target}`);
       return true;
-    } catch (e) {
-      console.error('Failed to send Baileys PDF:', e);
+    } catch (e: any) {
+      console.error('Failed to send Baileys PDF:', e.message);
       return false;
     }
   }

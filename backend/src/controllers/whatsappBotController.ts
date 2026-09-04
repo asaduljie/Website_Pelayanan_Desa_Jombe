@@ -94,7 +94,7 @@ export const chatHistories: Record<string, ChatMessage[]> = {
 };
 
 export const sendNotificationToCitizenWhatsApp = async (
-  phone: string,
+  phoneOrJid: string,
   appNumber: string,
   serviceName: string,
   letterNumber: string,
@@ -102,8 +102,14 @@ export const sendNotificationToCitizenWhatsApp = async (
   applicationId?: string,
   letterContent?: string
 ) => {
-  const cleanPhone = String(phone).replace(/\D/g, '') || '6281299887766';
-  const formattedPhone = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
+  const targetJid = String(phoneOrJid).includes('@')
+    ? String(phoneOrJid)
+    : (() => {
+        const clean = String(phoneOrJid).replace(/\D/g, '');
+        return (clean.startsWith('0') ? `62${clean.slice(1)}` : clean) + '@s.whatsapp.net';
+      })();
+
+  const cleanPhone = String(phoneOrJid).replace(/\D/g, '') || '6281299887766';
 
   if (!chatHistories[cleanPhone]) {
     chatHistories[cleanPhone] = [getInitialGreeting()];
@@ -132,8 +138,8 @@ export const sendNotificationToCitizenWhatsApp = async (
   // 1. Send Text Message via Real Baileys WhatsApp Engine
   try {
     const { baileysEngine } = await import('../services/baileysEngine');
-    await baileysEngine.sendMessage(formattedPhone, notifMsg);
-    console.log(`📱 [WHATSAPP NOTIF] Pesan persetujuan surat terkirim ke: ${formattedPhone}`);
+    await baileysEngine.sendMessage(targetJid, notifMsg);
+    console.log(`📱 [WHATSAPP NOTIF] Pesan persetujuan surat terkirim ke: ${targetJid}`);
 
     // 2. Generate and Send Real PDF Document via Baileys WhatsApp Engine
     if (applicationId) {
@@ -142,12 +148,12 @@ export const sendNotificationToCitizenWhatsApp = async (
         const pdfBuffer = await generateOfficialLetterPdfBuffer(applicationId, letterNumber, letterContent);
         if (pdfBuffer && pdfBuffer.length > 0) {
           await baileysEngine.sendPdfDocument(
-            formattedPhone,
+            targetJid,
             pdfBuffer,
             `SURAT-${appNumber}.pdf`,
             `📜 *Surat Resmi Desa Jombe* - No: ${letterNumber}`
           );
-          console.log(`📎 [WHATSAPP PDF] Dokumen PDF surat resmi berhasil dikirim ke: ${formattedPhone}`);
+          console.log(`📎 [WHATSAPP PDF] Dokumen PDF surat resmi berhasil dikirim ke: ${targetJid}`);
         }
       } catch (pdfErr: any) {
         console.error('Failed to attach PDF to WhatsApp:', pdfErr.message);
@@ -161,13 +167,19 @@ export const sendNotificationToCitizenWhatsApp = async (
 };
 
 export const sendRevisionNotificationToCitizenWhatsApp = async (
-  phone: string,
+  phoneOrJid: string,
   appNumber: string,
   serviceName: string,
   revisionNotes?: string
 ) => {
-  const cleanPhone = String(phone).replace(/\D/g, '') || '6281299887766';
-  const formattedPhone = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
+  const targetJid = String(phoneOrJid).includes('@')
+    ? String(phoneOrJid)
+    : (() => {
+        const clean = String(phoneOrJid).replace(/\D/g, '');
+        return (clean.startsWith('0') ? `62${clean.slice(1)}` : clean) + '@s.whatsapp.net';
+      })();
+
+  const cleanPhone = String(phoneOrJid).replace(/\D/g, '') || '6281299887766';
 
   if (!chatHistories[cleanPhone]) {
     chatHistories[cleanPhone] = [getInitialGreeting()];
@@ -191,8 +203,8 @@ export const sendRevisionNotificationToCitizenWhatsApp = async (
 
   try {
     const { baileysEngine } = await import('../services/baileysEngine');
-    await baileysEngine.sendMessage(formattedPhone, notifMsg);
-    console.log(`📱 [WHATSAPP NOTIF] Pesan penolakan/revisi terkirim ke: ${formattedPhone}`);
+    await baileysEngine.sendMessage(targetJid, notifMsg);
+    console.log(`📱 [WHATSAPP NOTIF] Pesan penolakan/revisi terkirim ke: ${targetJid}`);
   } catch (err: any) {
     console.warn('Notice sending WhatsApp revision notification:', err.message);
   }
