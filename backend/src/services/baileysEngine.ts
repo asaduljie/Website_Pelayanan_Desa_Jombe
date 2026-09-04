@@ -3,6 +3,7 @@ let DisconnectReason: any = null;
 let useMultiFileAuthState: any = null;
 let fetchLatestBaileysVersion: any = null;
 let downloadMediaMessage: any = null;
+let Browsers: any = null;
 
 // Dynamic safe loader for Baileys (to prevent cold-start crash on Vercel Serverless)
 if (!process.env.VERCEL) {
@@ -13,6 +14,7 @@ if (!process.env.VERCEL) {
     useMultiFileAuthState = baileysPkg.useMultiFileAuthState;
     fetchLatestBaileysVersion = baileysPkg.fetchLatestBaileysVersion;
     downloadMediaMessage = baileysPkg.downloadMediaMessage;
+    Browsers = baileysPkg.Browsers;
   } catch (e) {
     console.warn('Baileys package loaded in fallback mode');
   }
@@ -149,11 +151,14 @@ class WhatsAppBaileysEngine {
         auth: state,
         printQRInTerminal: true,
         logger: pino({ level: 'silent' }),
-        browser: ['Lentera Desa Jombe Bot', 'Chrome', '120.0.0'],
+        browser: Browsers ? Browsers.ubuntu('Chrome') : ['Ubuntu', 'Chrome', '22.04.4'],
         connectTimeoutMs: 60000,
         defaultQueryTimeoutMs: 60000,
         keepAliveIntervalMs: 10000,
       });
+
+      // PENTING: Wajib simpan credentials update saat handshake pairing / scan QR berlangsung
+      this.sock.ev.on('creds.update', saveCreds);
 
       // If user requested pairing code with phone number
       if (customPhoneNumber && !state.creds.registered) {
@@ -171,11 +176,6 @@ class WhatsAppBaileysEngine {
         } catch (err) {
           console.error('Failed to request pairing code:', err);
         }
-      } else if (!this.qrCodeDataUrl) {
-        const dummyQrData = `2@${Date.now()},${Math.random().toString(36).substring(2)},${version.join('.')},087853617893`;
-        this.qrCodeDataUrl = await QRCode.toDataURL(dummyQrData, { width: 320, margin: 2 });
-        this.status = 'SCAN_QR';
-        this.saveStatusCache();
       }
 
       this.isInitializing = false;
@@ -188,7 +188,7 @@ class WhatsAppBaileysEngine {
             this.qrCodeDataUrl = await QRCode.toDataURL(qr, { width: 320, margin: 2 });
             this.status = 'SCAN_QR';
             this.saveStatusCache();
-            console.log('📱 [Baileys] QR Code baru siap di-scan dari HP!');
+            console.log('📱 [Baileys] QR Code resmi baru siap di-scan dari HP!');
           } catch (e) {
             console.error('Failed to generate QR code:', e);
           }
