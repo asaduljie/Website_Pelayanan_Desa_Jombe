@@ -102,8 +102,41 @@ class WhatsAppBaileysEngine {
     return this.getStatus();
   }
 
+  public async requestPairingCode(customPhoneNumber: string): Promise<string | null> {
+    const cleanPhone = customPhoneNumber.replace(/\D/g, '');
+    const formatted = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
+    console.log(`📱 [Baileys] Meminta Kode Pairing untuk nomor: ${formatted}`);
+
+    if (!this.sock) {
+      await this.startEngine(formatted);
+      return this.pairingCode;
+    }
+
+    try {
+      if (typeof this.sock?.requestPairingCode === 'function') {
+        const code = await this.sock.requestPairingCode(formatted);
+        if (code) {
+          this.pairingCode = code;
+          this.status = 'SCAN_QR';
+          this.saveStatusCache();
+          console.log(`📱 [Baileys] Pairing Code WhatsApp Berhasil Dibuat: ${code}`);
+          return code;
+        }
+      }
+    } catch (err: any) {
+      console.warn('Socket requestPairingCode notice, recreating socket for pairing:', err.message);
+      try {
+        await this.disconnect();
+      } catch (e) {}
+      await this.startEngine(formatted);
+      return this.pairingCode;
+    }
+
+    return this.pairingCode;
+  }
+
   public async startEngine(customPhoneNumber?: string): Promise<void> {
-    if (this.isInitializing || this.status === 'CONNECTED') return;
+    if (this.status === 'CONNECTED') return;
     this.isInitializing = true;
     this.status = 'CONNECTING';
 
@@ -137,18 +170,6 @@ class WhatsAppBaileysEngine {
           }
         } catch (err) {
           console.error('Failed to request pairing code:', err);
-          // Fallback pairing code generator jika socket butuh waktu handshake
-          if (!this.pairingCode) {
-            const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-            let mock = '';
-            for (let i = 0; i < 8; i++) {
-              mock += chars.charAt(Math.floor(Math.random() * chars.length));
-              if (i === 3) mock += '-';
-            }
-            this.pairingCode = mock;
-            this.status = 'SCAN_QR';
-            this.saveStatusCache();
-          }
         }
       } else if (!this.qrCodeDataUrl) {
         const dummyQrData = `2@${Date.now()},${Math.random().toString(36).substring(2)},${version.join('.')},087853617893`;
@@ -156,6 +177,8 @@ class WhatsAppBaileysEngine {
         this.status = 'SCAN_QR';
         this.saveStatusCache();
       }
+
+      this.isInitializing = false;
 
       this.sock.ev.on('connection.update', async (update: any) => {
         const { connection, lastDisconnect, qr } = update;

@@ -286,7 +286,11 @@ export const getBaileysStatus = async (req: Request, res: Response) => {
 export const startBaileysConnection = async (req: Request, res: Response) => {
   try {
     const phoneNumber = req.body?.phoneNumber || req.query?.phone;
-    await baileysEngine.startEngine(phoneNumber ? String(phoneNumber) : undefined);
+    if (phoneNumber) {
+      await baileysEngine.requestPairingCode(String(phoneNumber));
+    } else {
+      await baileysEngine.startEngine();
+    }
     
     // Tunggu hingga QR atau Pairing code siap digenerate
     for (let i = 0; i < 10; i++) {
