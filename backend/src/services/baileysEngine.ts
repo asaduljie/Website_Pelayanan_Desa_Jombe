@@ -224,24 +224,35 @@ class WhatsAppBaileysEngine {
 
       // Handle Incoming Messages
       this.sock.ev.on('messages.upsert', async (m: any) => {
-        const msg = m.messages[0];
+        const msg = m.messages?.[0];
         if (!msg || !msg.message || msg.key.fromMe) return;
 
         const remoteJid = msg.key.remoteJid || '';
-        if (remoteJid.includes('@g.us')) return;
+        if (remoteJid.includes('@g.us') || remoteJid === 'status@broadcast') return;
 
-        const senderPhone = remoteJid.replace('@s.whatsapp.net', '');
+        const senderPhone = remoteJid.replace('@s.whatsapp.net', '').replace(/:\d+/, '');
+
+        // Unwrap nested message types (Ephemeral, ViewOnce, etc.)
+        const realMsg =
+          msg.message.ephemeralMessage?.message ||
+          msg.message.viewOnceMessage?.message ||
+          msg.message.viewOnceMessageV2?.message ||
+          msg.message.documentWithCaptionMessage?.message ||
+          msg.message;
+
         let messageText =
-          msg.message.conversation ||
-          msg.message.extendedTextMessage?.text ||
-          msg.message.imageMessage?.caption ||
+          realMsg.conversation ||
+          realMsg.extendedTextMessage?.text ||
+          realMsg.imageMessage?.caption ||
+          realMsg.buttonsResponseMessage?.selectedDisplayText ||
+          realMsg.templateButtonReplyMessage?.selectedId ||
           '';
 
         let imageUrl: string | undefined = undefined;
         let imageCaption: string | undefined = undefined;
 
         // Process incoming image from real WhatsApp
-        if (msg.message.imageMessage) {
+        if (realMsg.imageMessage) {
           try {
             const buffer = await downloadMediaMessage(
               msg,
@@ -254,9 +265,9 @@ class WhatsAppBaileysEngine {
             );
             if (buffer) {
               const base64Str = (buffer as Buffer).toString('base64');
-              const mimeType = msg.message.imageMessage.mimetype || 'image/jpeg';
+              const mimeType = realMsg.imageMessage.mimetype || 'image/jpeg';
               imageUrl = `data:${mimeType};base64,${base64Str}`;
-              imageCaption = msg.message.imageMessage.caption || 'Foto Dikirim via WhatsApp';
+              imageCaption = realMsg.imageMessage.caption || 'Foto Dikirim via WhatsApp';
               if (!messageText) {
                 messageText = 'FOTO_TERKIRIM';
               }
@@ -265,6 +276,8 @@ class WhatsAppBaileysEngine {
             console.error('Failed to download incoming WhatsApp image:', imgErr);
           }
         }
+
+        if (!messageText && !imageUrl) return;
 
         console.log(`📩 [Baileys] Pesan masuk dari ${senderPhone}: "${messageText}" (Foto: ${!!imageUrl})`);
 
