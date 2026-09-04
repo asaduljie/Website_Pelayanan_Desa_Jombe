@@ -95,22 +95,29 @@ app.get('/api/health', (req: Request, res: Response) => {
 app.use(errorHandler);
 
 if (!process.env.VERCEL) {
-  const server = app.listen(PORT, () => {
+  const listenPort = Number(process.env.PORT) || 5000;
+  const server = app.listen(listenPort, '0.0.0.0', () => {
     console.log(`==================================================`);
-    console.log(`🚀 JOMBE DIGITAL Backend API Server running on port ${PORT}`);
+    console.log(`🚀 JOMBE DIGITAL Backend API Server running on 0.0.0.0:${listenPort}`);
     console.log(`🛡️ ZERO-DOWNTIME SHIELD ACTIVE (Auto-Recovery, Crash Protection)`);
     console.log(`🔒 Security Middlewares Active (Helmet, RateLimiter, AES-256)`);
     console.log(`==================================================`);
 
     // Start Supabase Auto-KeepAlive & Auto-Wakeup Engine
-    supabaseKeepAlive.startKeepAliveDaemon();
+    try {
+      supabaseKeepAlive.startKeepAliveDaemon();
+    } catch (err: any) {
+      console.warn('⚠️ Supabase KeepAlive startup notice:', err.message);
+    }
 
     // Auto-start WhatsApp Baileys Engine on local daemon
     try {
       const { baileysEngine } = require('./services/baileysEngine');
       baileysEngine.startEngine();
       console.log('📱 [WHATSAPP] Baileys Engine diaktifkan otomatis.');
-    } catch (e) {}
+    } catch (e: any) {
+      console.warn('📱 [WHATSAPP] Notice on startup:', e.message);
+    }
   });
 }
 
