@@ -136,11 +136,11 @@ export default function OperatorDashboardPage() {
     } catch (e) { }
   };
 
-  const handleStartWaConnection = async () => {
+  const handleStartWaConnection = async (forceNew = false) => {
     setWaLoading(true);
     setShowWaQrModal(true);
     try {
-      const res = await api.post('/whatsapp/connect');
+      const res = await api.post('/whatsapp/connect', { forceNew: forceNew || waStatus.status !== 'CONNECTED' });
       if (res.data.status === 'success') {
         setWaStatus(res.data.data);
       }
@@ -1814,7 +1814,7 @@ export default function OperatorDashboardPage() {
                     type="button"
                     onClick={() => {
                       setWaConnectMode('QR');
-                      handleStartWaConnection();
+                      handleStartWaConnection(true);
                     }}
                     className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${waConnectMode === 'QR'
                         ? 'bg-emerald-700 text-white shadow-xs'
@@ -1909,7 +1909,7 @@ export default function OperatorDashboardPage() {
                           Pastikan server backend lokal Anda sedang berjalan.
                         </p>
                         <button
-                          onClick={handleStartWaConnection}
+                          onClick={() => handleStartWaConnection(true)}
                           className="text-xs text-emerald-700 font-bold hover:underline"
                         >
                           Muat Ulang

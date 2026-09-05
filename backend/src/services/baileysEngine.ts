@@ -62,6 +62,7 @@ class WhatsAppBaileysEngine {
   private isInitializing: boolean = false;
   private manualDisconnect: boolean = false;
   private reconnectTimer: NodeJS.Timeout | null = null;
+  private lastEngineStartAttempt = 0;
 
   constructor() {
     try {
@@ -117,7 +118,15 @@ class WhatsAppBaileysEngine {
   }
 
   public async getStatusAsync(): Promise<BaileysStatus> {
-    if (!this.manualDisconnect && !this.sock && !this.isInitializing && (this.status === 'DISCONNECTED' || !this.qrCodeDataUrl)) {
+    const now = Date.now();
+    if (
+      !this.manualDisconnect &&
+      !this.sock &&
+      !this.isInitializing &&
+      (this.status === 'DISCONNECTED' || !this.qrCodeDataUrl) &&
+      now - this.lastEngineStartAttempt > 15000
+    ) {
+      this.lastEngineStartAttempt = now;
       this.startEngine().catch(() => { });
       // Tunggu hingga 4 detik agar QR code siap jika sedang digenerate
       for (let i = 0; i < 8; i++) {
@@ -133,43 +142,52 @@ class WhatsAppBaileysEngine {
     const formatted = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
     console.log(`📱 [Baileys] Meminta Kode Pairing untuk nomor: ${formatted}`);
 
-    if (!this.sock) {
-      await this.startEngine(formatted);
-      return this.pairingCode;
-    }
+    await this.startEngine(formatted, true);
 
-    try {
-      if (typeof this.sock?.requestPairingCode === 'function') {
-        const code = await this.sock.requestPairingCode(formatted);
-        if (code) {
-          this.pairingCode = code;
-          this.status = 'SCAN_QR';
-          this.saveStatusCache();
-          console.log(`📱 [Baileys] Pairing Code WhatsApp Berhasil Dibuat: ${code}`);
-          return code;
-        }
-      }
-    } catch (err: any) {
-      console.warn('Socket requestPairingCode notice, recreating socket for pairing:', err.message);
-      try {
-        await this.disconnect();
-      } catch (e) { }
-      await this.startEngine(formatted);
-      return this.pairingCode;
+    for (let i = 0; i < 12; i++) {
+      if (this.pairingCode) break;
+      await new Promise((r) => setTimeout(r, 500));
     }
 
     return this.pairingCode;
   }
 
-  public async startEngine(customPhoneNumber?: string): Promise<void> {
+  public async startEngine(customPhoneNumber?: string, forceNew = false): Promise<void> {
     // A cached CONNECTED value only says that the previous process was online;
     // after a restart a fresh socket still must be opened with the saved creds.
-    if (this.status === 'CONNECTED' && this.sock) return;
+    if (this.status === 'CONNECTED' && this.sock && !forceNew) return;
     this.manualDisconnect = false;
+    this.lastEngineStartAttempt = Date.now();
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
+
+    if (this.sock) {
+      try {
+        this.sock.ev?.removeAllListeners('connection.update');
+        this.sock.ev?.removeAllListeners('creds.update');
+        this.sock.ev?.removeAllListeners('messages.upsert');
+        this.sock.end?.(undefined);
+      } catch (e) { }
+      this.sock = null;
+    }
+
+    if (forceNew) {
+      console.log('🔄 [Baileys] Mereset sesi sebelumnya untuk membuat QR / Pairing Code baru...');
+      await clearPostgresAuthState().catch(() => {});
+      try {
+        if (fs.existsSync(AUTH_DIR)) {
+          const files = fs.readdirSync(AUTH_DIR);
+          for (const f of files) {
+            if (f !== 'live_status.json') {
+              fs.rmSync(path.join(AUTH_DIR, f), { recursive: true, force: true });
+            }
+          }
+        }
+      } catch (e) { }
+    }
+
     this.isInitializing = true;
     this.status = 'CONNECTING';
     this.saveStatusCache();
@@ -212,13 +230,22 @@ class WhatsAppBaileysEngine {
           const cleanPhone = customPhoneNumber.replace(/\D/g, '');
           const formatted = cleanPhone.startsWith('0') ? `62${cleanPhone.slice(1)}` : cleanPhone;
           console.log(`📱 [Baileys] Meminta Kode Pairing untuk nomor: ${formatted}`);
-          const code = await this.sock?.requestPairingCode(formatted);
-          if (code) {
-            this.pairingCode = code;
-            this.status = 'SCAN_QR';
-            this.saveStatusCache();
-            console.log(`📱 [Baileys] Pairing Code WhatsApp Berhasil Dibuat: ${code}`);
-          }
+          setTimeout(async () => {
+            try {
+              if (typeof this.sock?.requestPairingCode === 'function') {
+                const code = await this.sock.requestPairingCode(formatted);
+                if (code) {
+                  this.pairingCode = code;
+                  this.status = 'SCAN_QR';
+                  this.saveStatusCache();
+                  console.log(`📱 [Baileys] Pairing Code WhatsApp Berhasil Dibuat: ${code}`);
+                  realtimeEvents.publish('whatsapp.status', { status: this.status, pairingCode: code });
+                }
+              }
+            } catch (err: any) {
+              console.warn('Notice requesting pairing code:', err.message);
+            }
+          }, 800);
         } catch (err) {
           console.error('Failed to request pairing code:', err);
         }
@@ -235,6 +262,7 @@ class WhatsAppBaileysEngine {
             this.status = 'SCAN_QR';
             this.saveStatusCache();
             console.log('📱 [Baileys] QR Code resmi baru siap di-scan dari HP!');
+            realtimeEvents.publish('whatsapp.status', { status: this.status, qrCodeDataUrl: this.qrCodeDataUrl });
           } catch (e) {
             console.error('Failed to generate QR code:', e);
           }
@@ -247,6 +275,7 @@ class WhatsAppBaileysEngine {
 
           this.status = 'DISCONNECTED';
           this.isInitializing = false;
+          this.sock = null;
           realtimeEvents.publish('whatsapp.status', { status: this.status, reason: isLoggedOut ? 'logged_out' : 'reconnecting' });
 
           if (shouldReconnect) {
@@ -256,11 +285,23 @@ class WhatsAppBaileysEngine {
               this.startEngine().catch(() => {});
             }, 3000);
           } else {
-            console.log(`📱 [Baileys] Sesi resmi logout. Sesi siap untuk pairing baru.`);
+            console.log(`📱 [Baileys] Sesi resmi logout. Membersihkan kredensial lama agar siap pairing/scan QR baru.`);
             this.qrCodeDataUrl = null;
             this.pairingCode = null;
             this.phoneNumber = null;
+            this.userName = null;
             this.saveStatusCache();
+            await clearPostgresAuthState().catch(() => {});
+            try {
+              if (fs.existsSync(AUTH_DIR)) {
+                const files = fs.readdirSync(AUTH_DIR);
+                for (const f of files) {
+                  if (f !== 'live_status.json') {
+                    fs.rmSync(path.join(AUTH_DIR, f), { recursive: true, force: true });
+                  }
+                }
+              }
+            } catch (e) { }
           }
         } else if (connection === 'open') {
           this.status = 'CONNECTED';

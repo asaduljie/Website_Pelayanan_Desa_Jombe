@@ -129,6 +129,25 @@ export const approveAndSendLetter = async (req: AuthRequest, res: Response) => {
       officialLetterNum = updated.letterNumber;
     }
 
+    // Fallback: If not in PersistentDatabase or userPhone is default, fetch from Prisma
+    if (!targetAppNumber || !targetPhone || targetPhone === '6281299887766') {
+      try {
+        const appDb = await prisma.application.findUnique({
+          where: { id },
+          include: { user: true, service: true },
+        });
+        if (appDb) {
+          targetAppNumber = appDb.applicationNumber || targetAppNumber;
+          if (appDb.user?.phone) {
+            targetPhone = appDb.user.phone;
+          }
+          if (appDb.service?.name) {
+            targetServiceName = appDb.service.name;
+          }
+        }
+      } catch (e) { }
+    }
+
     // 2. Try DB Update
     try {
       await prisma.application.update({
