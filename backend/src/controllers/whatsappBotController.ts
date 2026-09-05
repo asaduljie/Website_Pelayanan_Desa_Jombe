@@ -104,14 +104,19 @@ export const sendNotificationToCitizenWhatsApp = async (
   applicationId?: string,
   letterContent?: string
 ) => {
-  const cleanPhone = String(phoneOrJid).replace(/\D/g, '');
+  const rawTarget = String(phoneOrJid || '').trim();
+  const targetJid = rawTarget.includes('@') ? rawTarget : rawTarget.replace(/\D/g, '');
+  const cleanPhone = rawTarget.replace(/@.*$/, '').replace(/\D/g, '') || rawTarget;
 
-  if (!cleanPhone) {
+  if (!targetJid) {
     throw new Error('Nomor WhatsApp warga tidak valid.');
   }
 
   if (!chatHistories[cleanPhone]) {
     chatHistories[cleanPhone] = [getInitialGreeting()];
+  }
+  if (targetJid !== cleanPhone && !chatHistories[targetJid]) {
+    chatHistories[targetJid] = chatHistories[cleanPhone];
   }
 
   const notifMsg = `✅ *SURAT RESMI TELAH SELESAI DITERBITKAN*\n\n` +
@@ -136,21 +141,29 @@ export const sendNotificationToCitizenWhatsApp = async (
 
   try {
     const { baileysEngine } = await import('../services/baileysEngine');
-    await baileysEngine.sendMessage(cleanPhone, notifMsg);
-    console.log(`📱 [WHATSAPP NOTIF] Pesan persetujuan surat terkirim ke: ${cleanPhone}`);
+    const sendSuccess = await baileysEngine.sendMessage(targetJid, notifMsg);
+    if (sendSuccess) {
+      console.log(`📱 [WHATSAPP NOTIF] Pesan persetujuan surat terkirim ke: ${targetJid}`);
+    } else {
+      console.warn(`⚠️ [WHATSAPP NOTIF] Pesan persetujuan BELUM terkirim ke ${targetJid}. Bot WhatsApp berstatus ${baileysEngine.getStatus().status}.`);
+    }
 
     if (applicationId) {
       try {
         const { generateOfficialLetterPdfBuffer } = await import('./pdfController');
         const pdfBuffer = await generateOfficialLetterPdfBuffer(applicationId, letterNumber, letterContent);
         if (pdfBuffer && pdfBuffer.length > 0) {
-          await baileysEngine.sendPdfDocument(
-            cleanPhone,
+          const pdfSuccess = await baileysEngine.sendPdfDocument(
+            targetJid,
             pdfBuffer,
             `SURAT-${appNumber}.pdf`,
             `📜 *Surat Resmi Desa Jombe* - No: ${letterNumber}`
           );
-          console.log(`📎 [WHATSAPP PDF] Dokumen PDF surat resmi berhasil dikirim ke: ${cleanPhone}`);
+          if (pdfSuccess) {
+            console.log(`📎 [WHATSAPP PDF] Dokumen PDF surat resmi berhasil dikirim ke: ${targetJid}`);
+          } else {
+            console.warn(`⚠️ [WHATSAPP PDF] Berkas PDF BELUM terkirim ke ${targetJid}. Bot WhatsApp berstatus ${baileysEngine.getStatus().status}.`);
+          }
         }
       } catch (pdfErr: any) {
         console.error('Failed to attach PDF to WhatsApp:', pdfErr.message);
@@ -169,14 +182,19 @@ export const sendRevisionNotificationToCitizenWhatsApp = async (
   serviceName: string,
   revisionNotes?: string
 ) => {
-  const cleanPhone = String(phoneOrJid).replace(/\D/g, '');
+  const rawTarget = String(phoneOrJid || '').trim();
+  const targetJid = rawTarget.includes('@') ? rawTarget : rawTarget.replace(/\D/g, '');
+  const cleanPhone = rawTarget.replace(/@.*$/, '').replace(/\D/g, '') || rawTarget;
 
-  if (!cleanPhone) {
+  if (!targetJid) {
     throw new Error('Nomor WhatsApp warga tidak valid.');
   }
 
   if (!chatHistories[cleanPhone]) {
     chatHistories[cleanPhone] = [getInitialGreeting()];
+  }
+  if (targetJid !== cleanPhone && !chatHistories[targetJid]) {
+    chatHistories[targetJid] = chatHistories[cleanPhone];
   }
 
   const notifMsg = `⚠️ *PEMBERITAHUAN PERBAIKAN PERMOHONAN SURAT*\n\n` +
@@ -197,8 +215,12 @@ export const sendRevisionNotificationToCitizenWhatsApp = async (
 
   try {
     const { baileysEngine } = await import('../services/baileysEngine');
-    await baileysEngine.sendMessage(cleanPhone, notifMsg);
-    console.log(`📱 [WHATSAPP NOTIF] Pesan perbaikan terkirim ke: ${cleanPhone}`);
+    const sendSuccess = await baileysEngine.sendMessage(targetJid, notifMsg);
+    if (sendSuccess) {
+      console.log(`📱 [WHATSAPP NOTIF] Pesan perbaikan terkirim ke: ${targetJid}`);
+    } else {
+      console.warn(`⚠️ [WHATSAPP NOTIF] Pesan perbaikan BELUM terkirim ke ${targetJid}. Bot WhatsApp berstatus ${baileysEngine.getStatus().status}.`);
+    }
   } catch (err: any) {
     console.warn('Notice sending WhatsApp revision notification:', err.message);
   }

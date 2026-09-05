@@ -279,10 +279,13 @@ class WhatsAppBaileysEngine {
         }
 
         if (connection === 'close') {
-          const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
-          const isLoggedOut = statusCode === (DisconnectReason?.loggedOut || 401);
-          const isReplaced = statusCode === (DisconnectReason?.connectionReplaced || 440);
+          const statusCode = (lastDisconnect?.error as any)?.output?.statusCode || (lastDisconnect?.error as any)?.statusCode;
+          const errorMsg = (lastDisconnect?.error as any)?.message || 'Koneksi ditutup';
+          const isLoggedOut = statusCode === 401;
+          const isReplaced = statusCode === 440;
           const shouldReconnect = !isLoggedOut && !isReplaced && !this.manualDisconnect;
+
+          console.log(`📱 [Baileys] Koneksi socket ditutup (Status: ${statusCode || 'unknown'}, Info: ${errorMsg})`);
 
           this.status = 'DISCONNECTED';
           this.isInitializing = false;
@@ -299,7 +302,7 @@ class WhatsAppBaileysEngine {
           });
 
           if (isLoggedOut) {
-            console.log(`📱 [Baileys] Sesi resmi logout. Membersihkan kredensial lama agar siap pairing/scan QR baru.`);
+            console.log(`📱 [Baileys] Sesi resmi logout (Status 401). Membersihkan kredensial lama agar siap pairing/scan QR baru.`);
             this.qrCodeDataUrl = null;
             this.pairingCode = null;
             this.phoneNumber = null;
@@ -326,7 +329,7 @@ class WhatsAppBaileysEngine {
               }
             }, 20000);
           } else if (shouldReconnect) {
-            console.log(`📱 [Baileys] Jaringan sementara terjeda (Status ${statusCode}). Menghubungkan ulang dalam 5 detik agar sesi selalu aktif 24/7...`);
+            console.log(`📱 [Baileys] Jaringan sementara terjeda (Status ${statusCode || 'unknown'}). Menghubungkan ulang dalam 5 detik agar sesi selalu aktif 24/7...`);
             if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
             this.reconnectTimer = setTimeout(() => {
               this.reconnectTimer = null;
@@ -458,30 +461,44 @@ class WhatsAppBaileysEngine {
    */
   private isLidNumber(num: string): boolean {
     const clean = num.replace(/\D/g, '');
-    // Indonesian: 62 + 8-11 digits = 10-13 total
-    if (clean.startsWith('62') && clean.length >= 10 && clean.length <= 13) return false;
-    // Local format: 08... = 9-12 digits
-    if (clean.startsWith('0') && clean.length >= 9 && clean.length <= 12) return false;
-    // Other common country codes (1=US, 44=UK, 65=SG, 60=MY, 61=AU, 81=JP etc.)
-    const knownPrefixes = ['1','44','65','60','61','81','82','86','91','90','49','33','39'];
-    for (const p of knownPrefixes) {
-      if (clean.startsWith(p) && clean.length >= 10 && clean.length <= 15) return false;
+    if (num.includes('@lid')) return true;
+    // Real Indonesian mobile phone: 628... or 08... (10 to 13 digits)
+    if ((clean.startsWith('628') || clean.startsWith('08')) && clean.length >= 10 && clean.length <= 13) {
+      return false;
     }
-    // Anything ≥14 digits or not matching above → treat as LID
-    return clean.length >= 14 || clean.length < 8;
+    // Fixed line / Telkom Indonesia: 622..., 623..., 624... (9 to 12 digits)
+    if (clean.startsWith('62') && clean.length >= 10 && clean.length <= 12) {
+      return false;
+    }
+    // WhatsApp LIDs (Linked Device privacy IDs) are specifically 14 to 16 digits long
+    if (clean.length >= 14 && clean.length <= 16) {
+      return true;
+    }
+    return clean.length > 13 || clean.length < 8;
   }
 
   /**
    * Resolves a raw phone string / LID to the best-available WhatsApp JID.
    * Priority:
-   *  1. If already contains '@' → use as-is
-   *  2. If LID number + found in lidToPhoneMap → use mapped real phone
-   *  3. If LID number (no map entry) → send as @lid JID
+   *  1. If @lid → check if mapped to phone, otherwise send to @lid
+   *  2. If @s.whatsapp.net → check if mapped to lid, return target + altTarget
+   *  3. If LID number (14-16 digits) → send as @lid JID
    *  4. Otherwise → send as @s.whatsapp.net
-   * Returns { target, altTarget } where altTarget is a secondary JID to also
-   * attempt (belt-and-suspenders) or null.
    */
   private resolveJid(toJid: string): { target: string; altTarget: string | null } {
+    if (!toJid) return { target: '', altTarget: null };
+    if (toJid.includes('@lid')) {
+      const mapped = this.lidToPhoneMap.get(toJid);
+      if (mapped) {
+        const realTarget = mapped.includes('@') ? mapped : `${mapped.replace(/:\d+$/, '')}@s.whatsapp.net`;
+        return { target: realTarget, altTarget: toJid };
+      }
+      return { target: toJid, altTarget: null };
+    }
+    if (toJid.includes('@s.whatsapp.net')) {
+      const mappedLid = this.lidToPhoneMap.get(toJid);
+      return { target: toJid, altTarget: mappedLid || null };
+    }
     if (toJid.includes('@')) {
       return { target: toJid, altTarget: null };
     }
@@ -496,7 +513,7 @@ class WhatsAppBaileysEngine {
         console.log(`🔗 [Baileys] LID ${formatted} → real JID ${realTarget}`);
         return { target: realTarget, altTarget: lidJid };
       }
-      // No mapping yet – send directly to @lid
+      // Send directly to @lid
       console.log(`🔗 [Baileys] LID ${formatted} → @lid (no phone mapping found yet)`);
       return { target: lidJid, altTarget: null };
     }
@@ -505,7 +522,10 @@ class WhatsAppBaileysEngine {
   }
 
   public async sendMessage(toJid: string, text: string, quotedMsg?: any): Promise<boolean> {
-    if (!this.sock || this.status !== 'CONNECTED') return false;
+    if (!this.sock || this.status !== 'CONNECTED') {
+      console.warn(`⚠️ [Baileys] Gagal mengirim pesan ke "${toJid}": Status bot saat ini ${this.status}. Pastikan bot WhatsApp terhubung.`);
+      return false;
+    }
     try {
       const { target, altTarget } = this.resolveJid(toJid);
       const options: any = quotedMsg ? { quoted: quotedMsg } : {};
@@ -525,7 +545,10 @@ class WhatsAppBaileysEngine {
   }
 
   public async sendPdfDocument(toJid: string, pdfBuffer: Buffer, fileName: string, caption: string, quotedMsg?: any): Promise<boolean> {
-    if (!this.sock || this.status !== 'CONNECTED') return false;
+    if (!this.sock || this.status !== 'CONNECTED') {
+      console.warn(`⚠️ [Baileys] Gagal mengirim dokumen PDF ke "${toJid}": Status bot saat ini ${this.status}. Pastikan bot WhatsApp terhubung.`);
+      return false;
+    }
     try {
       const { target, altTarget } = this.resolveJid(toJid);
       const options: any = quotedMsg ? { quoted: quotedMsg } : {};
