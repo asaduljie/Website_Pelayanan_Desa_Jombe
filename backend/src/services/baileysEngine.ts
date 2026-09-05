@@ -4,6 +4,9 @@ let useMultiFileAuthState: any = null;
 let fetchLatestBaileysVersion: any = null;
 let downloadMediaMessage: any = null;
 let Browsers: any = null;
+let initAuthCreds: any = null;
+let BufferJSON: any = null;
+let proto: any = null;
 
 // Dynamic safe loader for Baileys (to prevent cold-start crash on Vercel Serverless)
 if (!process.env.VERCEL) {
@@ -15,6 +18,9 @@ if (!process.env.VERCEL) {
     fetchLatestBaileysVersion = baileysPkg.fetchLatestBaileysVersion;
     downloadMediaMessage = baileysPkg.downloadMediaMessage;
     Browsers = baileysPkg.Browsers;
+    initAuthCreds = baileysPkg.initAuthCreds;
+    BufferJSON = baileysPkg.BufferJSON;
+    proto = baileysPkg.proto;
   } catch (e) {
     console.warn('Baileys package loaded in fallback mode');
   }
@@ -25,6 +31,7 @@ import path from 'path';
 import fs from 'fs';
 import pino from 'pino';
 import { realtimeEvents } from './realtimeEvents';
+import { clearPostgresAuthState, usePostgresAuthState } from './whatsappAuthStore';
 
 export interface BaileysStatus {
   status: 'DISCONNECTED' | 'SCAN_QR' | 'CONNECTING' | 'CONNECTED';
@@ -168,7 +175,10 @@ class WhatsAppBaileysEngine {
     this.saveStatusCache();
 
     try {
-      const { state, saveCreds } = await useMultiFileAuthState(AUTH_DIR);
+      if (!initAuthCreds || !BufferJSON || !proto) {
+        throw new Error('Komponen autentikasi Baileys tidak tersedia.');
+      }
+      const { state, saveCreds } = await usePostgresAuthState({ initAuthCreds, BufferJSON, proto });
       const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] as [number, number, number] }));
 
       this.sock = makeWASocket({
@@ -414,6 +424,7 @@ class WhatsAppBaileysEngine {
       if (fs.existsSync(AUTH_DIR)) {
         fs.rmSync(AUTH_DIR, { recursive: true, force: true });
       }
+      await clearPostgresAuthState();
       // Recreate only the explicit manual-disconnect marker.  This prevents a
       // status request or a restarted process from silently opening a session.
       fs.mkdirSync(AUTH_DIR, { recursive: true });
