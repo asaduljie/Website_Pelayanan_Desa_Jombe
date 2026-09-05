@@ -178,7 +178,16 @@ class WhatsAppBaileysEngine {
       if (!initAuthCreds || !BufferJSON || !proto) {
         throw new Error('Komponen autentikasi Baileys tidak tersedia.');
       }
-      const { state, saveCreds } = await usePostgresAuthState({ initAuthCreds, BufferJSON, proto });
+      let authStateResult: any;
+      try {
+        authStateResult = await usePostgresAuthState({ initAuthCreds, BufferJSON, proto });
+      } catch (authDbError: any) {
+        console.warn('⚠️ [Baileys] PostgreSQL Auth State gagal dimuat, fallback ke Local File Auth:', authDbError?.message || authDbError);
+        const sessionPath = AUTH_DIR;
+        if (!fs.existsSync(sessionPath)) fs.mkdirSync(sessionPath, { recursive: true });
+        authStateResult = await useMultiFileAuthState(sessionPath);
+      }
+      const { state, saveCreds } = authStateResult;
       const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] as [number, number, number] }));
 
       this.sock = makeWASocket({

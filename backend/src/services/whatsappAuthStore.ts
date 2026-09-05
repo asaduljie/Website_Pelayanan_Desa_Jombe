@@ -8,39 +8,65 @@ type BaileysPrimitives = {
 };
 
 const CREDS_KEY = 'baileys:creds';
-let tableReady: Promise<void> | null = null;
+const memStore: Record<string, string> = {};
 
-const ensureTable = (): Promise<void> => {
-  if (!tableReady) {
-    tableReady = prisma.$executeRawUnsafe(
+const ensureTable = async (): Promise<void> => {
+  try {
+    await prisma.$executeRawUnsafe(
       'CREATE TABLE IF NOT EXISTS "WhatsAppSession" ("key" TEXT PRIMARY KEY, "value" TEXT NOT NULL, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP)'
-    ).then(() => undefined);
-  }
-  return tableReady;
+    );
+  } catch (e: any) { }
 };
 
 const read = async (key: string, helpers: BaileysPrimitives): Promise<any | null> => {
-  await ensureTable();
-  const rows = await prisma.$queryRawUnsafe<Array<{ value: string }>>(
-    'SELECT "value" FROM "WhatsAppSession" WHERE "key" = $1 LIMIT 1', key
-  );
-  if (!rows[0]) return null;
-  return JSON.parse(decryptData(rows[0].value), helpers.BufferJSON.reviver);
+  try {
+    const row = await (prisma as any).whatsAppSession?.findUnique({ where: { key } }).catch(async () => {
+      const rows = await prisma.$queryRawUnsafe<Array<{ value: string }>>(
+        'SELECT "value" FROM "WhatsAppSession" WHERE "key" = $1 LIMIT 1', key
+      );
+      return rows[0] || null;
+    });
+
+    if (row && row.value) {
+      return JSON.parse(decryptData(row.value), helpers.BufferJSON.reviver);
+    }
+  } catch (e) {
+    if (memStore[key]) {
+      try {
+        return JSON.parse(decryptData(memStore[key]), helpers.BufferJSON.reviver);
+      } catch (err) { }
+    }
+  }
+  return null;
 };
 
 const write = async (key: string, value: unknown, helpers: BaileysPrimitives): Promise<void> => {
-  await ensureTable();
-  const serialized = encryptData(JSON.stringify(value, helpers.BufferJSON.replacer));
-  await prisma.$executeRawUnsafe(
-    'INSERT INTO "WhatsAppSession" ("key", "value", "updatedAt") VALUES ($1, $2, NOW()) ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value", "updatedAt" = NOW()',
-    key,
-    serialized
-  );
+  try {
+    const serialized = encryptData(JSON.stringify(value, helpers.BufferJSON.replacer));
+    memStore[key] = serialized;
+
+    await (prisma as any).whatsAppSession?.upsert({
+      where: { key },
+      create: { key, value: serialized },
+      update: { value: serialized, updatedAt: new Date() },
+    }).catch(async () => {
+      await ensureTable();
+      await prisma.$executeRawUnsafe(
+        'INSERT INTO "WhatsAppSession" ("key", "value", "updatedAt") VALUES ($1, $2, NOW()) ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value", "updatedAt" = NOW()',
+        key,
+        serialized
+      );
+    });
+  } catch (e) { }
 };
 
 const remove = async (key: string): Promise<void> => {
-  await ensureTable();
-  await prisma.$executeRawUnsafe('DELETE FROM "WhatsAppSession" WHERE "key" = $1', key);
+  delete memStore[key];
+  try {
+    await (prisma as any).whatsAppSession?.delete({ where: { key } }).catch(async () => {
+      await prisma.$executeRawUnsafe('DELETE FROM "WhatsAppSession" WHERE "key" = $1', key);
+    });
+  } catch (e) { }
 };
 
 /**
@@ -83,6 +109,10 @@ export const usePostgresAuthState = async (helpers: BaileysPrimitives) => {
 };
 
 export const clearPostgresAuthState = async (): Promise<void> => {
-  await ensureTable();
-  await prisma.$executeRawUnsafe('DELETE FROM "WhatsAppSession"');
+  for (const k in memStore) delete memStore[k];
+  try {
+    await (prisma as any).whatsAppSession?.deleteMany().catch(async () => {
+      await prisma.$executeRawUnsafe('DELETE FROM "WhatsAppSession"');
+    });
+  } catch (e) { }
 };
