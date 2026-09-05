@@ -292,9 +292,15 @@ class WhatsAppBaileysEngine {
         const remoteJid = msg.key.remoteJid || '';
         if (remoteJid.includes('@g.us') || remoteJid === 'status@broadcast') return;
 
-        // Keep full remoteJid if it's @lid or format to pure phone number
+        const participant = msg.key.participant || (msg as any).participant || (msg.key as any).participantPn || '';
+        if (remoteJid.endsWith('@lid') && participant) {
+          this.lidToPhoneMap.set(remoteJid, participant);
+          this.lidToPhoneMap.set(participant, remoteJid);
+        }
+
+        // Extract clean real phone number if available, fallback to remoteJid
         const senderPhone = remoteJid.endsWith('@lid')
-          ? remoteJid
+          ? (participant ? participant.replace('@s.whatsapp.net', '').replace(/:\d+/, '') : remoteJid)
           : remoteJid.replace('@s.whatsapp.net', '').replace(/:\d+/, '');
 
         // Unwrap nested message types (Ephemeral, ViewOnce, etc.)
@@ -373,6 +379,8 @@ class WhatsAppBaileysEngine {
     }
   }
 
+  private lidToPhoneMap = new Map<string, string>();
+
   public async sendMessage(toJid: string, text: string): Promise<boolean> {
     if (!this.sock || this.status !== 'CONNECTED') return false;
     try {
@@ -382,8 +390,19 @@ class WhatsAppBaileysEngine {
         const formatted = clean.startsWith('0') ? `62${clean.slice(1)}` : clean;
         target = `${formatted}@s.whatsapp.net`;
       }
+      
       await this.sock.sendMessage(target, { text });
       console.log(`✅ [Baileys] Pesan berhasil terkirim ke WhatsApp: ${target}`);
+
+      // If target was LID, also try sending to mapped phone number if available
+      if (target.endsWith('@lid')) {
+        const mapped = this.lidToPhoneMap.get(target);
+        if (mapped && mapped !== target) {
+          const pTarget = mapped.includes('@') ? mapped : `${mapped.startsWith('0') ? '62' + mapped.slice(1) : mapped}@s.whatsapp.net`;
+          await this.sock.sendMessage(pTarget, { text }).catch(() => {});
+          console.log(`✅ [Baileys] Pesan berhasil di-dispatch juga ke nomor asli: ${pTarget}`);
+        }
+      }
       return true;
     } catch (e: any) {
       console.error('Failed to send Baileys message:', e.message);
@@ -407,6 +426,21 @@ class WhatsAppBaileysEngine {
         caption: caption,
       });
       console.log(`✅ [Baileys] Dokumen PDF "${fileName}" berhasil terkirim ke WhatsApp: ${target}`);
+
+      // If target was LID, also try sending PDF to mapped phone number if available
+      if (target.endsWith('@lid')) {
+        const mapped = this.lidToPhoneMap.get(target);
+        if (mapped && mapped !== target) {
+          const pTarget = mapped.includes('@') ? mapped : `${mapped.startsWith('0') ? '62' + mapped.slice(1) : mapped}@s.whatsapp.net`;
+          await this.sock.sendMessage(pTarget, {
+            document: pdfBuffer,
+            mimetype: 'application/pdf',
+            fileName: fileName,
+            caption: caption,
+          }).catch(() => {});
+          console.log(`✅ [Baileys] Dokumen PDF "${fileName}" berhasil di-dispatch juga ke nomor asli: ${pTarget}`);
+        }
+      }
       return true;
     } catch (e: any) {
       console.error('Failed to send Baileys PDF:', e.message);
