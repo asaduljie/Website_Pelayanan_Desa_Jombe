@@ -51,7 +51,7 @@ if (!process.env.VERCEL) {
   setInterval(() => {
     try {
       if (global.gc) global.gc();
-    } catch (e) {}
+    } catch (e) { }
   }, 4 * 60 * 60 * 1000);
 }
 

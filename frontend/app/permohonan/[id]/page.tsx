@@ -32,7 +32,8 @@ export default function PermohonanDetailPage() {
   };
 
   const handleDownloadPdf = () => {
-    const downloadUrl = `http://localhost:5000/api/operator/pdf/${id}`;
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://quinoa-legal-ostrich.abasthan.app/api').replace(/\/$/, '');
+    const downloadUrl = `${baseUrl}/operator/pdf/${id}`;
     window.open(downloadUrl, '_blank');
   };
 

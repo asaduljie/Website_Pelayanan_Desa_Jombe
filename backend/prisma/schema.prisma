@@ -355,3 +355,15 @@ model AuditLog {
   @@index([action])
   @@index([createdAt])
 }
+
+model WhatsAppSession {
+  key       String   @id
+  value     String   @db.Text
+  updatedAt DateTime @updatedAt
+}
+
+model PersistentStore {
+  key       String   @id
+  data      String   @db.Text
+  updatedAt DateTime @updatedAt
+}

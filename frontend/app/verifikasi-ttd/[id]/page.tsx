@@ -18,8 +18,9 @@ export default function VerifikasiTteDetailPage() {
 
     const fetchVerification = async () => {
       setLoading(true);
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://quinoa-legal-ostrich.abasthan.app/api').replace(/\/$/, '');
       try {
-        const res = await fetch(`http://localhost:5000/api/public/verify-tte/${encodeURIComponent(idOrNumber)}`);
+        const res = await fetch(`${baseUrl}/public/verify-tte/${encodeURIComponent(idOrNumber)}`);
         const json = await res.json();
         if (json.status === 'success') {
           setTteData(json.data);
@@ -45,7 +46,7 @@ export default function VerifikasiTteDetailPage() {
           citizenName: 'Asadul',
           citizenNik: '7371131002040005',
           detailValue: 'Usaha Toko Sembako dan Warung Kopi, Dusun Krajan RT 02 RW 01',
-          pdfDownloadUrl: `http://localhost:5000/api/operator/pdf/${idOrNumber}`,
+          pdfDownloadUrl: `${baseUrl}/operator/pdf/${idOrNumber}`,
         });
       } finally {
         setLoading(false);
@@ -219,7 +220,7 @@ export default function VerifikasiTteDetailPage() {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
               <a
-                href={tteData?.pdfDownloadUrl || `http://localhost:5000/api/operator/pdf/${idOrNumber}`}
+                href={tteData?.pdfDownloadUrl || `${(process.env.NEXT_PUBLIC_API_URL || 'https://quinoa-legal-ostrich.abasthan.app/api').replace(/\/$/, '')}/operator/pdf/${idOrNumber}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full sm:w-auto px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-colors"
