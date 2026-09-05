@@ -70,15 +70,24 @@ class WhatsAppBaileysEngine {
         fs.mkdirSync(AUTH_DIR, { recursive: true });
       }
     } catch (e) { }
+  }
 
-    // Jaga status Online selalu aktif di WhatsApp setiap 30 detik
-    setInterval(async () => {
-      if (this.sock && this.status === 'CONNECTED') {
-        try {
-          await this.sock.sendPresenceUpdate('available');
-        } catch (e) { }
+  private cleanupSocket(s: any): void {
+    if (!s) return;
+    try {
+      s.ev?.removeAllListeners('connection.update');
+      s.ev?.removeAllListeners('creds.update');
+      s.ev?.removeAllListeners('messages.upsert');
+      if (s.ws) {
+        s.ws.removeAllListeners?.();
+        if (typeof s.ws.terminate === 'function') {
+          s.ws.terminate();
+        } else if (typeof s.ws.close === 'function') {
+          s.ws.close();
+        }
       }
-    }, 30000);
+      s.end?.(undefined);
+    } catch (e) { }
   }
 
   private saveStatusCache(): void {
@@ -123,8 +132,9 @@ class WhatsAppBaileysEngine {
       !this.manualDisconnect &&
       !this.sock &&
       !this.isInitializing &&
+      !this.reconnectTimer &&
       (this.status === 'DISCONNECTED' || !this.qrCodeDataUrl) &&
-      now - this.lastEngineStartAttempt > 15000
+      now - this.lastEngineStartAttempt > 20000
     ) {
       this.lastEngineStartAttempt = now;
       this.startEngine().catch(() => { });
@@ -156,6 +166,10 @@ class WhatsAppBaileysEngine {
     // A cached CONNECTED value only says that the previous process was online;
     // after a restart a fresh socket still must be opened with the saved creds.
     if (this.status === 'CONNECTED' && this.sock && !forceNew) return;
+    if (this.isInitializing) {
+      console.log('⏳ [Baileys] Socket sedang diinisialisasi, abaikan panggilan startEngine duplikat.');
+      return;
+    }
     this.manualDisconnect = false;
     this.lastEngineStartAttempt = Date.now();
     if (this.reconnectTimer) {
@@ -164,12 +178,7 @@ class WhatsAppBaileysEngine {
     }
 
     if (this.sock) {
-      try {
-        this.sock.ev?.removeAllListeners('connection.update');
-        this.sock.ev?.removeAllListeners('creds.update');
-        this.sock.ev?.removeAllListeners('messages.upsert');
-        this.sock.end?.(undefined);
-      } catch (e) { }
+      this.cleanupSocket(this.sock);
       this.sock = null;
     }
 
@@ -208,7 +217,7 @@ class WhatsAppBaileysEngine {
       const { state, saveCreds } = authStateResult;
       const { version } = await fetchLatestBaileysVersion().catch(() => ({ version: [2, 3000, 1015901307] as [number, number, number] }));
 
-      this.sock = makeWASocket({
+      const sock = makeWASocket({
         version,
         auth: state,
         printQRInTerminal: true,
@@ -216,13 +225,14 @@ class WhatsAppBaileysEngine {
         browser: Browsers ? Browsers.ubuntu('Chrome') : ['Ubuntu', 'Chrome', '22.04.4'],
         connectTimeoutMs: 60000,
         defaultQueryTimeoutMs: 60000,
-        keepAliveIntervalMs: 10000,
+        keepAliveIntervalMs: 30000, // 30s interval prevents frequent 408 request timeouts
         markOnlineOnConnect: true,
         syncFullHistory: false,
       });
+      this.sock = sock;
 
       // PENTING: Wajib simpan credentials update saat handshake pairing / scan QR berlangsung
-      this.sock.ev.on('creds.update', saveCreds);
+      sock.ev.on('creds.update', saveCreds);
 
       // If user requested pairing code with phone number
       if (customPhoneNumber && !state.creds.registered) {
@@ -232,8 +242,8 @@ class WhatsAppBaileysEngine {
           console.log(`📱 [Baileys] Meminta Kode Pairing untuk nomor: ${formatted}`);
           setTimeout(async () => {
             try {
-              if (typeof this.sock?.requestPairingCode === 'function') {
-                const code = await this.sock.requestPairingCode(formatted);
+              if (typeof sock?.requestPairingCode === 'function') {
+                const code = await sock.requestPairingCode(formatted);
                 if (code) {
                   this.pairingCode = code;
                   this.status = 'SCAN_QR';
@@ -253,7 +263,7 @@ class WhatsAppBaileysEngine {
 
       this.isInitializing = false;
 
-      this.sock.ev.on('connection.update', async (update: any) => {
+      sock.ev.on('connection.update', async (update: any) => {
         const { connection, lastDisconnect, qr } = update;
 
         if (qr && !this.pairingCode) {
@@ -271,20 +281,24 @@ class WhatsAppBaileysEngine {
         if (connection === 'close') {
           const statusCode = (lastDisconnect?.error as any)?.output?.statusCode;
           const isLoggedOut = statusCode === (DisconnectReason?.loggedOut || 401);
-          const shouldReconnect = !isLoggedOut && !this.manualDisconnect;
+          const isReplaced = statusCode === (DisconnectReason?.connectionReplaced || 440);
+          const shouldReconnect = !isLoggedOut && !isReplaced && !this.manualDisconnect;
 
           this.status = 'DISCONNECTED';
           this.isInitializing = false;
-          this.sock = null;
-          realtimeEvents.publish('whatsapp.status', { status: this.status, reason: isLoggedOut ? 'logged_out' : 'reconnecting' });
 
-          if (shouldReconnect) {
-            console.log(`📱 [Baileys] Jaringan sementara terjeda (Status ${statusCode}). Menghubungkan ulang otomatis dalam 3 detik agar sesi selalu aktif 24/7...`);
-            this.reconnectTimer = setTimeout(() => {
-              this.reconnectTimer = null;
-              this.startEngine().catch(() => {});
-            }, 3000);
-          } else {
+          // Bersihkan socket yang baru tertutup
+          this.cleanupSocket(sock);
+          if (this.sock === sock) {
+            this.sock = null;
+          }
+
+          realtimeEvents.publish('whatsapp.status', {
+            status: this.status,
+            reason: isLoggedOut ? 'logged_out' : isReplaced ? 'replaced' : 'reconnecting'
+          });
+
+          if (isLoggedOut) {
             console.log(`📱 [Baileys] Sesi resmi logout. Membersihkan kredensial lama agar siap pairing/scan QR baru.`);
             this.qrCodeDataUrl = null;
             this.pairingCode = null;
@@ -302,6 +316,22 @@ class WhatsAppBaileysEngine {
                 }
               }
             } catch (e) { }
+          } else if (isReplaced) {
+            console.log(`⚠️ [Baileys] Sesi terputus karena digantikan oleh koneksi/perangkat lain (Status 440). Menjeda 20 detik agar tidak saling tabrakan.`);
+            if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = setTimeout(() => {
+              this.reconnectTimer = null;
+              if (this.status !== 'CONNECTED' && !this.manualDisconnect) {
+                this.startEngine().catch(() => {});
+              }
+            }, 20000);
+          } else if (shouldReconnect) {
+            console.log(`📱 [Baileys] Jaringan sementara terjeda (Status ${statusCode}). Menghubungkan ulang dalam 5 detik agar sesi selalu aktif 24/7...`);
+            if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+            this.reconnectTimer = setTimeout(() => {
+              this.reconnectTimer = null;
+              this.startEngine().catch(() => {});
+            }, 5000);
           }
         } else if (connection === 'open') {
           this.status = 'CONNECTED';
@@ -309,24 +339,21 @@ class WhatsAppBaileysEngine {
           this.pairingCode = null;
           this.lastConnected = new Date().toISOString();
 
-          const userJid = this.sock?.user?.id || '';
+          const userJid = sock?.user?.id || '';
           this.phoneNumber = userJid.split(':')[0] || userJid.split('@')[0] || 'Nomor Terhubung';
-          this.userName = this.sock?.user?.name || 'Layanan Resmi Desa Jombe';
+          this.userName = sock?.user?.name || 'Layanan Resmi Desa Jombe';
 
           console.log(`✅ [Baileys] WhatsApp Resmi Desa TERHUBUNG 24/7! Nomor: ${this.phoneNumber}`);
           this.isInitializing = false;
           this.saveStatusCache();
           realtimeEvents.publish('whatsapp.status', { status: this.status, phoneNumber: this.phoneNumber });
-
-          // Kirim sinyal Online Aktif ke server WhatsApp
-          try {
-            await this.sock.sendPresenceUpdate('available');
-          } catch (e) { }
         }
       });
 
       // Handle Incoming Messages
-      this.sock.ev.on('messages.upsert', async (m: any) => {
+      sock.ev.on('messages.upsert', async (m: any) => {
+        // Abaikan jika bukan socket aktif utama
+        if (this.sock !== sock) return;
         const msg = m.messages?.[0];
         if (!msg || !msg.message || msg.key.fromMe) return;
 
