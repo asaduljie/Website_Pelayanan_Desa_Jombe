@@ -7,6 +7,7 @@ import bcrypt from 'bcrypt';
 import { baileysEngine } from '../services/baileysEngine';
 import { PersistentDatabase, ComplaintRecord } from '../utils/persistentDb';
 import { realtimeEvents } from '../services/realtimeEvents';
+
 import {
   checkWhatsAppRateLimit,
   sanitizeAndFilterWhatsAppText,
@@ -103,14 +104,11 @@ export const sendNotificationToCitizenWhatsApp = async (
   applicationId?: string,
   letterContent?: string
 ) => {
-  const targetJid = String(phoneOrJid).includes('@')
-    ? String(phoneOrJid)
-    : (() => {
-        const clean = String(phoneOrJid).replace(/\D/g, '');
-        return (clean.startsWith('0') ? `62${clean.slice(1)}` : clean) + '@s.whatsapp.net';
-      })();
+  const cleanPhone = String(phoneOrJid).replace(/\D/g, '');
 
-  const cleanPhone = String(phoneOrJid).replace(/\D/g, '') || '6281299887766';
+  if (!cleanPhone) {
+    throw new Error('Nomor WhatsApp warga tidak valid.');
+  }
 
   if (!chatHistories[cleanPhone]) {
     chatHistories[cleanPhone] = [getInitialGreeting()];
@@ -136,25 +134,23 @@ export const sendNotificationToCitizenWhatsApp = async (
     letterNumber: letterNumber,
   });
 
-  // 1. Send Text Message via Real Baileys WhatsApp Engine
   try {
     const { baileysEngine } = await import('../services/baileysEngine');
-    await baileysEngine.sendMessage(targetJid, notifMsg);
-    console.log(`📱 [WHATSAPP NOTIF] Pesan persetujuan surat terkirim ke: ${targetJid}`);
+    await baileysEngine.sendMessage(cleanPhone, notifMsg);
+    console.log(`📱 [WHATSAPP NOTIF] Pesan persetujuan surat terkirim ke: ${cleanPhone}`);
 
-    // 2. Generate and Send Real PDF Document via Baileys WhatsApp Engine
     if (applicationId) {
       try {
         const { generateOfficialLetterPdfBuffer } = await import('./pdfController');
         const pdfBuffer = await generateOfficialLetterPdfBuffer(applicationId, letterNumber, letterContent);
         if (pdfBuffer && pdfBuffer.length > 0) {
           await baileysEngine.sendPdfDocument(
-            targetJid,
+            cleanPhone,
             pdfBuffer,
             `SURAT-${appNumber}.pdf`,
             `📜 *Surat Resmi Desa Jombe* - No: ${letterNumber}`
           );
-          console.log(`📎 [WHATSAPP PDF] Dokumen PDF surat resmi berhasil dikirim ke: ${targetJid}`);
+          console.log(`📎 [WHATSAPP PDF] Dokumen PDF surat resmi berhasil dikirim ke: ${cleanPhone}`);
         }
       } catch (pdfErr: any) {
         console.error('Failed to attach PDF to WhatsApp:', pdfErr.message);
@@ -173,14 +169,11 @@ export const sendRevisionNotificationToCitizenWhatsApp = async (
   serviceName: string,
   revisionNotes?: string
 ) => {
-  const targetJid = String(phoneOrJid).includes('@')
-    ? String(phoneOrJid)
-    : (() => {
-        const clean = String(phoneOrJid).replace(/\D/g, '');
-        return (clean.startsWith('0') ? `62${clean.slice(1)}` : clean) + '@s.whatsapp.net';
-      })();
+  const cleanPhone = String(phoneOrJid).replace(/\D/g, '');
 
-  const cleanPhone = String(phoneOrJid).replace(/\D/g, '') || '6281299887766';
+  if (!cleanPhone) {
+    throw new Error('Nomor WhatsApp warga tidak valid.');
+  }
 
   if (!chatHistories[cleanPhone]) {
     chatHistories[cleanPhone] = [getInitialGreeting()];
@@ -204,8 +197,8 @@ export const sendRevisionNotificationToCitizenWhatsApp = async (
 
   try {
     const { baileysEngine } = await import('../services/baileysEngine');
-    await baileysEngine.sendMessage(targetJid, notifMsg);
-    console.log(`📱 [WHATSAPP NOTIF] Pesan penolakan/revisi terkirim ke: ${targetJid}`);
+    await baileysEngine.sendMessage(cleanPhone, notifMsg);
+    console.log(`📱 [WHATSAPP NOTIF] Pesan perbaikan terkirim ke: ${cleanPhone}`);
   } catch (err: any) {
     console.warn('Notice sending WhatsApp revision notification:', err.message);
   }
@@ -727,10 +720,15 @@ export const handleIncomingWhatsAppMessageInternal = async (
     }
   } else if (session.step === 'CONFIRMATION') {
     if (upperText === 'SETUJU' || upperText === 'YA' || upperText === 'OK') {
-      const targetNik = session.nik || '3512345678900001';
-      const targetName = session.name || 'Warga Desa (Via WA Bot)';
-      const targetSlug = session.serviceSlug || 'surat-keterangan-usaha';
-      const targetServiceName = session.serviceName || 'Surat Keterangan Usaha (SKU)';
+      const targetNik = session.nik;
+      const targetName = session.name;
+
+      if (!targetNik || !targetName || !session.serviceSlug || !session.serviceName) {
+        throw new Error('Data permohonan surat belum lengkap.');
+      }
+
+      const targetSlug = session.serviceSlug;
+      const targetServiceName = session.serviceName;
 
       const appCount = waApplicationsStore.length + 12;
       const appNumber = `JMB-${new Date().getFullYear()}-${String(appCount + 1).padStart(5, '0')}`;
@@ -744,14 +742,17 @@ export const handleIncomingWhatsAppMessageInternal = async (
               { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
             ];
 
+      const dbService = await prisma.service.findUnique({ where: { slug: targetSlug } }).catch(() => null);
+      const resolvedServiceId = dbService?.id || targetSlug;
+
       const newWaApp: WaApplicationRecord = {
         id: `wa-app-${Date.now()}`,
         applicationNumber: appNumber,
-        userId: targetNik === '3512345678900001' ? 'demo-warga-id-1' : `user-${Date.now()}`,
+        userId: `user-${Date.now()}`,
         userNik: targetNik,
         userName: targetName,
         userPhone: senderPhone,
-        serviceId: 'service-sku-1',
+        serviceId: resolvedServiceId,
         serviceName: targetServiceName,
         serviceSlug: targetSlug,
         status: 'PENDING',
@@ -784,7 +785,7 @@ export const handleIncomingWhatsAppMessageInternal = async (
             .catch(() => null);
         }
 
-        let service = await prisma.service.findUnique({ where: { slug: targetSlug } }).catch(() => null);
+        let service = dbService;
         if (!service) service = await prisma.service.findFirst().catch(() => null);
 
         if (service && citizen) {
@@ -1051,13 +1052,11 @@ export const handleIncomingWhatsAppMessage = async (req: Request, res: Response)
       data: result,
     });
   } catch (error: any) {
-    return res.status(200).json({
-      status: 'success',
-      data: {
-        reply: `*PERMOHONAN BERHASIL DITERIMA*\n\nNomor Registrasi: *JMB-2026-00015*\nStatus: *Sedang Diverifikasi Operator Desa*\n\nDokumen telah masuk ke antrean pelayanan Kantor Desa Jombe.`,
-        sessionStep: 'WELCOME',
-        isCompleted: true,
-      },
+    console.error('[WHATSAPP BOT] Gagal memproses pesan:', error);
+
+    return res.status(500).json({
+      status: 'error',
+      message: 'Terjadi kesalahan saat memproses pesan WhatsApp.',
     });
   }
 };

@@ -434,7 +434,7 @@ class WhatsAppBaileysEngine {
           );
 
           if (botResponse && botResponse.reply) {
-            await this.sendMessage(remoteJid, botResponse.reply);
+            await this.sendMessage(remoteJid, botResponse.reply, msg);
           }
         } catch (err) {
           console.error('Error processing Baileys message:', err);
@@ -449,7 +449,7 @@ class WhatsAppBaileysEngine {
 
   private lidToPhoneMap = new Map<string, string>();
 
-  public async sendMessage(toJid: string, text: string): Promise<boolean> {
+  public async sendMessage(toJid: string, text: string, quotedMsg?: any): Promise<boolean> {
     if (!this.sock || this.status !== 'CONNECTED') return false;
     try {
       let target = toJid;
@@ -459,7 +459,8 @@ class WhatsAppBaileysEngine {
         target = `${formatted}@s.whatsapp.net`;
       }
       
-      await this.sock.sendMessage(target, { text });
+      const options: any = quotedMsg ? { quoted: quotedMsg } : {};
+      await this.sock.sendMessage(target, { text }, options);
       console.log(`✅ [Baileys] Pesan berhasil terkirim ke WhatsApp: ${target}`);
 
       // If target was LID, also try sending to mapped phone number if available
@@ -467,7 +468,7 @@ class WhatsAppBaileysEngine {
         const mapped = this.lidToPhoneMap.get(target);
         if (mapped && mapped !== target) {
           const pTarget = mapped.includes('@') ? mapped : `${mapped.startsWith('0') ? '62' + mapped.slice(1) : mapped}@s.whatsapp.net`;
-          await this.sock.sendMessage(pTarget, { text }).catch(() => {});
+          await this.sock.sendMessage(pTarget, { text }, options).catch(() => {});
           console.log(`✅ [Baileys] Pesan berhasil di-dispatch juga ke nomor asli: ${pTarget}`);
         }
       }
@@ -478,7 +479,7 @@ class WhatsAppBaileysEngine {
     }
   }
 
-  public async sendPdfDocument(toJid: string, pdfBuffer: Buffer, fileName: string, caption: string): Promise<boolean> {
+  public async sendPdfDocument(toJid: string, pdfBuffer: Buffer, fileName: string, caption: string, quotedMsg?: any): Promise<boolean> {
     if (!this.sock || this.status !== 'CONNECTED') return false;
     try {
       let target = toJid;
@@ -487,12 +488,13 @@ class WhatsAppBaileysEngine {
         const formatted = clean.startsWith('0') ? `62${clean.slice(1)}` : clean;
         target = `${formatted}@s.whatsapp.net`;
       }
+      const options: any = quotedMsg ? { quoted: quotedMsg } : {};
       await this.sock.sendMessage(target, {
         document: pdfBuffer,
         mimetype: 'application/pdf',
         fileName: fileName,
         caption: caption,
-      });
+      }, options);
       console.log(`✅ [Baileys] Dokumen PDF "${fileName}" berhasil terkirim ke WhatsApp: ${target}`);
 
       // If target was LID, also try sending PDF to mapped phone number if available
@@ -505,7 +507,7 @@ class WhatsAppBaileysEngine {
             mimetype: 'application/pdf',
             fileName: fileName,
             caption: caption,
-          }).catch(() => {});
+          }, options).catch(() => {});
           console.log(`✅ [Baileys] Dokumen PDF "${fileName}" berhasil di-dispatch juga ke nomor asli: ${pTarget}`);
         }
       }
