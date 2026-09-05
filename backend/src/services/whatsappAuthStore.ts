@@ -1,4 +1,4 @@
-import prisma from '../config/db';
+import { Pool } from 'pg';
 import { decryptData, encryptData } from '../utils/crypto';
 
 type BaileysPrimitives = {
@@ -10,32 +10,61 @@ type BaileysPrimitives = {
 const CREDS_KEY = 'baileys:creds';
 const memStore: Record<string, string> = {};
 
+let pool: Pool | null = null;
+const getPool = (): Pool | null => {
+  if (!pool && process.env.DATABASE_URL) {
+    try {
+      const connStr = process.env.DATABASE_URL;
+      const isLocal = connStr.includes('localhost') || connStr.includes('127.0.0.1');
+      pool = new Pool({
+        connectionString: connStr,
+        ssl: isLocal ? false : { rejectUnauthorized: false },
+        max: 5,
+        idleTimeoutMillis: 30000,
+        connectionTimeoutMillis: 10000,
+      });
+      pool.on('error', (err) => {
+        console.warn('⚠️ [WhatsAppAuthStore] PostgreSQL Pool notice:', err.message);
+      });
+    } catch (e) {
+      pool = null;
+    }
+  }
+  return pool;
+};
+
+let tableReady: Promise<void> | null = null;
 const ensureTable = async (): Promise<void> => {
-  try {
-    await prisma.$executeRawUnsafe(
-      'CREATE TABLE IF NOT EXISTS "WhatsAppSession" ("key" TEXT PRIMARY KEY, "value" TEXT NOT NULL, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP)'
-    );
-  } catch (e: any) { }
+  if (!tableReady) {
+    tableReady = (async () => {
+      const p = getPool();
+      if (!p) return;
+      try {
+        await p.query(
+          'CREATE TABLE IF NOT EXISTS "WhatsAppSession" ("key" TEXT PRIMARY KEY, "value" TEXT NOT NULL, "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP)'
+        );
+      } catch (e) { }
+    })();
+  }
+  return tableReady;
 };
 
 const read = async (key: string, helpers: BaileysPrimitives): Promise<any | null> => {
   try {
-    const row = await (prisma as any).whatsAppSession?.findUnique({ where: { key } }).catch(async () => {
-      const rows = await prisma.$queryRawUnsafe<Array<{ value: string }>>(
-        'SELECT "value" FROM "WhatsAppSession" WHERE "key" = $1 LIMIT 1', key
-      );
-      return rows[0] || null;
-    });
+    await ensureTable();
+    const p = getPool();
+    if (p) {
+      const res = await p.query('SELECT "value" FROM "WhatsAppSession" WHERE "key" = $1 LIMIT 1', [key]);
+      if (res.rows.length > 0 && res.rows[0].value) {
+        return JSON.parse(decryptData(res.rows[0].value), helpers.BufferJSON.reviver);
+      }
+    }
+  } catch (e) { }
 
-    if (row && row.value) {
-      return JSON.parse(decryptData(row.value), helpers.BufferJSON.reviver);
-    }
-  } catch (e) {
-    if (memStore[key]) {
-      try {
-        return JSON.parse(decryptData(memStore[key]), helpers.BufferJSON.reviver);
-      } catch (err) { }
-    }
+  if (memStore[key]) {
+    try {
+      return JSON.parse(decryptData(memStore[key]), helpers.BufferJSON.reviver);
+    } catch (err) { }
   }
   return null;
 };
@@ -45,33 +74,31 @@ const write = async (key: string, value: unknown, helpers: BaileysPrimitives): P
     const serialized = encryptData(JSON.stringify(value, helpers.BufferJSON.replacer));
     memStore[key] = serialized;
 
-    await (prisma as any).whatsAppSession?.upsert({
-      where: { key },
-      create: { key, value: serialized },
-      update: { value: serialized, updatedAt: new Date() },
-    }).catch(async () => {
-      await ensureTable();
-      await prisma.$executeRawUnsafe(
+    await ensureTable();
+    const p = getPool();
+    if (p) {
+      await p.query(
         'INSERT INTO "WhatsAppSession" ("key", "value", "updatedAt") VALUES ($1, $2, NOW()) ON CONFLICT ("key") DO UPDATE SET "value" = EXCLUDED."value", "updatedAt" = NOW()',
-        key,
-        serialized
+        [key, serialized]
       );
-    });
+    }
   } catch (e) { }
 };
 
 const remove = async (key: string): Promise<void> => {
   delete memStore[key];
   try {
-    await (prisma as any).whatsAppSession?.delete({ where: { key } }).catch(async () => {
-      await prisma.$executeRawUnsafe('DELETE FROM "WhatsAppSession" WHERE "key" = $1', key);
-    });
+    await ensureTable();
+    const p = getPool();
+    if (p) {
+      await p.query('DELETE FROM "WhatsAppSession" WHERE "key" = $1', [key]);
+    }
   } catch (e) { }
 };
 
 /**
- * Baileys-compatible auth state backed by PostgreSQL. Unlike
- * useMultiFileAuthState, it survives redeploys and ephemeral containers.
+ * Baileys-compatible auth state backed by PostgreSQL (using native JS pg driver).
+ * Completely immune to C++ native libssl/openssl binary mismatches.
  */
 export const usePostgresAuthState = async (helpers: BaileysPrimitives) => {
   const creds = (await read(CREDS_KEY, helpers)) || helpers.initAuthCreds();
@@ -111,8 +138,10 @@ export const usePostgresAuthState = async (helpers: BaileysPrimitives) => {
 export const clearPostgresAuthState = async (): Promise<void> => {
   for (const k in memStore) delete memStore[k];
   try {
-    await (prisma as any).whatsAppSession?.deleteMany().catch(async () => {
-      await prisma.$executeRawUnsafe('DELETE FROM "WhatsAppSession"');
-    });
+    await ensureTable();
+    const p = getPool();
+    if (p) {
+      await p.query('DELETE FROM "WhatsAppSession"');
+    }
   } catch (e) { }
 };
