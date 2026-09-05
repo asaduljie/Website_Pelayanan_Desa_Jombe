@@ -39,3 +39,6 @@ Thumbs.db
 backend/auth_info_baileys/
 backend/data/
 *.pdf
+
+backend.zip
+*.zip
