@@ -449,28 +449,73 @@ class WhatsAppBaileysEngine {
 
   private lidToPhoneMap = new Map<string, string>();
 
+  /**
+   * Returns true if `num` (digits only) looks like a WhatsApp LID rather than a
+   * real phone number.  Indonesian phone numbers start with 62 and are 11-13
+   * digits; most other country codes are also ≤15 digits but always start with
+   * a recognised prefix.  LIDs are typically 15 digits and do NOT start with a
+   * common country-code prefix.
+   */
+  private isLidNumber(num: string): boolean {
+    const clean = num.replace(/\D/g, '');
+    // Indonesian: 62 + 8-11 digits = 10-13 total
+    if (clean.startsWith('62') && clean.length >= 10 && clean.length <= 13) return false;
+    // Local format: 08... = 9-12 digits
+    if (clean.startsWith('0') && clean.length >= 9 && clean.length <= 12) return false;
+    // Other common country codes (1=US, 44=UK, 65=SG, 60=MY, 61=AU, 81=JP etc.)
+    const knownPrefixes = ['1','44','65','60','61','81','82','86','91','90','49','33','39'];
+    for (const p of knownPrefixes) {
+      if (clean.startsWith(p) && clean.length >= 10 && clean.length <= 15) return false;
+    }
+    // Anything ≥14 digits or not matching above → treat as LID
+    return clean.length >= 14 || clean.length < 8;
+  }
+
+  /**
+   * Resolves a raw phone string / LID to the best-available WhatsApp JID.
+   * Priority:
+   *  1. If already contains '@' → use as-is
+   *  2. If LID number + found in lidToPhoneMap → use mapped real phone
+   *  3. If LID number (no map entry) → send as @lid JID
+   *  4. Otherwise → send as @s.whatsapp.net
+   * Returns { target, altTarget } where altTarget is a secondary JID to also
+   * attempt (belt-and-suspenders) or null.
+   */
+  private resolveJid(toJid: string): { target: string; altTarget: string | null } {
+    if (toJid.includes('@')) {
+      return { target: toJid, altTarget: null };
+    }
+    const clean = toJid.replace(/\D/g, '');
+    const formatted = clean.startsWith('0') ? `62${clean.slice(1)}` : clean;
+
+    if (this.isLidNumber(formatted)) {
+      const lidJid = `${formatted}@lid`;
+      const mapped = this.lidToPhoneMap.get(lidJid);
+      if (mapped) {
+        const realTarget = mapped.includes('@') ? mapped : `${mapped.replace(/:\d+$/, '')}@s.whatsapp.net`;
+        console.log(`🔗 [Baileys] LID ${formatted} → real JID ${realTarget}`);
+        return { target: realTarget, altTarget: lidJid };
+      }
+      // No mapping yet – send directly to @lid
+      console.log(`🔗 [Baileys] LID ${formatted} → @lid (no phone mapping found yet)`);
+      return { target: lidJid, altTarget: null };
+    }
+
+    return { target: `${formatted}@s.whatsapp.net`, altTarget: null };
+  }
+
   public async sendMessage(toJid: string, text: string, quotedMsg?: any): Promise<boolean> {
     if (!this.sock || this.status !== 'CONNECTED') return false;
     try {
-      let target = toJid;
-      if (!target.includes('@')) {
-        const clean = target.replace(/\D/g, '');
-        const formatted = clean.startsWith('0') ? `62${clean.slice(1)}` : clean;
-        target = `${formatted}@s.whatsapp.net`;
-      }
-      
+      const { target, altTarget } = this.resolveJid(toJid);
       const options: any = quotedMsg ? { quoted: quotedMsg } : {};
       await this.sock.sendMessage(target, { text }, options);
       console.log(`✅ [Baileys] Pesan berhasil terkirim ke WhatsApp: ${target}`);
 
-      // If target was LID, also try sending to mapped phone number if available
-      if (target.endsWith('@lid')) {
-        const mapped = this.lidToPhoneMap.get(target);
-        if (mapped && mapped !== target) {
-          const pTarget = mapped.includes('@') ? mapped : `${mapped.startsWith('0') ? '62' + mapped.slice(1) : mapped}@s.whatsapp.net`;
-          await this.sock.sendMessage(pTarget, { text }, options).catch(() => {});
-          console.log(`✅ [Baileys] Pesan berhasil di-dispatch juga ke nomor asli: ${pTarget}`);
-        }
+      // Belt-and-suspenders: also send to secondary JID (e.g. @lid when primary is real phone)
+      if (altTarget) {
+        await this.sock.sendMessage(altTarget, { text }, options).catch(() => {});
+        console.log(`✅ [Baileys] Pesan juga dikirim ke JID alternatif: ${altTarget}`);
       }
       return true;
     } catch (e: any) {
@@ -482,12 +527,7 @@ class WhatsAppBaileysEngine {
   public async sendPdfDocument(toJid: string, pdfBuffer: Buffer, fileName: string, caption: string, quotedMsg?: any): Promise<boolean> {
     if (!this.sock || this.status !== 'CONNECTED') return false;
     try {
-      let target = toJid;
-      if (!target.includes('@')) {
-        const clean = target.replace(/\D/g, '');
-        const formatted = clean.startsWith('0') ? `62${clean.slice(1)}` : clean;
-        target = `${formatted}@s.whatsapp.net`;
-      }
+      const { target, altTarget } = this.resolveJid(toJid);
       const options: any = quotedMsg ? { quoted: quotedMsg } : {};
       await this.sock.sendMessage(target, {
         document: pdfBuffer,
@@ -497,19 +537,15 @@ class WhatsAppBaileysEngine {
       }, options);
       console.log(`✅ [Baileys] Dokumen PDF "${fileName}" berhasil terkirim ke WhatsApp: ${target}`);
 
-      // If target was LID, also try sending PDF to mapped phone number if available
-      if (target.endsWith('@lid')) {
-        const mapped = this.lidToPhoneMap.get(target);
-        if (mapped && mapped !== target) {
-          const pTarget = mapped.includes('@') ? mapped : `${mapped.startsWith('0') ? '62' + mapped.slice(1) : mapped}@s.whatsapp.net`;
-          await this.sock.sendMessage(pTarget, {
-            document: pdfBuffer,
-            mimetype: 'application/pdf',
-            fileName: fileName,
-            caption: caption,
-          }, options).catch(() => {});
-          console.log(`✅ [Baileys] Dokumen PDF "${fileName}" berhasil di-dispatch juga ke nomor asli: ${pTarget}`);
-        }
+      // Belt-and-suspenders: also send PDF to secondary JID
+      if (altTarget) {
+        await this.sock.sendMessage(altTarget, {
+          document: pdfBuffer,
+          mimetype: 'application/pdf',
+          fileName: fileName,
+          caption: caption,
+        }, options).catch(() => {});
+        console.log(`✅ [Baileys] PDF juga dikirim ke JID alternatif: ${altTarget}`);
       }
       return true;
     } catch (e: any) {
