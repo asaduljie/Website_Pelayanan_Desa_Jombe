@@ -163,21 +163,13 @@ class WhatsAppBaileysEngine {
     return this.pairingCode;
   }
 
-  public async startEngine(customPhoneNumber?: string, forceNew = false): Promise<void> {
-    // A cached CONNECTED value only says that the previous process was online;
-    // after a restart a fresh socket still must be opened with the saved creds.
-    if (this.status === 'CONNECTED' && this.sock && !forceNew) return;
-    if (this.isInitializing) {
-      console.log('⏳ [Baileys] Socket sedang diinisialisasi, abaikan panggilan startEngine duplikat.');
-      return;
-    }
-    this.manualDisconnect = false;
-    this.lastEngineStartAttempt = Date.now();
+  public async startEngine(customPhoneNumber?: string, forceNew?: boolean): Promise<void> {
+    this.status = 'DISCONNECTED';
+    this.isInitializing = false;
     if (this.reconnectTimer) {
       clearTimeout(this.reconnectTimer);
       this.reconnectTimer = null;
     }
-
     if (this.sock) {
       this.cleanupSocket(this.sock);
       this.sock = null;

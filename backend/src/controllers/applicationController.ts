@@ -1,17 +1,52 @@
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { z } from 'zod';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import { waApplicationsStore } from './whatsappBotController';
 import { PersistentDatabase } from '../utils/persistentDb';
 import { realtimeEvents } from '../services/realtimeEvents';
+import { verifyCaptchaToken } from './captchaController';
 
 export const createApplication = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id || 'demo-warga-id-1';
-    const userNik = req.user?.nik || '3512345678900001';
-    const userName = req.user?.name || 'Siti Rahmawati';
-    const { serviceId, serviceName: customServiceName, serviceSlug, fieldValues, uploadedPhotos } = req.body;
+    const {
+      serviceId,
+      serviceName: customServiceName,
+      serviceSlug,
+      fieldValues,
+      uploadedPhotos,
+      nik: bodyNik,
+      name: bodyName,
+      phone: bodyPhone,
+      address: bodyAddress,
+      captchaToken,
+      captchaAnswer,
+    } = req.body;
+
+    // 1. Verifikasi Captcha Anti-Bot
+    if (captchaToken || captchaAnswer !== undefined) {
+      const isCaptchaValid = verifyCaptchaToken(captchaToken, captchaAnswer);
+      if (!isCaptchaValid) {
+        return res.status(400).json({
+          status: 'error',
+          message: 'Kode verifikasi keamanan (Captcha) salah atau telah kedaluwarsa. Silakan coba lagi.',
+        });
+      }
+    }
+
+    // 2. Validasi NIK (Wajib 16 Digit)
+    const userNik = String(bodyNik || req.user?.nik || '').replace(/\D/g, '');
+    if (!userNik || userNik.length !== 16) {
+      return res.status(400).json({
+        status: 'error',
+        message: 'Nomor Induk Kependudukan (NIK) wajib berjumlah tepat 16 digit angka sesuai e-KTP.',
+      });
+    }
+
+    const userName = String(bodyName || req.user?.name || 'Warga Desa Jombe').trim();
+    const userPhone = String(bodyPhone || (req.user as any)?.phone || '-').trim();
+    const userAddress = String(bodyAddress || (req.user as any)?.address || 'Desa Jombe, Kec. Turatea').trim();
+    const userId = req.user?.id || `warga-${userNik}`;
 
     const appCount = waApplicationsStore.length + 12;
     const applicationNumber = `JMB-${new Date().getFullYear()}-${String(appCount + 1).padStart(5, '0')}`;
@@ -25,20 +60,37 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
     const newAppId = `app-web-${Date.now()}`;
     const letterNumber = `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${new Date().getFullYear()}`;
 
-    // Try saving DB
+    // Simpan data warga jika di DB
     try {
-      if (serviceId) {
+      let citizen = await prisma.user.findUnique({ where: { nik: userNik } }).catch(() => null);
+      if (!citizen) {
+        citizen = await prisma.user.create({
+          data: {
+            nik: userNik,
+            name: userName,
+            phone: userPhone,
+            address: userAddress,
+            role: 'MASYARAKAT',
+            password: 'PUBLIC_NO_PASSWORD',
+          },
+        }).catch(() => null);
+      }
+
+      let resolvedService = serviceId ? await prisma.service.findUnique({ where: { id: serviceId } }).catch(() => null) : null;
+      if (!resolvedService) resolvedService = await prisma.service.findFirst().catch(() => null);
+
+      if (resolvedService && citizen) {
         await prisma.application.create({
           data: {
             applicationNumber,
-            userId,
-            serviceId,
+            userId: citizen.id,
+            serviceId: resolvedService.id,
             status: 'PENDING',
             history: {
               create: {
                 status: 'PENDING',
                 actorName: userName,
-                notes: 'Permohonan surat berhasil dikirim online via website.',
+                notes: 'Permohonan surat diajukan mandiri via portal website Desa Jombe.',
               },
             },
           },
@@ -52,18 +104,18 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
       userId,
       userNik,
       userName,
-      userPhone: (req.user as any)?.phone || '085712345678',
+      userPhone,
       serviceId: serviceId || 'service-sku-1',
       serviceName,
       serviceSlug: serviceSlug || 'surat-keterangan-usaha',
-      status: 'PENDING',
-      detailValue: typeof fieldValues === 'string' ? fieldValues : 'Pengajuan Surat Online Website Jombe Digital',
+      status: 'PENDING' as const,
+      detailValue: typeof fieldValues === 'string' ? fieldValues : `Alamat: ${userAddress}. Keterangan: Pengajuan Surat Mandiri Portal Website Desa Jombe`,
       uploadedPhotos: Array.isArray(uploadedPhotos) && uploadedPhotos.length > 0 ? uploadedPhotos : [
         { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
-        { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
+        { title: 'Foto Kartu Keluarga (KK)', type: 'KK' },
       ],
       letterNumber,
-      letterContent: `Menerangkan dengan sebenarnya bahwa ${userName} (NIK: ${userNik}) adalah benar warga Desa Jombe dengan keterangan: ${fieldValues}`,
+      letterContent: `Menerangkan dengan sebenarnya bahwa ${userName} (NIK: ${userNik}, Alamat: ${userAddress}) adalah benar warga Desa Jombe yang bersangkutan.`,
       createdAt: new Date().toISOString(),
     };
 
@@ -73,23 +125,21 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
 
     return res.status(201).json({
       status: 'success',
-      message: 'Permohonan berhasil dibuat. Simpan Nomor Lacak Anda!',
+      message: 'Permohonan surat berhasil dikirim! Simpan Nomor Registrasi Anda untuk melacak status.',
       data: {
         id: newAppId,
         applicationNumber,
+        serviceName,
+        userName,
+        userNik,
         status: 'PENDING',
         createdAt: new Date().toISOString(),
       },
     });
   } catch (error: any) {
-    return res.status(201).json({
-      status: 'success',
-      message: 'Permohonan berhasil dibuat. Simpan Nomor Lacak Anda!',
-      data: {
-        id: `app-web-${Date.now()}`,
-        applicationNumber: `JMB-2026-000${Math.floor(10 + Math.random() * 80)}`,
-        status: 'PENDING',
-      },
+    return res.status(500).json({
+      status: 'error',
+      message: 'Gagal mengirim permohonan surat: ' + error.message,
     });
   }
 };
@@ -120,62 +170,94 @@ export const getMyApplications = async (req: AuthRequest, res: Response) => {
   }
 };
 
-export const trackApplication = async (req: AuthRequest, res: Response) => {
+export const trackApplication = async (req: any, res: Response) => {
   try {
-    const { applicationNumber } = req.query;
-
-    if (!applicationNumber) {
-      return res.status(400).json({ status: 'error', message: 'Nomor permohonan wajib diisi.' });
+    const query = String(req.query.applicationNumber || req.query.nik || req.query.query || '').trim();
+    if (!query) {
+      return res.status(400).json({ status: 'error', message: 'Masukkan Nomor Registrasi Surat atau NIK untuk melacak.' });
     }
 
-    const appNumStr = String(applicationNumber).trim().toUpperCase();
+    const upperQuery = query.toUpperCase();
+    const cleanDigits = query.replace(/\D/g, '');
 
-    // Check persistent DB first
+    const host = req.get('host') || 'quinoa-legal-ostrich.abasthan.app';
+    const protocol = host.includes('localhost') ? req.protocol : 'https';
+
     const allPersistent = PersistentDatabase.loadApplications();
-    const match = allPersistent.find((w) => w.applicationNumber.toUpperCase() === appNumStr);
-    if (match) {
+    const matches = allPersistent.filter((w) => {
+      if (w.applicationNumber && w.applicationNumber.toUpperCase().includes(upperQuery)) return true;
+      if (cleanDigits && cleanDigits.length >= 6 && w.userNik && w.userNik.includes(cleanDigits)) return true;
+      return false;
+    });
+
+    if (matches.length > 0) {
+      const results = matches.map((match) => ({
+        id: match.id,
+        applicationNumber: match.applicationNumber,
+        status: match.status,
+        serviceName: match.serviceName,
+        createdAt: match.createdAt,
+        user: { name: match.userName, nik: match.userNik },
+        letterNumber: match.letterNumber,
+        pdfUrl: match.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${match.id}` : null,
+        revisionNotes:
+          match.status === 'COMPLETED'
+            ? 'Surat resmi telah disetujui & ditandatangani Kepala Desa Jombe.'
+            : match.status === 'NEED_REVISION'
+            ? match.detailValue || 'Memerlukan perbaikan dokumen lampiran.'
+            : 'Permohonan sedang dalam antrean pemeriksaan oleh Operator Kantor Desa Jombe.',
+      }));
+
       return res.status(200).json({
         status: 'success',
-        data: {
-          applicationNumber: match.applicationNumber,
-          status: match.status,
-          serviceName: match.serviceName,
-          createdAt: match.createdAt,
-          user: { name: match.userName, nik: match.userNik },
-          revisionNotes: match.status === 'COMPLETED' ? 'Surat resmi telah disetujui & diterbitkan.' : 'Permohonan sedang diproses oleh Operator Kantor Desa Jombe.',
-        },
+        data: results[0],
+        allMatches: results,
       });
     }
 
-    let app: any = null;
+    let dbApps: any[] = [];
     try {
-      app = await prisma.application.findUnique({
-        where: { applicationNumber: appNumStr },
+      dbApps = await prisma.application.findMany({
+        where: {
+          OR: [
+            { applicationNumber: { contains: upperQuery, mode: 'insensitive' } },
+            ...(cleanDigits && cleanDigits.length >= 6 ? [{ user: { nik: { contains: cleanDigits } } }] : []),
+          ],
+        },
         include: {
           service: true,
           user: { select: { name: true, nik: true } },
           history: { orderBy: { createdAt: 'desc' } },
         },
+        take: 5,
       });
     } catch (e) {}
 
-    if (!app) {
-      return res.status(404).json({ status: 'error', message: 'Nomor permohonan tidak ditemukan.' });
-    }
-
-    return res.status(200).json({
-      status: 'success',
-      data: {
+    if (dbApps.length > 0) {
+      const results = dbApps.map((app) => ({
+        id: app.id,
         applicationNumber: app.applicationNumber,
         status: app.status,
-        serviceName: app.service.name,
+        serviceName: app.service?.name,
         createdAt: app.createdAt,
         user: app.user,
+        pdfUrl: app.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${app.id}` : null,
         history: app.history,
-      },
+      }));
+
+      return res.status(200).json({
+        status: 'success',
+        data: results[0],
+        allMatches: results,
+      });
+    }
+
+    return res.status(404).json({
+      status: 'error',
+      message: `Permohonan dengan nomor registrasi / NIK "${query}" tidak ditemukan. Pastikan data yang dimasukkan sudah benar.`,
     });
-  } catch (error) {
-    return res.status(404).json({ status: 'error', message: 'Nomor permohonan tidak ditemukan.' });
+  } catch (error: any) {
+    return res.status(500).json({ status: 'error', message: 'Gagal melacak permohonan.' });
   }
 };
 

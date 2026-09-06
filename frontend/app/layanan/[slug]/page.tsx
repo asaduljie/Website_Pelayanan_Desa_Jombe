@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import {
   FileText,
@@ -9,19 +9,20 @@ import {
   CheckCircle2,
   AlertCircle,
   ArrowLeft,
-  Image as ImageIcon,
   FileCheck,
   Send,
-  Sparkles,
   ShieldCheck,
-  X,
+  Copy,
+  ExternalLink,
+  Sparkles,
 } from 'lucide-react';
 import api from '@/lib/api';
+import Captcha from '@/components/ui/Captcha';
 
 // Requirement definitions by service slug
 const SERVICE_REQUIREMENTS: Record<string, Array<{ id: string; label: string; description: string; required: boolean }>> = {
   'surat-keterangan-tidak-mampu': [
-    { id: 'ktp', label: 'Foto e-KTP Pemohon / Orang Tua', description: 'Foto e-KTP pemohon atau orang tua (jelas & terbaca)', required: true },
+    { id: 'ktp', label: 'Foto e-KTP Pemohon / Orang Tua', description: 'Foto e-KTP asli pemohon atau orang tua (jelas & terbaca)', required: true },
     { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemohon', required: true },
     { id: 'pendukung', label: 'Bukti Pendukung / Keterangan DTKS (Opsional)', description: 'Foto kartu KIS/PKH/KIP atau surat pengantar (jika ada)', required: false },
   ],
@@ -38,7 +39,7 @@ const SERVICE_REQUIREMENTS: Record<string, Array<{ id: string; label: string; de
   'surat-keterangan-usaha': [
     { id: 'ktp', label: 'Foto e-KTP Pemilik Usaha', description: 'Foto e-KTP asli yang masih berlaku (jelas & tidak buram)', required: true },
     { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemilik usaha', required: true },
-    { id: 'usaha', label: 'Foto Tempat / Aktivitas Usaha', description: 'Foto toko / tempat dagang / aktivitas usaha warga', required: true },
+    { id: 'usaha', label: 'Foto Tempat / Aktivitas Usaha', description: 'Foto toko / tempat dagang / aktivitas usaha warga di desa', required: true },
   ],
   'surat-keterangan-domisili': [
     { id: 'ktp', label: 'Foto e-KTP Pemohon', description: 'Foto e-KTP pemohon yang masih berlaku', required: true },
@@ -47,7 +48,7 @@ const SERVICE_REQUIREMENTS: Record<string, Array<{ id: string; label: string; de
   'surat-keterangan-kelakuan-baik': [
     { id: 'ktp', label: 'Foto e-KTP Pemohon', description: 'Foto e-KTP pemohon', required: true },
     { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemohon', required: true },
-    { id: 'pas_foto', label: 'Pas Foto Formal (3x4 atau 4x6)', description: 'Foto formal latar belakang merah / biru', required: false },
+    { id: 'pas_foto', label: 'Pas Foto Formal (3x4 atau 4x6)', description: 'Foto formal latar belakang merah / biru (jika ada)', required: false },
   ],
   'surat-keterangan-belum-menikah': [
     { id: 'ktp', label: 'Foto e-KTP Pemohon', description: 'Foto e-KTP pemohon yang masih berlaku', required: true },
@@ -78,9 +79,8 @@ const compressImage = async (file: File): Promise<Blob> => {
         const canvas = document.createElement('canvas');
         let width = img.width;
         let height = img.height;
-
-        // Max dimension 1280px for clear document readability & small file size
         const MAX_DIMENSION = 1280;
+
         if (width > height && width > MAX_DIMENSION) {
           height = Math.round((height * MAX_DIMENSION) / width);
           width = MAX_DIMENSION;
@@ -94,7 +94,6 @@ const compressImage = async (file: File): Promise<Blob> => {
         const ctx = canvas.getContext('2d');
         ctx?.drawImage(img, 0, 0, width, height);
 
-        // Quality 0.75 results in ~150KB - 300KB file size
         canvas.toBlob(
           (blob) => {
             resolve(blob || file);
@@ -118,17 +117,23 @@ export default function ServiceApplicationFormPage() {
   const [submitting, setSubmitting] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  // User auth state
-  const [user, setUser] = useState<any>(null);
+  // Form Identitas Pemohon
+  const [nama, setNama] = useState('');
+  const [nik, setNik] = useState('');
+  const [phone, setPhone] = useState('');
+  const [dusun, setDusun] = useState('Dusun Jombe Selatan');
+  const [alamatLengkap, setAlamatLengkap] = useState('');
+
+  // Captcha State
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaAnswer, setCaptchaAnswer] = useState('');
+  const [captchaError, setCaptchaError] = useState('');
+
+  // Result State for Success Modal
+  const [submittedResult, setSubmittedResult] = useState<any>(null);
+  const [copied, setCopied] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('jombe_user');
-    if (stored) {
-      try {
-        setUser(JSON.parse(stored));
-      } catch (e) {}
-    }
-
     api
       .get(`/services/${slug}`)
       .then((res) => {
@@ -168,7 +173,6 @@ export default function ServiceApplicationFormPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
-    // Auto Compress Image
     const compressedBlob = await compressImage(file);
     const compressedFile = new File([compressedBlob], file.name, { type: compressedBlob.type });
     const sizeKb = Math.round(compressedBlob.size / 1024);
@@ -188,21 +192,37 @@ export default function ServiceApplicationFormPage() {
     };
   };
 
+  const handleCopyAppNumber = (appNum: string) => {
+    navigator.clipboard.writeText(appNum);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2500);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setCaptchaError('');
+
+    const cleanNik = nik.replace(/\D/g, '');
+    if (cleanNik.length !== 16) {
+      alert('NIK wajib berjumlah tepat 16 digit angka sesuai e-KTP.');
+      return;
+    }
+
+    if (!captchaAnswer) {
+      setCaptchaError('Silakan jawab pertanyaan verifikasi keamanan (Captcha).');
+      return;
+    }
 
     // Check mandatory docs
     for (const doc of requiredDocs) {
       if (doc.required && !uploadedFiles[doc.id]) {
-        alert(`Mohon unggah dokumen: ${doc.label}`);
+        alert(`Mohon unggah berkas persyaratan: ${doc.label}`);
         return;
       }
     }
 
     setSubmitting(true);
     try {
-      const token = localStorage.getItem('jombe_token');
-
       const photosArray = Object.entries(uploadedFiles).map(([docId, fileItem]) => {
         const matchingDoc = requiredDocs.find((d) => d.id === docId);
         return {
@@ -212,24 +232,42 @@ export default function ServiceApplicationFormPage() {
         };
       });
 
+      const fullAddress = `${dusun}, Desa Jombe${alamatLengkap ? ` (${alamatLengkap})` : ''}`;
+      const detailsArray = Object.entries(formData).map(([k, v]) => `${k}: ${v}`);
+      const combinedDetails = detailsArray.length > 0 ? detailsArray.join(', ') : 'Pengajuan Surat Mandiri Portal Desa Jombe';
+
       const dataPayload = {
-        serviceId: service?.id || 'service-sku-1',
-        serviceName: service?.name || 'Surat Keterangan Usaha (SKU)',
+        nik: cleanNik,
+        name: nama,
+        phone: phone || '-',
+        address: fullAddress,
+        serviceId: service?.id || `srv-${slug}`,
+        serviceName: service?.name || 'Surat Keterangan Resmi',
         serviceSlug: slug,
-        fieldValues: Object.entries(formData).map(([k, v]) => `${k}: ${v}`).join(', ') || 'Permohonan Surat Keterangan Usaha Desa Jombe',
+        fieldValues: combinedDetails,
         uploadedPhotos: photosArray,
+        captchaToken,
+        captchaAnswer,
       };
 
-      const res = await api.post('/applications', dataPayload, {
-        headers: token ? { Authorization: `Bearer ${token}` } : {},
-      });
+      const res = await api.post('/applications', dataPayload);
 
-      if (res.data.status === 'success') {
-        alert(`Permohonan Surat Berhasil Dikirim!\n\nNomor Registrasi: ${res.data.data.applicationNumber}\nDokumen Surat Permohonan & Foto Asli Anda telah masuk ke sistem Operator Desa Jombe.`);
-        router.push('/dashboard');
+      if (res.data?.status === 'success') {
+        setSubmittedResult({
+          applicationNumber: res.data.data.applicationNumber,
+          serviceName: res.data.data.serviceName || service?.name,
+          userName: res.data.data.userName || nama,
+          userNik: cleanNik,
+          createdAt: res.data.data.createdAt,
+        });
       }
     } catch (err: any) {
-      alert('Gagal mengirim permohonan: ' + (err.response?.data?.message || 'Error'));
+      const msg = err.response?.data?.message || 'Gagal mengirim permohonan surat.';
+      if (msg.toLowerCase().includes('captcha')) {
+        setCaptchaError(msg);
+      } else {
+        alert(msg);
+      }
     } finally {
       setSubmitting(false);
     }
@@ -237,6 +275,73 @@ export default function ServiceApplicationFormPage() {
 
   if (loading) {
     return <div className="min-h-screen py-20 text-center text-xs text-slate-500">Memuat formulir pengajuan...</div>;
+  }
+
+  // ============================================================================
+  // SUCCESS CONFIRMATION MODAL (PUBLIC TRACKING NOTIFICATION)
+  // ============================================================================
+  if (submittedResult) {
+    return (
+      <div className="min-h-screen py-12 max-w-2xl mx-auto px-4 sm:px-6">
+        <div className="bg-white rounded-3xl p-8 border border-emerald-200 shadow-xl space-y-6 text-center">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-inner">
+            <CheckCircle2 className="w-10 h-10" />
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-block">
+              Permohonan Berhasil Dikirim
+            </span>
+            <h2 className="text-2xl font-extrabold text-slate-900">Surat Sedang Diproses Operator</h2>
+            <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
+              Data permohonan dan berkas dokumen Anda telah masuk ke sistem antrean verifikasi Kantor Desa Jombe.
+            </p>
+          </div>
+
+          {/* Registration Number Card */}
+          <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-3">
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Nomor Registrasi Surat Anda:</span>
+            <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-300">
+              <span className="font-mono text-lg font-black text-emerald-900 tracking-wider">
+                {submittedResult.applicationNumber}
+              </span>
+              <button
+                type="button"
+                onClick={() => handleCopyAppNumber(submittedResult.applicationNumber)}
+                className="px-3 py-1.5 text-xs font-bold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-lg border border-emerald-200 flex items-center gap-1.5 transition-all"
+              >
+                <Copy className="w-3.5 h-3.5" />
+                {copied ? 'Tersalin!' : 'Salin Nomor'}
+              </button>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[11px] text-slate-600 pt-2 border-t border-slate-200">
+              <div><span className="text-slate-400 font-medium">Layanan:</span> <span className="font-bold text-slate-800 block">{submittedResult.serviceName}</span></div>
+              <div><span className="text-slate-400 font-medium">Nama Pemohon:</span> <span className="font-bold text-slate-800 block">{submittedResult.userName}</span></div>
+            </div>
+          </div>
+
+          {/* Direct Actions */}
+          <div className="space-y-2 pt-2">
+            <button
+              onClick={() => router.push(`/lacak?nomor=${submittedResult.applicationNumber}`)}
+              className="w-full py-3.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all"
+            >
+              <ExternalLink className="w-4 h-4" /> Lacak Status Surat Ini Sekarang
+            </button>
+            <button
+              onClick={() => router.push('/layanan')}
+              className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+            >
+              Kembali ke Katalog Layanan Surat
+            </button>
+          </div>
+
+          <p className="text-[11px] text-slate-400">
+            💡 <em>Simpan nomor registrasi Anda. Begitu surat disetujui, Anda dapat langsung mengunduh berkas PDF resmi dari menu Lacak Surat.</em>
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -251,10 +356,10 @@ export default function ServiceApplicationFormPage() {
 
       {/* Header Banner */}
       <div className="bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-800 text-white rounded-3xl p-8 shadow-lg border border-emerald-800/60 space-y-2">
-        <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-widest block">Formulir Permohonan Administrasi</span>
+        <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-widest block">Formulir Permohonan Surat Mandiri (Tanpa Login)</span>
         <h1 className="text-2xl sm:text-3xl font-extrabold">{service?.name || 'Surat Keterangan Usaha (SKU)'}</h1>
         <p className="text-xs text-emerald-100/90 leading-relaxed max-w-2xl">
-          Isi data identitas permohonan dan unggah dokumen persyaratan yang diwajibkan di bawah ini. Foto akan otomatis dikompres agar ringan dan cepat diunggah.
+          Layanan administrasi resmi Desa Jombe dapat diajukan secara langsung dan mandiri. Masukkan NIK Anda, unggah foto dokumen persyaratan, dan sistem akan langsung menerbitkan nomor registrasi lacak surat.
         </p>
       </div>
 
@@ -265,48 +370,71 @@ export default function ServiceApplicationFormPage() {
             <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
               <FileText className="w-4 h-4 text-emerald-800" /> 1. Data Identitas Pemohon
             </h3>
-            <p className="text-xs text-slate-500">Pastikan data di bawah sesuai dengan Kartu Tanda Penduduk (KTP).</p>
+            <p className="text-xs text-slate-500">Pastikan data yang dimasukkan sesuai dengan Kartu Tanda Penduduk (e-KTP).</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">Nama Lengkap Pemohon *</label>
+              <label className="font-bold text-slate-700 block">NIK (Nomor Induk Kependudukan - 16 Digit) *</label>
+              <input
+                type="text"
+                inputMode="numeric"
+                pattern="[0-9]*"
+                maxLength={16}
+                required
+                value={nik}
+                placeholder="Contoh: 730401xxxxxxxxxx"
+                onChange={(e) => setNik(e.target.value.replace(/\D/g, ''))}
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-mono font-medium focus:ring-2 focus:ring-emerald-700"
+              />
+              <span className="text-[10px] text-slate-400 block">{nik.length}/16 Digit</span>
+            </div>
+
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700 block">Nama Lengkap Pemohon (Sesuai KTP) *</label>
               <input
                 type="text"
                 required
-                defaultValue={user?.name || 'Siti Rahmawati'}
-                onChange={(e) => setFormData({ ...formData, nama: e.target.value })}
+                value={nama}
+                placeholder="Contoh: Siti Rahmawati"
+                onChange={(e) => setNama(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
               />
             </div>
+
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">NIK (16 Digit) *</label>
-              <input
-                type="text"
-                required
-                defaultValue={user?.nik || '3512345678900001'}
-                onChange={(e) => setFormData({ ...formData, nik: e.target.value })}
-                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-mono font-medium focus:ring-2 focus:ring-emerald-700"
-              />
+              <label className="font-bold text-slate-700 block">Dusun / Wilayah Tempat Tinggal di Desa Jombe *</label>
+              <select
+                value={dusun}
+                onChange={(e) => setDusun(e.target.value)}
+                className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
+              >
+                <option value="Dusun Jombe Selatan">Dusun Jombe Selatan</option>
+                <option value="Dusun Jombe Barat">Dusun Jombe Barat</option>
+                <option value="Dusun Jombe Timur">Dusun Jombe Timur</option>
+                <option value="Dusun Jombe Utara">Dusun Jombe Utara</option>
+              </select>
             </div>
+
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">Nomor WhatsApp / HP Aktif *</label>
+              <label className="font-bold text-slate-700 block">Nomor Kontak / HP Pemohon *</label>
               <input
                 type="tel"
                 required
-                defaultValue={user?.phone || '085712345678'}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                value={phone}
                 placeholder="Contoh: 081234567890"
+                onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
               />
             </div>
-            <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">Alamat Domisili Lengkap *</label>
+
+            <div className="sm:col-span-2 space-y-1">
+              <label className="font-bold text-slate-700 block">Keterangan Alamat / RT / RW (Opsional)</label>
               <input
                 type="text"
-                required
-                defaultValue={user?.address || 'Dusun Krajan RT 02 RW 01 Desa Jombe'}
-                onChange={(e) => setFormData({ ...formData, alamat: e.target.value })}
+                value={alamatLengkap}
+                placeholder="Contoh: RT 02 RW 01, Dekat Masjid / Lapangan"
+                onChange={(e) => setAlamatLengkap(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
               />
             </div>
@@ -326,7 +454,7 @@ export default function ServiceApplicationFormPage() {
             {slug === 'surat-keterangan-usaha' ? (
               <>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700 block">Nama Usaha / Toko *</label>
+                  <label className="font-bold text-slate-700 block">Nama Usaha / Toko / Dagang *</label>
                   <input
                     type="text"
                     required
@@ -340,17 +468,17 @@ export default function ServiceApplicationFormPage() {
                   <input
                     type="text"
                     required
-                    placeholder="Contoh: Penjualan Sembako & Makanan Ringan"
+                    placeholder="Contoh: Penjualan Sembako, Pertanian Jagung, Peternakan"
                     onChange={(e) => setFormData({ ...formData, jenis_usaha: e.target.value })}
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label className="font-bold text-slate-700 block">Alamat / Lokasi Usaha *</label>
+                  <label className="font-bold text-slate-700 block">Alamat / Lokasi Tempat Usaha *</label>
                   <textarea
                     rows={2}
                     required
-                    placeholder="Contoh: Jl. Diponegoro Dusun Krajan RT 02 RW 01 Desa Jombe"
+                    placeholder="Contoh: Jl. Poros Dusun Jombe Selatan RT 02 RW 01 Desa Jombe"
                     onChange={(e) => setFormData({ ...formData, alamat_usaha: e.target.value })}
                     className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
                   />
@@ -358,11 +486,11 @@ export default function ServiceApplicationFormPage() {
               </>
             ) : (
               <div className="space-y-1">
-                <label className="font-bold text-slate-700 block">Keperluan / Keterangan Tambahan *</label>
+                <label className="font-bold text-slate-700 block">Keperluan / Keterangan Pengajuan Surat *</label>
                 <textarea
                   rows={3}
                   required
-                  placeholder="Jelaskan keperluan pembuatan surat ini..."
+                  placeholder="Jelaskan keperluan pembuatan surat ini, contoh: Persyaratan beasiswa, pendaftaran sekolah, kelengkapan administrasi bank, dll."
                   onChange={(e) => setFormData({ ...formData, keperluan: e.target.value })}
                   className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
                 />
@@ -371,14 +499,14 @@ export default function ServiceApplicationFormPage() {
           </div>
         </div>
 
-        {/* SECTION 3: CONDITIONAL UPLOAD DOKUMEN & AUTO COMPRESSION */}
+        {/* SECTION 3: UPLOAD DOKUMEN & AUTO COMPRESSION */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-soft space-y-6">
           <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2">
             <div>
               <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
                 <Camera className="w-4 h-4 text-emerald-800" /> 3. Dokumen Persyaratan Wajib Diunggah
               </h3>
-              <p className="text-xs text-slate-500">Mendukung format .JPG, .JPEG, .PNG, dan .PDF (Otomatis dikompres &lt; 500KB).</p>
+              <p className="text-xs text-slate-500">Mendukung format .JPG, .JPEG, .PNG, dan .PDF (Otomatis dikompres ringan &lt; 500KB).</p>
             </div>
             <span className="text-[10px] px-2.5 py-1 bg-emerald-50 text-emerald-800 rounded-full font-bold border border-emerald-200">
               Kompresi Otomatis Aktif
@@ -419,7 +547,6 @@ export default function ServiceApplicationFormPage() {
 
                   {/* Upload & Camera Buttons */}
                   <div className="flex items-center gap-2">
-                    {/* Direct Camera Trigger (Mobile friendly with capture="environment") */}
                     <label className="flex-1 py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-2xs">
                       <Camera className="w-3.5 h-3.5 text-emerald-800" />
                       Ambil Foto Kamera
@@ -432,7 +559,6 @@ export default function ServiceApplicationFormPage() {
                       />
                     </label>
 
-                    {/* Galeri / PDF Upload Trigger */}
                     <label className="py-2 px-3 bg-white hover:bg-slate-100 text-slate-700 font-bold text-xs rounded-xl border border-slate-200 cursor-pointer flex items-center justify-center gap-1.5 transition-colors shadow-2xs">
                       <Upload className="w-3.5 h-3.5 text-slate-600" />
                       Pilih Berkas
@@ -450,8 +576,18 @@ export default function ServiceApplicationFormPage() {
           </div>
         </div>
 
+        {/* SECTION 4: CAPTCHA ANTI-BOT VERIFICATION */}
+        <Captcha
+          onCaptchaChange={(t, a) => {
+            setCaptchaToken(t);
+            setCaptchaAnswer(a);
+            setCaptchaError('');
+          }}
+          error={captchaError}
+        />
+
         {/* SUBMIT BUTTON */}
-        <div className="pt-4">
+        <div className="pt-2">
           <button
             type="submit"
             disabled={submitting}

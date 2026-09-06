@@ -69,12 +69,8 @@ import {
 } from '../controllers/aiController';
 
 import {
-  handleIncomingWhatsAppMessage,
-  getChatHistory,
-  getBaileysStatus,
-  startBaileysConnection,
-  disconnectBaileys,
-} from '../controllers/whatsappBotController';
+  generateCaptcha,
+} from '../controllers/captchaController';
 
 import {
   verifyTteDocument,
@@ -237,12 +233,18 @@ router.post(
 
 
 // ============================================================================
-// APPLICATION ROUTES - CITIZEN
+// PUBLIC CAPTCHA ANTI-BOT
+// ============================================================================
+
+router.get('/captcha', generateCaptcha);
+
+
+// ============================================================================
+// APPLICATION ROUTES - PUBLIC CITIZEN SELF-SERVICE
 // ============================================================================
 
 router.post(
   '/applications',
-  authenticateToken,
   uploadMiddleware.array('documents', 5),
   verifyUploadedFileSignature,
   logAuditTrail('CREATE_APPLICATION'),
@@ -262,8 +264,6 @@ router.get(
 
 router.get(
   '/applications/:id',
-  authenticateToken,
-  verifyApplicationOwnership,
   getApplicationDetail
 );
 
@@ -375,12 +375,11 @@ router.get(
 
 
 // ============================================================================
-// COMPLAINT ROUTES
+// COMPLAINT ROUTES - PUBLIC CITIZEN PARTICIPATION
 // ============================================================================
 
 router.post(
   '/complaints',
-  authenticateToken,
   uploadMiddleware.single('photo'),
   verifyUploadedFileSignature,
   createComplaint
@@ -388,7 +387,6 @@ router.post(
 
 router.get(
   '/complaints',
-  authenticateToken,
   getComplaints
 );
 
@@ -431,49 +429,6 @@ router.patch(
 router.post(
   '/ai/chat',
   handleAiQuery
-);
-
-
-// ============================================================================
-// WHATSAPP BOT - LEGACY / TEST
-// ============================================================================
-
-router.post(
-  '/whatsapp/bot',
-  waBotLimiter,
-  handleIncomingWhatsAppMessage
-);
-
-router.get(
-  '/whatsapp/history',
-  waBotLimiter,
-  getChatHistory
-);
-
-
-// ============================================================================
-// BAILEYS WHATSAPP BOT ENGINE
-// ============================================================================
-
-router.get(
-  '/whatsapp/status',
-  authenticateToken,
-  authorizeRoles('OPERATOR', 'ADMIN'),
-  getBaileysStatus
-);
-
-router.post(
-  '/whatsapp/connect',
-  authenticateToken,
-  authorizeRoles('OPERATOR', 'ADMIN'),
-  startBaileysConnection
-);
-
-router.post(
-  '/whatsapp/disconnect',
-  authenticateToken,
-  authorizeRoles('OPERATOR', 'ADMIN'),
-  disconnectBaileys
 );
 
 

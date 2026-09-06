@@ -21,10 +21,8 @@ import {
   Calendar,
   Newspaper,
   ChevronRight,
-  PhoneCall,
   MapPin,
-  Check,
-  Send,
+  Compass,
   Download,
 } from 'lucide-react';
 import api from '@/lib/api';
@@ -37,9 +35,9 @@ export default function HomePage() {
   const [trackingError, setTrackingError] = useState('');
 
   const [realStats, setRealStats] = useState<any>({
-    totalPopulation: 0,
-    totalDusun: 0,
-    availableServices: 0,
+    totalPopulation: 2854,
+    totalDusun: 4,
+    availableServices: 6,
     completedApplications: 0,
   });
 
@@ -47,18 +45,15 @@ export default function HomePage() {
   const [news, setNews] = useState<any[]>([]);
   const [announcements, setAnnouncements] = useState<any[]>([]);
 
-  // WhatsApp quick preview state
-  const [waLatestMessage, setWaLatestMessage] = useState<any>(null);
-
   useEffect(() => {
     // Fetch Real Dynamic Profile & Statistics from DB API
     api.get('/content/profile').then((res) => {
       if (res.data.status === 'success') {
         const s = res.data.data.stats || {};
         setRealStats({
-          totalPopulation: s.totalPopulation || 0,
-          totalDusun: s.totalDusun || 0,
-          availableServices: s.availableServices || 0,
+          totalPopulation: s.totalPopulation || 2854,
+          totalDusun: s.totalDusun || 4,
+          availableServices: s.availableServices || 6,
           completedApplications: s.completedApplications || 0,
         });
       }
@@ -84,41 +79,22 @@ export default function HomePage() {
         setAnnouncements(res.data.data.slice(0, 3));
       }
     }).catch(() => {});
-
-    // Fetch WhatsApp latest history
-    api.get('/whatsapp/history?phone=6281299887766').then((res) => {
-      if (res.data.status === 'success' && Array.isArray(res.data.data) && res.data.data.length > 0) {
-        const lastMsg = res.data.data[res.data.data.length - 1];
-        setWaLatestMessage(lastMsg);
-      }
-    }).catch(() => {});
   }, []);
 
   const handleTrackingSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!trackingNumber.trim()) return;
+    const q = trackingNumber.trim();
+    if (!q) return;
 
-    setTrackingLoading(true);
-    setTrackingError('');
-    setTrackingResult(null);
-
-    try {
-      const res = await api.get(`/applications/track?applicationNumber=${trackingNumber.trim()}`);
-      if (res.data.status === 'success') {
-        setTrackingResult(res.data.data);
-      }
-    } catch (err: any) {
-      setTrackingError(err.response?.data?.message || 'Nomor permohonan tidak ditemukan dalam sistem.');
-    } finally {
-      setTrackingLoading(false);
-    }
+    // Direct redirect to dedicated tracking page
+    router.push(`/lacak?no=${encodeURIComponent(q)}`);
   };
 
   return (
     <div className="min-h-screen bg-slate-50/50">
-      {/* HERO SECTION WITH REAL VILLAGE LANDSCAPE BACKGROUND */}
+      {/* HERO SECTION WITH VILLAGE LANDSCAPE BACKGROUND */}
       <section className="relative overflow-hidden text-white pt-20 pb-32 lg:pt-28 lg:pb-40 border-b border-emerald-900/40">
-        {/* Single Full-Bleed Background Image (No Tiling / No Repeat) */}
+        {/* Full-Bleed Background Image */}
         <div className="absolute inset-0 z-0 overflow-hidden pointer-events-none">
           <img
             src="/images/hero-desa-jombe.jpg"
@@ -142,7 +118,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-sm sm:text-base text-emerald-100/95 leading-relaxed font-normal max-w-2xl mx-auto drop-shadow-xs">
-              Layanan mandiri pengajuan surat administrasi kependudukan, perizinan usaha, dan pengaduan masyarakat secara transparan, cepat, dan terintegrasi dalam genggaman warga.
+              Layanan mandiri pengajuan surat kependudukan, izin usaha, dan pengaduan aspirasi masyarakat. Langsung diajukan tanpa login, cukup gunakan NIK dan verifikasi keamanan Captcha.
             </p>
 
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5">
@@ -153,15 +129,13 @@ export default function HomePage() {
                 Ajukan Permohonan Surat
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
-              <a
-                href="https://wa.me/6287853617893?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
-                target="_blank"
-                rel="noopener noreferrer"
+              <Link
+                href="/profil"
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-bold text-sm backdrop-blur-md border border-white/30 transition-all flex items-center justify-center gap-2 shadow-lg"
               >
-                <MessageSquare className="w-4 h-4 text-emerald-300" />
-                Layanan Chat WhatsApp
-              </a>
+                <Compass className="w-4 h-4 text-emerald-300" />
+                Lihat Profil Desa Jombe
+              </Link>
             </div>
           </div>
         </div>
@@ -170,7 +144,7 @@ export default function HomePage() {
         <div className="absolute bottom-0 left-0 right-0 h-12 bg-slate-50/50 rounded-t-[40px]" />
       </section>
 
-      {/* TRACKING & WHATSAPP QUICK STATUS SECTION */}
+      {/* TRACKING & PROFIL QUICK SECTION */}
       <section className="-mt-14 relative z-20 max-w-5xl mx-auto px-4 space-y-6">
         {/* Main Tracking Box */}
         <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-xl border border-slate-200/80">
@@ -178,12 +152,14 @@ export default function HomePage() {
             <div>
               <h2 className="text-base sm:text-lg font-extrabold text-slate-900 flex items-center gap-2">
                 <Search className="w-5 h-5 text-emerald-700" />
-                Cek Status Permohonan Surat
+                Lacak Status Surat & Pengaduan Warga
               </h2>
-              <p className="text-xs text-slate-500 mt-0.5">Masukkan nomor registrasi permohonan Anda untuk melihat perkembangan proses dokumen.</p>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Masukkan Nomor Registrasi (JMB-2026-xxxxx / PGD-2026-xxxxx) atau 16 digit NIK Anda.
+              </p>
             </div>
             <span className="text-[11px] px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 shrink-0">
-              Pelacakan Real-Time
+              Akses Mandiri Publik
             </span>
           </div>
 
@@ -193,81 +169,44 @@ export default function HomePage() {
                 type="text"
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
-                placeholder="Contoh: JMB-2026-00012"
+                placeholder="Contoh: JMB-2026-00012 atau NIK 16 digit"
                 className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600 bg-slate-50 uppercase font-mono font-semibold text-slate-900"
               />
             </div>
             <button
               type="submit"
-              disabled={trackingLoading}
-              className="px-6 py-3 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition-colors shrink-0 flex items-center justify-center gap-2"
+              className="px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs sm:text-sm rounded-xl shadow-sm transition-colors shrink-0 flex items-center justify-center gap-2"
             >
-              {trackingLoading ? 'Memeriksa...' : 'Lacak Dokumen'}
+              <Search className="w-4 h-4" />
+              <span>Cari Status Berkas</span>
             </button>
           </form>
-
-          {/* Tracking Result Card */}
-          {trackingError && (
-            <div className="mt-4 p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs flex items-center gap-2">
-              <AlertCircle className="w-4 h-4 shrink-0" />
-              <span>{trackingError}</span>
-            </div>
-          )}
-
-          {trackingResult && (
-            <div className="mt-6 p-5 rounded-2xl bg-emerald-50/70 border border-emerald-200 animate-in fade-in duration-200">
-              <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center border-b border-emerald-200/80 pb-3 mb-3 gap-2">
-                <div>
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider">Nomor Registrasi</span>
-                  <h4 className="text-base font-extrabold text-emerald-950 font-mono">{trackingResult.applicationNumber}</h4>
-                </div>
-                <div className="text-right">
-                  <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Status Berkas</span>
-                  <span className="px-3 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-900 inline-block mt-0.5">
-                    {trackingResult.status}
-                  </span>
-                </div>
-              </div>
-
-              <div className="text-xs space-y-1.5 text-slate-700">
-                <p><strong>Layanan:</strong> {trackingResult.serviceName}</p>
-                <p><strong>Tanggal Diajukan:</strong> {new Date(trackingResult.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                {trackingResult.revisionNotes && (
-                  <div className="mt-2.5 p-3 rounded-xl bg-amber-100 border border-amber-200 text-amber-950 text-xs">
-                    <strong>Catatan Petugas:</strong> {trackingResult.revisionNotes}
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
         </div>
 
-        {/* WhatsApp Chat History Live Preview Card */}
-        <div className="bg-gradient-to-r from-slate-900 to-emerald-950 text-white rounded-3xl p-6 sm:p-7 shadow-lg border border-emerald-800/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
-          <div className="space-y-1.5 max-w-xl">
+        {/* Profil Desa Highlight Banner */}
+        <div className="bg-gradient-to-r from-slate-900 via-emerald-950 to-teal-950 text-white rounded-3xl p-6 sm:p-8 shadow-lg border border-emerald-800/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+          <div className="space-y-2 max-w-xl">
             <div className="flex items-center gap-2">
               <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">Layanan Terhubung WhatsApp Resmi</span>
+              <span className="text-[11px] font-bold uppercase tracking-wider text-emerald-300">
+                Pemerintahan & Wilayah Desa
+              </span>
             </div>
-            <h3 className="text-base sm:text-lg font-extrabold text-white">
-              Riwayat Percakapan & Pengajuan Surat via WhatsApp
+            <h3 className="text-lg sm:text-xl font-black text-white">
+              Profil Resmi Desa Jombe, Turatea, Jeneponto
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              {waLatestMessage
-                ? `Pesan Terakhir: "${waLatestMessage.text.slice(0, 90)}..."`
-                : 'Ajukan surat lewat chat WhatsApp. Surat resmi langsung diterbitkan dan dikirimkan kembali ke WhatsApp Anda.'}
+              Pelajari informasi riil kependudukan (2.854 jiwa, 742 KK, 4 dusun), peta interaktif wilayah, potensi jagung & padi, serta susunan aparatur di bawah kepemimpinan Kepala Desa <strong>JUSMAEDY, S.Pd</strong>.
             </p>
           </div>
 
-          <a
-            href="https://wa.me/6287853617893?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
-            target="_blank"
-            rel="noopener noreferrer"
-            className="px-5 py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 shrink-0 border border-emerald-400/40"
+          <Link
+            href="/profil"
+            className="px-6 py-3.5 bg-emerald-700 hover:bg-emerald-600 text-white font-bold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 shrink-0 border border-emerald-500/40"
           >
-            <MessageSquare className="w-4 h-4 text-emerald-100" />
-            Chat WhatsApp Bot Resmi
-          </a>
+            <Compass className="w-4 h-4 text-emerald-200" />
+            <span>Jelajahi Profil Desa</span>
+          </Link>
         </div>
       </section>
 
@@ -275,8 +214,10 @@ export default function HomePage() {
       <section className="py-20 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center max-w-2xl mx-auto mb-12 space-y-2">
           <span className="text-xs font-bold uppercase tracking-widest text-emerald-800">Katalog Administrasi</span>
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Layanan Surat Unggulan</h2>
-          <p className="text-xs sm:text-sm text-slate-600">Pilih jenis dokumen administrasi resmi yang Anda butuhkan untuk pengajuan online.</p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">Layanan Surat Mandiri</h2>
+          <p className="text-xs sm:text-sm text-slate-600">
+            Tanpa perlu antre di kantor desa. Pilih jenis surat, isi data diri & NIK, lalu unduh berkas PDF resmi setelah disetujui.
+          </p>
         </div>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -289,10 +230,10 @@ export default function HomePage() {
                 <Store className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1.5 group-hover:text-emerald-800 transition-colors">Surat Keterangan Usaha</h3>
-              <p className="text-xs text-slate-500 leading-relaxed mb-4">Pengantar resmi izin dan operasional usaha mikro & UMKM warga Desa Jombe.</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">Pengantar resmi operasional usaha mikro & UMKM warga Desa Jombe.</p>
             </div>
             <span className="text-xs font-bold text-emerald-800 flex items-center gap-1 pt-3 border-t border-slate-100">
-              Ajukan Permohonan <ChevronRight className="w-4 h-4" />
+              Ajukan Mandiri <ChevronRight className="w-4 h-4" />
             </span>
           </Link>
 
@@ -305,10 +246,10 @@ export default function HomePage() {
                 <HomeIcon className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1.5 group-hover:text-emerald-800 transition-colors">Surat Keterangan Domisili</h3>
-              <p className="text-xs text-slate-500 leading-relaxed mb-4">Keterangan resmi status tempat tinggal warga di wilayah Desa Jombe.</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">Keterangan resmi tempat tinggal warga di wilayah 4 dusun Desa Jombe.</p>
             </div>
             <span className="text-xs font-bold text-emerald-800 flex items-center gap-1 pt-3 border-t border-slate-100">
-              Ajukan Permohonan <ChevronRight className="w-4 h-4" />
+              Ajukan Mandiri <ChevronRight className="w-4 h-4" />
             </span>
           </Link>
 
@@ -321,10 +262,10 @@ export default function HomePage() {
                 <HeartHandshake className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1.5 group-hover:text-emerald-800 transition-colors">Surat Keterangan Tidak Mampu</h3>
-              <p className="text-xs text-slate-500 leading-relaxed mb-4">Keterangan keperluan beasiswa pendidikan, kesehatan, dan jaminan sosial.</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">Untuk keperluan beasiswa sekolah, KIP kuliah, BPJS, atau bantuan sosial.</p>
             </div>
             <span className="text-xs font-bold text-emerald-800 flex items-center gap-1 pt-3 border-t border-slate-100">
-              Ajukan Permohonan <ChevronRight className="w-4 h-4" />
+              Ajukan Mandiri <ChevronRight className="w-4 h-4" />
             </span>
           </Link>
 
@@ -337,10 +278,10 @@ export default function HomePage() {
                 <MessageSquare className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1.5 group-hover:text-emerald-800 transition-colors">Layanan Pengaduan Warga</h3>
-              <p className="text-xs text-slate-500 leading-relaxed mb-4">Penyampaian aspirasi dan laporan kendala fasilitas publik desa.</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">Penyampaian laporan kendala jalan, lampu, kebersihan, atau fasilitas umum.</p>
             </div>
             <span className="text-xs font-bold text-emerald-800 flex items-center gap-1 pt-3 border-t border-slate-100">
-              Kirim Pengaduan <ChevronRight className="w-4 h-4" />
+              Kirim Laporan <ChevronRight className="w-4 h-4" />
             </span>
           </Link>
         </div>
@@ -351,20 +292,22 @@ export default function HomePage() {
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-emerald-800/60">
             <div className="space-y-1 pt-4 sm:pt-0">
-              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">{realStats.totalPopulation ? realStats.totalPopulation.toLocaleString('id-ID') : '-'}</span>
-              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Jumlah Penduduk</span>
+              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">
+                {realStats.totalPopulation ? realStats.totalPopulation.toLocaleString('id-ID') : '2.854'}
+              </span>
+              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Jumlah Penduduk (Jiwa)</span>
             </div>
             <div className="space-y-1 pt-4 sm:pt-0">
-              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">{realStats.totalDusun || '-'}</span>
+              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">{realStats.totalDusun || '4'}</span>
               <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Wilayah Dusun</span>
             </div>
             <div className="space-y-1 pt-4 sm:pt-0">
-              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">{realStats.availableServices || '-'}</span>
-              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Layanan Online Aktif</span>
+              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">{realStats.availableServices || '6'}</span>
+              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Layanan Surat Online</span>
             </div>
             <div className="space-y-1 pt-4 sm:pt-0">
               <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">{realStats.completedApplications}</span>
-              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Permohonan Terselesaikan</span>
+              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Surat Diterbitkan</span>
             </div>
           </div>
         </div>

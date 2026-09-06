@@ -3,8 +3,6 @@ import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import {
   waApplicationsStore,
-  sendNotificationToCitizenWhatsApp,
-  sendRevisionNotificationToCitizenWhatsApp,
   SERVICE_PHOTO_REQUIREMENTS
 } from './whatsappBotController';
 import { PersistentDatabase } from '../utils/persistentDb';
@@ -169,20 +167,9 @@ export const approveAndSendLetter = async (req: AuthRequest, res: Response) => {
     const protocol = host.includes('localhost') ? req.protocol : 'https';
     const pdfUrl = `${protocol}://${host}/api/operator/pdf/${id}`;
 
-    // 3. Send Notification & PDF Document to Citizen's WhatsApp
-    await sendNotificationToCitizenWhatsApp(
-      targetPhone,
-      targetAppNumber || 'JMB-2026-00012',
-      targetServiceName,
-      officialLetterNum,
-      pdfUrl,
-      id,
-      letterContent
-    );
-
     return res.status(200).json({
       status: 'success',
-      message: `Surat resmi disetujui dan notifikasi beserta PDF berhasil dikirim ke WhatsApp warga (${targetPhone})!`,
+      message: `Surat resmi berhasil disetujui dan diterbitkan (Nomor: ${officialLetterNum})! Dokumen PDF telah siap diunduh oleh pemohon di portal lacak surat.`,
       data: {
         applicationNumber: targetAppNumber,
         letterNumber: officialLetterNum,
@@ -225,16 +212,6 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
         },
       }).catch(() => null);
     } catch (e) {}
-
-    // Send WhatsApp notification for rejection / revision
-    if (updated && (status === 'NEED_REVISION' || status === 'REJECTED')) {
-      const targetPhone = updated.userPhone;
-      const targetAppNum = updated.applicationNumber;
-      const targetService = updated.serviceName;
-      if (targetPhone) {
-        sendRevisionNotificationToCitizenWhatsApp(targetPhone, targetAppNum, targetService, revisionNotes).catch(() => {});
-      }
-    }
 
     return res.status(200).json({
       status: 'success',

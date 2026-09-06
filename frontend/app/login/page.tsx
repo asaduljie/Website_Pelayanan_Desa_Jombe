@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Building2, Lock, UserCheck, AlertCircle, ArrowRight } from 'lucide-react';
+import { ShieldCheck, Lock, UserCheck, AlertCircle, ArrowRight, FileText } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function LoginPage() {
@@ -30,14 +30,11 @@ export default function LoginPage() {
           window.dispatchEvent(new Event('jombe-auth-changed'));
         }
 
-        if (user.role === 'OPERATOR' || user.role === 'ADMIN') {
-          window.location.href = '/operator';
-        } else {
-          window.location.href = '/dashboard';
-        }
+        // Redirect directly to operator panel
+        window.location.href = '/operator';
       }
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.message || 'Gagal masuk. Periksa NIK dan kata sandi Anda.');
+      setErrorMessage(err.response?.data?.message || 'Gagal masuk. Periksa NIK / Username dan kata sandi Anda.');
     } finally {
       setLoading(false);
     }
@@ -45,14 +42,19 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen py-16 flex items-center justify-center max-w-md mx-auto px-4">
-      <div className="w-full bg-white rounded-3xl p-8 border border-gray-100 shadow-xl space-y-6">
+      <div className="w-full bg-white rounded-3xl p-8 border border-slate-200 shadow-xl space-y-6">
         {/* Brand Header */}
         <div className="text-center space-y-2">
-          <div className="w-12 h-12 rounded-2xl bg-jombe-700 text-white flex items-center justify-center mx-auto shadow-md">
-            <Building2 className="w-7 h-7" />
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-800 to-teal-900 text-white flex items-center justify-center mx-auto shadow-md">
+            <ShieldCheck className="w-8 h-8" />
           </div>
-          <h1 className="text-2xl font-extrabold text-gray-900 tracking-tight">Masuk JOMBE DIGITAL</h1>
-          <p className="text-xs text-gray-500">Masuk untuk mengurus permohonan surat & pengaduan desa.</p>
+          <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-900 px-3 py-0.5 rounded-full inline-block">
+            Akses Terbatas
+          </span>
+          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Portal Petugas & Admin</h1>
+          <p className="text-xs text-slate-500">
+            Masuk khusus Operator & Aparatur Pemerintahan Desa Jombe.
+          </p>
         </div>
 
         {errorMessage && (
@@ -64,14 +66,14 @@ export default function LoginPage() {
 
         <form action="javascript:void(0);" onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-gray-800">NIK (Nomor Induk Kependudukan)</label>
+            <label className="block text-xs font-bold text-gray-800">NIK / ID Petugas</label>
             <input
               type="text"
               value={nik}
               onChange={(e) => setNik(e.target.value)}
-              placeholder="Masukkan 16 Digit NIK Anda"
+              placeholder="Masukkan NIK atau Username Operator"
               required
-              className="w-full px-4 py-2.5 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-jombe-600 bg-gray-50/50"
+              className="w-full px-4 py-3 text-xs border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-gray-50/50 font-mono"
             />
           </div>
 
@@ -81,9 +83,9 @@ export default function LoginPage() {
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Masukkan kata sandi akun"
+              placeholder="Masukkan kata sandi akun petugas"
               required
-              className="w-full px-4 py-2.5 text-xs border border-gray-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-jombe-600 bg-gray-50/50"
+              className="w-full px-4 py-3 text-xs border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-gray-50/50"
             />
           </div>
 
@@ -92,17 +94,37 @@ export default function LoginPage() {
             disabled={loading}
             className="w-full py-3.5 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
           >
-            {loading ? 'Memverifikasi Akun...' : 'Masuk ke Akun'}
-            <ArrowRight className="w-4 h-4" />
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Memverifikasi Akses...</span>
+              </>
+            ) : (
+              <>
+                <Lock className="w-4 h-4" />
+                <span>Masuk Portal Petugas</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
           </button>
         </form>
 
-        <p className="text-center text-xs text-slate-600 pt-2 border-t border-slate-100">
-          Belum memiliki akun warga?{' '}
-          <Link href="/register" className="font-bold text-emerald-800 hover:underline">
-            Daftar Warga Baru
-          </Link>
-        </p>
+        {/* Citizen guidance box */}
+        <div className="pt-4 border-t border-slate-100 bg-slate-50 -mx-8 -mb-8 p-6 rounded-b-3xl space-y-2 text-center text-xs">
+          <span className="font-bold text-slate-800 block">Apakah Anda Warga Desa Jombe?</span>
+          <p className="text-slate-500 text-[11px] leading-relaxed">
+            Warga masyarakat <strong>tidak perlu login atau mendaftar akun</strong>. Permohonan surat keterangan dan pengaduan dapat diajukan langsung melalui form publik mandiri.
+          </p>
+          <div className="pt-2 flex justify-center gap-4">
+            <Link href="/layanan" className="font-bold text-emerald-800 hover:underline flex items-center gap-1">
+              <FileText className="w-3.5 h-3.5" /> Ajukan Surat
+            </Link>
+            <span className="text-slate-300">•</span>
+            <Link href="/lacak" className="font-bold text-emerald-800 hover:underline">
+              Lacak Status Surat
+            </Link>
+          </div>
+        </div>
       </div>
     </div>
   );

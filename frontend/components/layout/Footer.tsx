@@ -1,15 +1,12 @@
 import React from 'react';
 import Link from 'next/link';
-import { Building2, Phone, Mail, MapPin, MessageSquare, ShieldCheck, Heart } from 'lucide-react';
+import { Building2, Phone, Mail, MapPin, Search, ShieldCheck, Heart } from 'lucide-react';
 
 export default function Footer() {
-  const operatorWa = process.env.NEXT_PUBLIC_OPERATOR_WA || '6287853617893';
-  const waUrl = `https://wa.me/${operatorWa}?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20menanyakan%20pelayanan%20desa.`;
-
   return (
-    <footer className="bg-jombe-950 text-white pt-16 pb-8 border-t border-jombe-900">
+    <footer className="bg-slate-950 text-white pt-16 pb-8 border-t border-slate-900">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-jombe-900">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-10 pb-12 border-b border-slate-900">
           {/* Brand Info */}
           <div className="md:col-span-1 space-y-4">
             <div className="flex items-center gap-3">
@@ -18,28 +15,26 @@ export default function Footer() {
               </div>
               <div>
                 <span className="text-lg font-heading font-black tracking-tight text-white block">LENTERA DESA</span>
-                <span className="text-[10px] text-emerald-300 uppercase tracking-widest block font-bold">Pelayanan Desa Jombe</span>
+                <span className="text-[10px] text-emerald-400 uppercase tracking-widest block font-bold">Pelayanan Desa Jombe</span>
               </div>
             </div>
             <p className="text-xs text-gray-300 leading-relaxed">
-              Platform pelayanan administrasi digital resmi Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Provinsi Sulawesi Selatan. Lebih mudah, cepat, transparan, dan dapat diakses 24 jam.
+              Platform pelayanan administrasi digital mandiri Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Sulawesi Selatan. Cepat, transparan, dan dapat diakses 24 jam tanpa perlu mendaftar akun.
             </p>
             <div className="pt-2">
-              <a
-                href={waUrl}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold bg-emerald-600 hover:bg-emerald-500 text-white shadow transition-all"
+              <Link
+                href="/lacak"
+                className="inline-flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-bold bg-emerald-800 hover:bg-emerald-700 text-white shadow transition-all"
               >
-                <MessageSquare className="w-4 h-4" />
-                Hubungi WA Operator
-              </a>
+                <Search className="w-3.5 h-3.5" />
+                Lacak Dokumen Surat
+              </Link>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-sm font-bold text-jombe-300 uppercase tracking-wider mb-4">Layanan Populer</h4>
+            <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-4">Layanan Populer</h4>
             <ul className="space-y-2.5 text-xs text-gray-300">
               <li>
                 <Link href="/layanan/surat-keterangan-usaha" className="hover:text-white transition-colors">Surat Keterangan Usaha (SKU)</Link>
@@ -58,37 +53,42 @@ export default function Footer() {
 
           {/* Menu Pintas */}
           <div>
-            <h4 className="text-sm font-bold text-jombe-300 uppercase tracking-wider mb-4">Menu Pintas</h4>
+            <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-4">Informasi Desa</h4>
             <ul className="space-y-2.5 text-xs text-gray-300">
               <li>
                 <Link href="/" className="hover:text-white transition-colors">Beranda</Link>
               </li>
               <li>
-                <Link href="/profil" className="hover:text-white transition-colors">Profil & Sejarah Desa</Link>
+                <Link href="/profil" className="hover:text-white transition-colors">Profil & Data Riil Penduduk</Link>
               </li>
               <li>
-                <Link href="/layanan" className="hover:text-white transition-colors">Semua Layanan Surat</Link>
+                <Link href="/layanan" className="hover:text-white transition-colors">Katalog Layanan Surat</Link>
               </li>
               <li>
-                <Link href="/login" className="hover:text-white transition-colors">Masuk / Daftar Akun</Link>
+                <Link href="/lacak" className="hover:text-white transition-colors">Lacak Permohonan</Link>
+              </li>
+              <li>
+                <Link href="/login" className="hover:text-white transition-colors flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3 text-emerald-400" /> Portal Petugas Desa
+                </Link>
               </li>
             </ul>
           </div>
 
           {/* Contact Info */}
           <div>
-            <h4 className="text-sm font-bold text-jombe-300 uppercase tracking-wider mb-4">Kantor Desa Jombe</h4>
+            <h4 className="text-sm font-bold text-emerald-400 uppercase tracking-wider mb-4">Kantor Desa Jombe</h4>
             <ul className="space-y-3 text-xs text-gray-300">
               <li className="flex items-start gap-2.5">
-                <MapPin className="w-4 h-4 text-jombe-400 shrink-0 mt-0.5" />
-                <span>Kantor Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Provinsi Sulawesi Selatan 92351</span>
+                <MapPin className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                <span>Kantor Desa Jombe, Kec. Turatea, Kab. Jeneponto, Sulawesi Selatan 92351</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Phone className="w-4 h-4 text-jombe-400 shrink-0" />
-                <span>WA Pelayanan: +62 878-5361-7893</span>
+                <Phone className="w-4 h-4 text-emerald-400 shrink-0" />
+                <span>Jam Pelayanan: Senin - Jumat (08.00 - 15.30 WITA)</span>
               </li>
               <li className="flex items-center gap-2.5">
-                <Mail className="w-4 h-4 text-jombe-400 shrink-0" />
+                <Mail className="w-4 h-4 text-emerald-400 shrink-0" />
                 <span>pelayanan@jombe.desa.id</span>
               </li>
             </ul>
@@ -97,11 +97,9 @@ export default function Footer() {
 
         {/* Bottom Bar */}
         <div className="pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs text-gray-400">
-          <p>© {new Date().getFullYear()} Pemerintah Desa Jombe. Seluruh hak cipta dilindungi.</p>
-          <div className="flex items-center gap-4">
-            <span className="inline-flex items-center gap-1 text-jombe-400 font-semibold">
-              <ShieldCheck className="w-4 h-4" /> Enkripsi SSL & Data Aman
-            </span>
+          <p>© {new Date().getFullYear()} Pemerintah Desa Jombe. Dikembangkan untuk kemudahan pelayanan masyarakat.</p>
+          <div className="flex items-center gap-1 text-[11px] text-gray-500">
+            <span>Kabupaten Jeneponto, Sulawesi Selatan</span>
           </div>
         </div>
       </div>
