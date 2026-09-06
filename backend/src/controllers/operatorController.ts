@@ -174,6 +174,9 @@ export const approveAndSendLetter = async (req: AuthRequest, res: Response) => {
         applicationNumber: targetAppNumber,
         letterNumber: officialLetterNum,
         pdfUrl: pdfUrl,
+        phone: targetPhone,
+        citizenName: updated?.userName || undefined,
+        serviceName: targetServiceName,
       },
     });
   } catch (error: any) {

@@ -1,60 +1,241 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
 import Link from 'next/link';
-import { ShieldCheck, FileText, Search, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { UserPlus, Lock, User, Phone, MapPin, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import api from '@/lib/api';
 
 export default function RegisterPage() {
-  return (
-    <div className="min-h-screen py-16 flex items-center justify-center max-w-lg mx-auto px-4">
-      <div className="w-full bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-xl space-y-6 text-center">
-        <div className="w-16 h-16 rounded-3xl bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-inner">
-          <CheckCircle2 className="w-9 h-9" />
-        </div>
+  const router = useRouter();
+  const [formData, setFormData] = useState({
+    nik: '',
+    name: '',
+    phone: '',
+    email: '',
+    dusun: 'Dusun Jombe Utara',
+    address: '',
+    password: '',
+    confirmPassword: '',
+  });
+  const [loading, setLoading] = useState(false);
+  const [errorMessage, setErrorMessage] = useState('');
 
-        <div className="space-y-2">
-          <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-900 px-3 py-1 rounded-full">
-            Kemudahan Layanan Mandiri
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    if (name === 'nik') {
+      setFormData((prev) => ({ ...prev, nik: value.replace(/\D/g, '').slice(0, 16) }));
+    } else {
+      setFormData((prev) => ({ ...prev, [name]: value }));
+    }
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setErrorMessage('');
+
+    if (formData.nik.length !== 16) {
+      setErrorMessage('NIK wajib terdiri dari 16 digit angka sesuai KTP Anda.');
+      return;
+    }
+
+    if (formData.password.length < 6) {
+      setErrorMessage('Kata sandi minimal 6 karakter.');
+      return;
+    }
+
+    if (formData.password !== formData.confirmPassword) {
+      setErrorMessage('Konfirmasi kata sandi tidak cocok.');
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      const res = await api.post('/auth/register', {
+        nik: formData.nik,
+        name: formData.name,
+        phone: formData.phone,
+        email: formData.email || undefined,
+        address: `${formData.address}, ${formData.dusun}`,
+        dusun: formData.dusun,
+        password: formData.password,
+      });
+
+      if (res.data.status === 'success') {
+        const { token, user } = res.data.data;
+        localStorage.setItem('jombe_token', token);
+        localStorage.setItem('jombe_user', JSON.stringify(user));
+        if (typeof window !== 'undefined') {
+          window.dispatchEvent(new Event('jombe-auth-changed'));
+        }
+        router.push('/dashboard');
+      }
+    } catch (err: any) {
+      setErrorMessage(err.response?.data?.message || 'Pendaftaran gagal. Pastikan NIK belum pernah terdaftar.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen py-16 flex items-center justify-center max-w-xl mx-auto px-4">
+      <div className="w-full bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-xl space-y-6">
+        {/* Header */}
+        <div className="text-center space-y-2">
+          <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-800 to-teal-900 text-white flex items-center justify-center mx-auto shadow-md">
+            <UserPlus className="w-7 h-7" />
+          </div>
+          <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-900 px-3 py-0.5 rounded-full inline-block">
+            Pendaftaran Warga Desa
           </span>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">
-            Pendaftaran Akun Tidak Diperlukan
-          </h1>
-          <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-            Untuk mempermudah warga masyarakat Desa Jombe, seluruh layanan permohonan surat administrasi dan pengaduan aspirasi kini <strong>dapat langsung diajukan tanpa perlu mendaftar atau login akun</strong>.
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Buat Akun Warga Jombe</h1>
+          <p className="text-xs text-slate-500 max-w-md mx-auto">
+            Daftar satu kali menggunakan NIK untuk mempermudah permohonan surat administrasi dan memantau riwayat dokumen Anda.
           </p>
         </div>
 
-        <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs text-slate-700 text-left space-y-2">
-          <span className="font-bold text-slate-900 block">Cara Pengajuan Mandiri:</span>
-          <p>1. Buka menu <strong>Layanan Surat</strong> dan pilih jenis dokumen yang dibutuhkan.</p>
-          <p>2. Masukkan <strong>NIK 16 digit</strong>, identitas pemohon, dusun, dan jawab soal verifikasi Captcha.</p>
-          <p>3. Simpan <strong>Nomor Registrasi</strong> dan cek status surat Anda melalui menu <strong>Lacak Surat</strong>.</p>
-        </div>
+        {errorMessage && (
+          <div className="p-3.5 rounded-xl bg-red-50 border border-red-200 text-xs text-red-700 flex items-center gap-2">
+            <AlertCircle className="w-4 h-4 shrink-0" />
+            <span>{errorMessage}</span>
+          </div>
+        )}
 
-        <div className="space-y-3 pt-2">
-          <Link
-            href="/layanan"
-            className="w-full py-3.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-2xl text-xs shadow-md transition-all flex items-center justify-center gap-2"
-          >
-            <FileText className="w-4 h-4" />
-            <span>Ajukan Surat Mandiri Sekarang</span>
-            <ArrowRight className="w-4 h-4" />
-          </Link>
+        <form onSubmit={handleSubmit} className="space-y-4 text-xs">
+          <div className="space-y-1">
+            <label className="font-bold text-slate-700">NIK (Nomor Induk Kependudukan) *</label>
+            <input
+              type="text"
+              name="nik"
+              required
+              maxLength={16}
+              value={formData.nik}
+              onChange={handleChange}
+              placeholder="16 digit angka NIK KTP Anda"
+              className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-mono"
+            />
+            <span className="text-[10px] text-slate-400">NIK akan digunakan sebagai identitas utama untuk masuk ke akun Anda.</span>
+          </div>
 
-          <Link
-            href="/lacak"
-            className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-800 font-bold rounded-2xl text-xs transition-colors flex items-center justify-center gap-2"
-          >
-            <Search className="w-4 h-4" />
-            <span>Lacak Permohonan Saya</span>
-          </Link>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Nama Lengkap (Sesuai KTP) *</label>
+              <input
+                type="text"
+                name="name"
+                required
+                value={formData.name}
+                onChange={handleChange}
+                placeholder="Nama lengkap pemohon"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Nomor Handphone / Kontak *</label>
+              <input
+                type="tel"
+                name="phone"
+                required
+                value={formData.phone}
+                onChange={handleChange}
+                placeholder="Contoh: 081234567890"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
+              />
+            </div>
+          </div>
 
-          <Link
-            href="/login"
-            className="block text-[11px] text-slate-400 hover:text-slate-600 font-medium pt-2"
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Dusun Domisili *</label>
+              <select
+                name="dusun"
+                value={formData.dusun}
+                onChange={handleChange}
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-medium"
+              >
+                <option value="Dusun Jombe Utara">Dusun Jombe Utara</option>
+                <option value="Dusun Jombe Selatan">Dusun Jombe Selatan</option>
+                <option value="Dusun Bulo-Bulo">Dusun Bulo-Bulo</option>
+                <option value="Dusun Kaluku">Dusun Kaluku</option>
+              </select>
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Alamat Lengkap / RT / RW *</label>
+              <input
+                type="text"
+                name="address"
+                required
+                value={formData.address}
+                onChange={handleChange}
+                placeholder="Contoh: RT 02 / RW 01"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
+              />
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Kata Sandi Akun *</label>
+              <input
+                type="password"
+                name="password"
+                required
+                minLength={6}
+                value={formData.password}
+                onChange={handleChange}
+                placeholder="Minimal 6 karakter"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
+              />
+            </div>
+            <div className="space-y-1">
+              <label className="font-bold text-slate-700">Konfirmasi Kata Sandi *</label>
+              <input
+                type="password"
+                name="confirmPassword"
+                required
+                minLength={6}
+                value={formData.confirmPassword}
+                onChange={handleChange}
+                placeholder="Ulangi kata sandi"
+                className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
+              />
+            </div>
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full py-3.5 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white font-extrabold text-sm rounded-xl shadow-md transition-all flex items-center justify-center gap-2 mt-2"
           >
-            Aparatur / Operator Desa? Masuk ke Portal Petugas di sini
-          </Link>
+            {loading ? (
+              <>
+                <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                <span>Mendaftarkan Akun Warga...</span>
+              </>
+            ) : (
+              <>
+                <UserPlus className="w-4 h-4" />
+                <span>Daftar Akun Warga Sekarang</span>
+                <ArrowRight className="w-4 h-4" />
+              </>
+            )}
+          </button>
+        </form>
+
+        <div className="pt-4 border-t border-slate-100 text-center text-xs space-y-2">
+          <p className="text-slate-600">
+            Sudah memiliki akun warga?{' '}
+            <Link href="/login" className="font-bold text-emerald-800 hover:underline">
+              Masuk dengan NIK di sini
+            </Link>
+          </p>
+          <p className="text-[11px] text-slate-400">
+            Atau ingin mengajukan permohonan langsung tanpa akun?{' '}
+            <Link href="/layanan" className="font-bold text-slate-700 hover:underline">
+              Buka Katalog Layanan Surat
+            </Link>
+          </p>
         </div>
       </div>
     </div>

@@ -100,6 +100,17 @@ export default function OperatorDashboardPage() {
 
   // Live Baileys WhatsApp Connection State
   const [showWaQrModal, setShowWaQrModal] = useState(false);
+  const [approvalModal, setApprovalModal] = useState<{
+    citizenName: string;
+    phone: string;
+    serviceName: string;
+    letterNumber: string;
+    applicationNumber: string;
+    pdfUrl: string;
+    waText: string;
+    waLink: string;
+  } | null>(null);
+  const [copiedNotice, setCopiedNotice] = useState(false);
   const [waConnectMode, setWaConnectMode] = useState<'PAIRING' | 'QR'>('PAIRING');
   const [pairingPhone, setPairingPhone] = useState('087853617893');
   const [waStatus, setWaStatus] = useState<any>({
@@ -265,9 +276,56 @@ export default function OperatorDashboardPage() {
       });
 
       if (res.data.status === 'success') {
-        alert(
-          `Surat Permohonan Warga Disetujui!\n\nSurat Balasan Keterangan Resmi (Nomor: ${res.data.data.letterNumber}) telah otomatis diterbitkan dan dikirimkan beserta berkas PDF ke WhatsApp Pemohon.`
-        );
+        const approvedData = res.data.data || {};
+        const targetPhone = approvedData.phone || selectedApp.user?.phone || selectedApp.userPhone || '';
+        let cleanPhone = targetPhone.replace(/\D/g, '');
+        if (cleanPhone.startsWith('0')) {
+          cleanPhone = '62' + cleanPhone.slice(1);
+        } else if (cleanPhone.startsWith('8')) {
+          cleanPhone = '62' + cleanPhone;
+        }
+
+        const citizenName = approvedData.citizenName || selectedApp.user?.name || selectedApp.userName || 'Warga';
+        const serviceName = approvedData.serviceName || selectedApp.service?.name || selectedApp.serviceName || 'Surat Keterangan';
+        const letterNum = approvedData.letterNumber || editLetterNumber;
+        const regNum = approvedData.applicationNumber || selectedApp.applicationNumber;
+        const pdfUrl = approvedData.pdfUrl || `${window.location.origin}/api/operator/pdf/${selectedApp.id}`;
+
+        const waText = 
+`*PEMERINTAH DESA JOMBE*
+_Kecamatan Turatea, Kabupaten Jeneponto_
+------------------------------------------------
+Yth. Bapak/Ibu *${citizenName}*,
+
+Permohonan surat Anda telah *DISETUJUI & DITERBITKAN* oleh Kepala Desa Jombe (JUSMAEDY, S.Pd).
+
+📄 *Jenis Surat*: ${serviceName}
+🔢 *Nomor Surat*: ${letterNum}
+📋 *No. Registrasi*: ${regNum}
+
+Dokumen resmi PDF bertanda tangan dan ber-KOP resmi dapat diunduh melalui tautan resmi berikut:
+🔗 ${pdfUrl}
+
+Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
+
+        const waLink = cleanPhone ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}` : '';
+
+        setApprovalModal({
+          citizenName,
+          phone: cleanPhone || targetPhone,
+          serviceName,
+          letterNumber: letterNum,
+          applicationNumber: regNum,
+          pdfUrl,
+          waText,
+          waLink,
+        });
+
+        // Open WhatsApp in a new tab if phone is available
+        if (waLink) {
+          window.open(waLink, '_blank');
+        }
+
         fetchDashboardData();
         setSelectedApp(null);
       }
@@ -1931,6 +1989,90 @@ export default function OperatorDashboardPage() {
                 )}
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* MODAL APPROVAL SUCCESS & WHATSAPP DELIVERY */}
+      {approvalModal && (
+        <div className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-emerald-200 animate-in zoom-in-95 duration-150 text-xs">
+            <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
+              <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
+                <Check className="w-6 h-6" />
+              </div>
+              <div>
+                <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 block">Status: Disetujui & Diterbitkan</span>
+                <h3 className="text-lg font-black text-slate-900">Surat Resmi Berhasil Diterbitkan</h3>
+              </div>
+            </div>
+
+            <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 space-y-2">
+              <div className="flex justify-between">
+                <span className="text-slate-500">Pemohon:</span>
+                <strong className="text-slate-900">{approvalModal.citizenName}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Nomor Telepon:</span>
+                <strong className="font-mono text-emerald-800">{approvalModal.phone || 'Tidak tersedia'}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">Nomor Surat:</span>
+                <strong className="font-mono text-slate-900">{approvalModal.letterNumber}</strong>
+              </div>
+              <div className="flex justify-between">
+                <span className="text-slate-500">No. Registrasi:</span>
+                <strong className="font-mono text-slate-900">{approvalModal.applicationNumber}</strong>
+              </div>
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2">
+              <span className="font-bold text-emerald-950 block">Pesan Notifikasi Pengantar Dokumen:</span>
+              <pre className="text-[11px] font-sans text-slate-700 whitespace-pre-wrap bg-white p-3 rounded-xl border border-emerald-100 max-h-36 overflow-y-auto">
+                {approvalModal.waText}
+              </pre>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-1">
+              {approvalModal.waLink && (
+                <a
+                  href={approvalModal.waLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                >
+                  <MessageSquare className="w-4 h-4" />
+                  <span>Kirim / Buka WhatsApp Pemohon Sekarang</span>
+                </a>
+              )}
+              <div className="grid grid-cols-2 gap-2">
+                <a
+                  href={approvalModal.pdfUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
+                >
+                  <Download className="w-3.5 h-3.5" />
+                  <span>Unduh Dokumen PDF</span>
+                </a>
+                <button
+                  onClick={() => {
+                    navigator.clipboard.writeText(approvalModal.waText);
+                    setCopiedNotice(true);
+                    setTimeout(() => setCopiedNotice(false), 2000);
+                  }}
+                  className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
+                >
+                  {copiedNotice ? 'Tersalin!' : 'Salin Teks Notifikasi'}
+                </button>
+              </div>
+              <button
+                onClick={() => setApprovalModal(null)}
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition-colors mt-1"
+              >
+                Tutup Jendela
+              </button>
+            </div>
           </div>
         </div>
       )}

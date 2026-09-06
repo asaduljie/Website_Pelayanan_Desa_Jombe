@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, Lock, UserCheck, AlertCircle, ArrowRight, FileText } from 'lucide-react';
+import { ShieldCheck, Lock, UserCheck, AlertCircle, ArrowRight, UserPlus, FileText } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function LoginPage() {
@@ -21,7 +21,7 @@ export default function LoginPage() {
     setErrorMessage('');
 
     try {
-      const res = await api.post('/auth/login', { nik, password });
+      const res = await api.post('/auth/login', { nik: nik.trim(), password });
       if (res.data.status === 'success') {
         const { token, user } = res.data.data;
         localStorage.setItem('jombe_token', token);
@@ -30,11 +30,15 @@ export default function LoginPage() {
           window.dispatchEvent(new Event('jombe-auth-changed'));
         }
 
-        // Redirect directly to operator panel
-        window.location.href = '/operator';
+        // Direct routing according to user role
+        if (user.role === 'OPERATOR' || user.role === 'ADMIN') {
+          window.location.href = '/operator';
+        } else {
+          window.location.href = '/dashboard';
+        }
       }
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.message || 'Gagal masuk. Periksa NIK / Username dan kata sandi Anda.');
+      setErrorMessage(err.response?.data?.message || 'Gagal masuk. Periksa kembali NIK dan kata sandi Anda.');
     } finally {
       setLoading(false);
     }
@@ -46,14 +50,14 @@ export default function LoginPage() {
         {/* Brand Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-800 to-teal-900 text-white flex items-center justify-center mx-auto shadow-md">
-            <ShieldCheck className="w-8 h-8" />
+            <UserCheck className="w-8 h-8" />
           </div>
           <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-900 px-3 py-0.5 rounded-full inline-block">
-            Akses Terbatas
+            Portal Masuk Warga & Petugas
           </span>
-          <h1 className="text-2xl font-black text-gray-900 tracking-tight">Portal Petugas & Admin</h1>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Masuk Lentera Desa</h1>
           <p className="text-xs text-slate-500">
-            Masuk khusus Operator & Aparatur Pemerintahan Desa Jombe.
+            Gunakan 16 digit NIK dan kata sandi Anda untuk mengakses dashboard pelayanan.
           </p>
         </div>
 
@@ -66,26 +70,29 @@ export default function LoginPage() {
 
         <form action="javascript:void(0);" onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-gray-800">NIK / ID Petugas</label>
+            <label className="block text-xs font-bold text-slate-800">NIK (Nomor Induk Kependudukan)</label>
             <input
               type="text"
               value={nik}
-              onChange={(e) => setNik(e.target.value)}
-              placeholder="Masukkan NIK atau Username Operator"
+              onChange={(e) => setNik(e.target.value.replace(/\D/g, '').slice(0, 16))}
+              placeholder="Masukkan 16 digit NIK KTP Anda"
               required
-              className="w-full px-4 py-3 text-xs border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-gray-50/50 font-mono"
+              maxLength={16}
+              className="w-full px-4 py-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 font-mono text-slate-900"
             />
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-gray-800">Kata Sandi</label>
+            <div className="flex justify-between items-center">
+              <label className="block text-xs font-bold text-slate-800">Kata Sandi</label>
+            </div>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Masukkan kata sandi akun petugas"
+              placeholder="Masukkan kata sandi akun"
               required
-              className="w-full px-4 py-3 text-xs border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-gray-50/50"
+              className="w-full px-4 py-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
             />
           </div>
 
@@ -97,33 +104,33 @@ export default function LoginPage() {
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Memverifikasi Akses...</span>
+                <span>Memverifikasi NIK & Akun...</span>
               </>
             ) : (
               <>
                 <Lock className="w-4 h-4" />
-                <span>Masuk Portal Petugas</span>
+                <span>Masuk ke Akun Saya</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
           </button>
         </form>
 
-        {/* Citizen guidance box */}
-        <div className="pt-4 border-t border-slate-100 bg-slate-50 -mx-8 -mb-8 p-6 rounded-b-3xl space-y-2 text-center text-xs">
-          <span className="font-bold text-slate-800 block">Apakah Anda Warga Desa Jombe?</span>
-          <p className="text-slate-500 text-[11px] leading-relaxed">
-            Warga masyarakat <strong>tidak perlu login atau mendaftar akun</strong>. Permohonan surat keterangan dan pengaduan dapat diajukan langsung melalui form publik mandiri.
+        {/* Links */}
+        <div className="pt-4 border-t border-slate-100 text-center text-xs space-y-3">
+          <p className="text-slate-600">
+            Belum memiliki akun warga?{' '}
+            <Link href="/register" className="font-bold text-emerald-800 hover:underline inline-flex items-center gap-1">
+              <UserPlus className="w-3.5 h-3.5" /> Daftar Warga Baru
+            </Link>
           </p>
-          <div className="pt-2 flex justify-center gap-4">
-            <Link href="/layanan" className="font-bold text-emerald-800 hover:underline flex items-center gap-1">
-              <FileText className="w-3.5 h-3.5" /> Ajukan Surat
+
+          <p className="text-[11px] text-slate-400">
+            Ingin mengajukan surat tanpa login?{' '}
+            <Link href="/layanan" className="font-bold text-slate-700 hover:underline">
+              Buka Layanan Surat Mandiri
             </Link>
-            <span className="text-slate-300">•</span>
-            <Link href="/lacak" className="font-bold text-emerald-800 hover:underline">
-              Lacak Status Surat
-            </Link>
-          </div>
+          </p>
         </div>
       </div>
     </div>

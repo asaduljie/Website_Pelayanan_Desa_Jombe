@@ -2,7 +2,7 @@
 
 import React from 'react';
 import Link from 'next/link';
-import { Landmark, MessageSquare, ArrowLeft } from 'lucide-react';
+import { Landmark, FileText, ArrowLeft } from 'lucide-react';
 
 export default function NotFound() {
   return (
@@ -15,7 +15,7 @@ export default function NotFound() {
         <div className="space-y-2">
           <h1 className="text-xl font-extrabold text-slate-900">Halaman Tidak Ditemukan</h1>
           <p className="text-xs text-slate-500 leading-relaxed">
-            Halaman yang Anda tuju tidak tersedia atau telah dipindahkan. Silakan kembali ke Beranda atau gunakan Layanan WhatsApp Bot Desa Jombe.
+            Halaman yang Anda tuju tidak tersedia atau telah dipindahkan. Silakan kembali ke Beranda atau akses Katalog Layanan Surat Desa Jombe.
           </p>
         </div>
 
@@ -26,14 +26,12 @@ export default function NotFound() {
           >
             <Landmark className="w-4 h-4" /> Beranda Utama
           </Link>
-          <a
-            href="https://wa.me/6287853617893?text=Halo%20Bot%20Pelayanan%20Desa%20Jombe%2C%20saya%20ingin%20mengajukan%20permohonan%20surat."
-            target="_blank"
-            rel="noopener noreferrer"
+          <Link
+            href="/layanan"
             className="py-3 px-4 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 border border-emerald-300 font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
           >
-            <MessageSquare className="w-4 h-4 text-emerald-700" /> WhatsApp Bot
-          </a>
+            <FileText className="w-4 h-4 text-emerald-700" /> Layanan Surat
+          </Link>
         </div>
       </div>
     </div>

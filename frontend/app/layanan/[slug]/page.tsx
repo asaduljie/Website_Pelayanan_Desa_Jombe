@@ -164,6 +164,22 @@ export default function ServiceApplicationFormPage() {
       .finally(() => setLoading(false));
   }, [slug]);
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const stored = localStorage.getItem('jombe_user');
+      if (stored) {
+        try {
+          const u = JSON.parse(stored);
+          if (u.name) setNama(u.name);
+          if (u.nik) setNik(u.nik);
+          if (u.phone) setPhone(u.phone);
+          if (u.dusun) setDusun(u.dusun);
+          if (u.address) setAlamatLengkap(u.address);
+        } catch (e) {}
+      }
+    }
+  }, []);
+
   const requiredDocs = SERVICE_REQUIREMENTS[slug] || [
     { id: 'ktp', label: 'Foto KTP Pemohon', description: 'Foto e-KTP asli yang masih berlaku', required: true },
     { id: 'kk', label: 'Foto Kartu Keluarga (KK)', description: 'Foto Kartu Keluarga pemohon', required: true },

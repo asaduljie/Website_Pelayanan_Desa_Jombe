@@ -154,7 +154,7 @@ export default function CitizenDashboardPage() {
                 <span className="font-semibold text-gray-900">{user.name}</span>
               </div>
               <div>
-                <span className="text-[10px] font-bold text-gray-400 uppercase block">Nomor HP / WhatsApp</span>
+                <span className="text-[10px] font-bold text-gray-400 uppercase block">Nomor Handphone / Kontak</span>
                 <span className="font-semibold text-gray-900">{user.phone}</span>
               </div>
               <div>
