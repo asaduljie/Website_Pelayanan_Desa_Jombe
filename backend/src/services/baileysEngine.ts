@@ -63,6 +63,7 @@ class WhatsAppBaileysEngine {
   private manualDisconnect: boolean = false;
   private reconnectTimer: NodeJS.Timeout | null = null;
   private lastEngineStartAttempt = 0;
+  private consecutiveErrors = 0;
 
   constructor() {
     try {
@@ -281,8 +282,18 @@ class WhatsAppBaileysEngine {
         if (connection === 'close') {
           const statusCode = (lastDisconnect?.error as any)?.output?.statusCode || (lastDisconnect?.error as any)?.statusCode;
           const errorMsg = (lastDisconnect?.error as any)?.message || 'Koneksi ditutup';
-          const isLoggedOut = statusCode === 401;
+
+          // 401: Logged out dari HP / sesi dicabut
+          // 403: Forbidden / Connection Failure (kredensial enkripsi ditolak/tidak valid lagi)
+          const isAuthInvalid = statusCode === 401 || statusCode === 403;
           const isReplaced = statusCode === 440;
+
+          if (!isAuthInvalid && !isReplaced) {
+            this.consecutiveErrors++;
+          }
+          const tooManyFailures = this.consecutiveErrors >= 4;
+
+          const isLoggedOut = isAuthInvalid || tooManyFailures;
           const shouldReconnect = !isLoggedOut && !isReplaced && !this.manualDisconnect;
 
           console.log(`📱 [Baileys] Koneksi socket ditutup (Status: ${statusCode || 'unknown'}, Info: ${errorMsg})`);
@@ -302,11 +313,13 @@ class WhatsAppBaileysEngine {
           });
 
           if (isLoggedOut) {
-            console.log(`📱 [Baileys] Sesi resmi logout (Status 401). Membersihkan kredensial lama agar siap pairing/scan QR baru.`);
+            console.log(`📱 [Baileys] Sesi berakhir (Status ${statusCode || 'timeout'}: ${errorMsg}${tooManyFailures ? ' - melebihi batas coba' : ''}). Membersihkan kredensial lama agar siap scan QR baru.`);
+            this.consecutiveErrors = 0;
             this.qrCodeDataUrl = null;
             this.pairingCode = null;
             this.phoneNumber = null;
             this.userName = null;
+            this.status = 'DISCONNECTED';
             this.saveStatusCache();
             await clearPostgresAuthState().catch(() => {});
             try {
@@ -319,6 +332,16 @@ class WhatsAppBaileysEngine {
                 }
               }
             } catch (e) { }
+
+            // Otomatis regenerasi QR Code baru agar operator langsung bisa scan ulang
+            if (!this.manualDisconnect) {
+              console.log('📱 [Baileys] Mempersiapkan QR Code baru untuk scan dari HP...');
+              if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
+              this.reconnectTimer = setTimeout(() => {
+                this.reconnectTimer = null;
+                this.startEngine().catch(() => {});
+              }, 2500);
+            }
           } else if (isReplaced) {
             console.log(`⚠️ [Baileys] Sesi terputus karena digantikan oleh koneksi/perangkat lain (Status 440). Menjeda 20 detik agar tidak saling tabrakan.`);
             if (this.reconnectTimer) clearTimeout(this.reconnectTimer);
@@ -337,6 +360,7 @@ class WhatsAppBaileysEngine {
             }, 5000);
           }
         } else if (connection === 'open') {
+          this.consecutiveErrors = 0;
           this.status = 'CONNECTED';
           this.qrCodeDataUrl = null;
           this.pairingCode = null;
