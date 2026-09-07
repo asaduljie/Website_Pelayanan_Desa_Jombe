@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import {
   Menu,
@@ -78,6 +79,14 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           {/* Brand Logo & Name */}
           <Link href="/" className="flex items-center gap-2.5 group">
+            <Image
+              src="/logo_jeneponto.png"
+              alt="Logo Kabupaten Jeneponto"
+              width={40}
+              height={40}
+              className="shrink-0 drop-shadow-sm"
+              priority
+            />
             <div>
               <span className="text-xl sm:text-2xl font-heading font-black tracking-tight text-slate-900 block leading-none group-hover:text-emerald-950 transition-colors">
                 <span className="text-emerald-950">Lentera</span>{' '}
