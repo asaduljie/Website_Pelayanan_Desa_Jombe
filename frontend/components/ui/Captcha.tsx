@@ -54,21 +54,21 @@ export default function Captcha({ onCaptchaChange, error }: CaptchaProps) {
       <div className="flex items-center justify-between">
         <label className="text-xs font-bold text-slate-800 flex items-center gap-1.5">
           <ShieldCheck className="w-4 h-4 text-emerald-800" />
-          Verifikasi Keamanan (Anti-Bot) *
+          Verifikasi Keamanan *
         </label>
         <button
           type="button"
           onClick={fetchCaptcha}
           disabled={loading}
           className="text-[11px] font-semibold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 transition-colors"
-          title="Ganti Soal Captcha"
+          title="Ganti Soal"
         >
           <RefreshCw className={`w-3.5 h-3.5 ${loading ? 'animate-spin' : ''}`} />
           <span>Ganti Soal</span>
         </button>
       </div>
       <p className="text-[11px] text-slate-500">
-        Jawab pertanyaan matematika sederhana di bawah ini untuk memastikan Anda bukan robot:
+        Hitung penjumlahan di bawah ini untuk melanjutkan:
       </p>
 
       <div className="flex items-center gap-3 pt-1">
@@ -83,7 +83,7 @@ export default function Captcha({ onCaptchaChange, error }: CaptchaProps) {
           required
           value={userAnswer}
           onChange={handleChange}
-          placeholder="Jawaban angka"
+          placeholder="Jawaban"
           className="w-32 px-3.5 py-2.5 text-xs font-bold border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-white"
         />
       </div>

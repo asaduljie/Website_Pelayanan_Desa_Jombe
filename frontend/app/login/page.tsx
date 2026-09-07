@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { ShieldCheck, Lock, UserCheck, AlertCircle, ArrowRight, UserPlus, FileText } from 'lucide-react';
+import { Lock, UserCheck, AlertCircle, ArrowRight, UserPlus } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function LoginPage() {
@@ -30,7 +30,6 @@ export default function LoginPage() {
           window.dispatchEvent(new Event('jombe-auth-changed'));
         }
 
-        // Direct routing according to user role
         if (user.role === 'OPERATOR' || user.role === 'ADMIN') {
           window.location.href = '/operator';
         } else {
@@ -47,17 +46,14 @@ export default function LoginPage() {
   return (
     <div className="min-h-screen py-16 flex items-center justify-center max-w-md mx-auto px-4">
       <div className="w-full bg-white rounded-3xl p-8 border border-slate-200 shadow-xl space-y-6">
-        {/* Brand Header */}
+        {/* Header */}
         <div className="text-center space-y-2">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-800 to-teal-900 text-white flex items-center justify-center mx-auto shadow-md">
             <UserCheck className="w-8 h-8" />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-900 px-3 py-0.5 rounded-full inline-block">
-            Portal Masuk Warga & Petugas
-          </span>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Masuk Lentera Desa</h1>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Masuk Portal Desa</h1>
           <p className="text-xs text-slate-500">
-            Gunakan 16 digit NIK dan kata sandi Anda untuk mengakses dashboard pelayanan.
+            Masukkan NIK dan kata sandi Anda.
           </p>
         </div>
 
@@ -70,12 +66,12 @@ export default function LoginPage() {
 
         <form action="javascript:void(0);" onSubmit={handleSubmit} className="space-y-4">
           <div className="space-y-1.5">
-            <label className="block text-xs font-bold text-slate-800">NIK (Nomor Induk Kependudukan)</label>
+            <label className="block text-xs font-bold text-slate-800">NIK *</label>
             <input
               type="text"
               value={nik}
               onChange={(e) => setNik(e.target.value.replace(/\D/g, '').slice(0, 16))}
-              placeholder="Masukkan 16 digit NIK KTP Anda"
+              placeholder="Masukkan NIK"
               required
               maxLength={16}
               className="w-full px-4 py-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 font-mono text-slate-900"
@@ -83,14 +79,12 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-1.5">
-            <div className="flex justify-between items-center">
-              <label className="block text-xs font-bold text-slate-800">Kata Sandi</label>
-            </div>
+            <label className="block text-xs font-bold text-slate-800">Kata Sandi *</label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
-              placeholder="Masukkan kata sandi akun"
+              placeholder="Masukkan kata sandi"
               required
               className="w-full px-4 py-3 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
             />
@@ -104,12 +98,12 @@ export default function LoginPage() {
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Memverifikasi NIK & Akun...</span>
+                <span>Memproses...</span>
               </>
             ) : (
               <>
                 <Lock className="w-4 h-4" />
-                <span>Masuk ke Akun Saya</span>
+                <span>Masuk</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -119,16 +113,16 @@ export default function LoginPage() {
         {/* Links */}
         <div className="pt-4 border-t border-slate-100 text-center text-xs space-y-3">
           <p className="text-slate-600">
-            Belum memiliki akun warga?{' '}
+            Belum punya akun?{' '}
             <Link href="/register" className="font-bold text-emerald-800 hover:underline inline-flex items-center gap-1">
-              <UserPlus className="w-3.5 h-3.5" /> Daftar Warga Baru
+              <UserPlus className="w-3.5 h-3.5" /> Daftar Akun Warga
             </Link>
           </p>
 
           <p className="text-[11px] text-slate-400">
-            Ingin mengajukan surat tanpa login?{' '}
+            Atau ajukan langsung tanpa masuk:{' '}
             <Link href="/layanan" className="font-bold text-slate-700 hover:underline">
-              Buka Layanan Surat Mandiri
+              Layanan Surat Mandiri
             </Link>
           </p>
         </div>

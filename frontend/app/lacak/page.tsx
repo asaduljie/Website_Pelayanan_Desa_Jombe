@@ -121,22 +121,16 @@ function LacakContent() {
     <div className="min-h-screen py-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
       {/* Header */}
       <div className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-800 text-white rounded-3xl p-8 sm:p-10 shadow-lg border border-emerald-700/50">
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-xs bg-emerald-700/60 text-emerald-200 font-bold uppercase px-3 py-1 rounded-full border border-emerald-600/40">
-            Pelacakan Mandiri
-          </span>
-          <span className="text-xs text-emerald-300 font-medium">Buka 24 Jam</span>
-        </div>
         <h1 className="text-3xl sm:text-4xl font-black tracking-tight">Lacak Status Surat & Layanan</h1>
         <p className="text-sm text-emerald-100/90 mt-2 max-w-2xl leading-relaxed">
-          Pantau progres permohonan surat keterangan dan aspirasi pengaduan Anda. Setelah surat disetujui, Anda dapat langsung mengunduh dan mencetak berkas PDF resmi bertanda tangan Kepala Desa.
+          Pantau progres permohonan surat keterangan dan pengaduan Anda. Setelah surat disetujui, Anda dapat langsung mengunduh dan mencetak berkas PDF resmi.
         </p>
       </div>
 
       {/* Search Bar Box */}
       <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-soft space-y-4">
         <label className="block text-sm font-bold text-slate-800">
-          Masukkan Nomor Registrasi Berkas atau NIK Anda:
+          Masukkan Nomor Registrasi Berkas atau NIK:
         </label>
         <div className="flex flex-col sm:flex-row gap-3">
           <div className="relative flex-1">
@@ -146,7 +140,7 @@ function LacakContent() {
               value={identifier}
               onChange={(e) => setIdentifier(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-              placeholder="Contoh: JMB-2026-00012 atau 730401xxxxxxxxxx"
+              placeholder="Nomor Registrasi atau NIK"
               className="w-full pl-11 pr-4 py-3 border border-slate-300 rounded-2xl text-sm bg-slate-50 text-slate-900 focus:outline-none focus:ring-2 focus:ring-emerald-700 font-mono"
             />
           </div>
@@ -176,12 +170,6 @@ function LacakContent() {
           </div>
         )}
 
-        <div className="flex flex-wrap items-center gap-2 text-[11px] text-slate-500 pt-2 border-t border-slate-100">
-          <span className="font-semibold text-slate-700">Petunjuk Pelacakan:</span>
-          <span>• Nomor Registrasi Surat format <strong>JMB-2026-xxxxx</strong></span>
-          <span>• Tiket Pengaduan format <strong>PGD-2026-xxxxx</strong></span>
-          <span>• Atau gunakan <strong>16 digit NIK</strong> saat mengajukan.</span>
-        </div>
       </div>
 
       {/* Complaint Search Result */}

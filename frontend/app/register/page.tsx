@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { UserPlus, Lock, User, Phone, MapPin, AlertCircle, ArrowRight, ShieldCheck } from 'lucide-react';
+import { UserPlus, Lock, AlertCircle, ArrowRight } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function RegisterPage() {
@@ -12,7 +12,6 @@ export default function RegisterPage() {
     nik: '',
     name: '',
     phone: '',
-    email: '',
     dusun: 'Dusun Jombe Utara',
     address: '',
     password: '',
@@ -35,7 +34,7 @@ export default function RegisterPage() {
     setErrorMessage('');
 
     if (formData.nik.length !== 16) {
-      setErrorMessage('NIK wajib terdiri dari 16 digit angka sesuai KTP Anda.');
+      setErrorMessage('NIK harus berjumlah 16 digit angka.');
       return;
     }
 
@@ -56,7 +55,6 @@ export default function RegisterPage() {
         nik: formData.nik,
         name: formData.name,
         phone: formData.phone,
-        email: formData.email || undefined,
         address: `${formData.address}, ${formData.dusun}`,
         dusun: formData.dusun,
         password: formData.password,
@@ -72,7 +70,7 @@ export default function RegisterPage() {
         router.push('/dashboard');
       }
     } catch (err: any) {
-      setErrorMessage(err.response?.data?.message || 'Pendaftaran gagal. Pastikan NIK belum pernah terdaftar.');
+      setErrorMessage(err.response?.data?.message || 'Pendaftaran gagal. Pastikan NIK belum terdaftar.');
     } finally {
       setLoading(false);
     }
@@ -86,12 +84,9 @@ export default function RegisterPage() {
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-emerald-800 to-teal-900 text-white flex items-center justify-center mx-auto shadow-md">
             <UserPlus className="w-7 h-7" />
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-widest bg-emerald-100 text-emerald-900 px-3 py-0.5 rounded-full inline-block">
-            Pendaftaran Warga Desa
-          </span>
-          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Buat Akun Warga Jombe</h1>
+          <h1 className="text-2xl font-black text-slate-900 tracking-tight">Pendaftaran Warga Jombe</h1>
           <p className="text-xs text-slate-500 max-w-md mx-auto">
-            Daftar satu kali menggunakan NIK untuk mempermudah permohonan surat administrasi dan memantau riwayat dokumen Anda.
+            Daftar akun warga menggunakan NIK untuk mempermudah permohonan dan pemantauan surat.
           </p>
         </div>
 
@@ -104,7 +99,7 @@ export default function RegisterPage() {
 
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div className="space-y-1">
-            <label className="font-bold text-slate-700">NIK (Nomor Induk Kependudukan) *</label>
+            <label className="font-bold text-slate-700">NIK *</label>
             <input
               type="text"
               name="nik"
@@ -112,34 +107,33 @@ export default function RegisterPage() {
               maxLength={16}
               value={formData.nik}
               onChange={handleChange}
-              placeholder="16 digit angka NIK KTP Anda"
+              placeholder="Masukkan 16 digit NIK"
               className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-mono"
             />
-            <span className="text-[10px] text-slate-400">NIK akan digunakan sebagai identitas utama untuk masuk ke akun Anda.</span>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">Nama Lengkap (Sesuai KTP) *</label>
+              <label className="font-bold text-slate-700">Nama Lengkap *</label>
               <input
                 type="text"
                 name="name"
                 required
                 value={formData.name}
                 onChange={handleChange}
-                placeholder="Nama lengkap pemohon"
+                placeholder="Nama pemohon"
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
               />
             </div>
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">Nomor Handphone / Kontak *</label>
+              <label className="font-bold text-slate-700">Nomor Telepon *</label>
               <input
                 type="tel"
                 name="phone"
                 required
                 value={formData.phone}
                 onChange={handleChange}
-                placeholder="Contoh: 081234567890"
+                placeholder="Nomor Telepon / HP"
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
               />
             </div>
@@ -147,7 +141,7 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">Dusun Domisili *</label>
+              <label className="font-bold text-slate-700">Dusun *</label>
               <select
                 name="dusun"
                 value={formData.dusun}
@@ -161,14 +155,14 @@ export default function RegisterPage() {
               </select>
             </div>
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">Alamat Lengkap / RT / RW *</label>
+              <label className="font-bold text-slate-700">Alamat *</label>
               <input
                 type="text"
                 name="address"
                 required
                 value={formData.address}
                 onChange={handleChange}
-                placeholder="Contoh: RT 02 / RW 01"
+                placeholder="RT / RW / Jalan"
                 className="w-full px-4 py-2.5 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
               />
             </div>
@@ -176,7 +170,7 @@ export default function RegisterPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">Kata Sandi Akun *</label>
+              <label className="font-bold text-slate-700">Kata Sandi *</label>
               <input
                 type="password"
                 name="password"
@@ -189,7 +183,7 @@ export default function RegisterPage() {
               />
             </div>
             <div className="space-y-1">
-              <label className="font-bold text-slate-700">Konfirmasi Kata Sandi *</label>
+              <label className="font-bold text-slate-700">Konfirmasi Sandi *</label>
               <input
                 type="password"
                 name="confirmPassword"
@@ -211,12 +205,12 @@ export default function RegisterPage() {
             {loading ? (
               <>
                 <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
-                <span>Mendaftarkan Akun Warga...</span>
+                <span>Mendaftarkan...</span>
               </>
             ) : (
               <>
                 <UserPlus className="w-4 h-4" />
-                <span>Daftar Akun Warga Sekarang</span>
+                <span>Daftar Akun</span>
                 <ArrowRight className="w-4 h-4" />
               </>
             )}
@@ -225,15 +219,9 @@ export default function RegisterPage() {
 
         <div className="pt-4 border-t border-slate-100 text-center text-xs space-y-2">
           <p className="text-slate-600">
-            Sudah memiliki akun warga?{' '}
+            Sudah punya akun?{' '}
             <Link href="/login" className="font-bold text-emerald-800 hover:underline">
-              Masuk dengan NIK di sini
-            </Link>
-          </p>
-          <p className="text-[11px] text-slate-400">
-            Atau ingin mengajukan permohonan langsung tanpa akun?{' '}
-            <Link href="/layanan" className="font-bold text-slate-700 hover:underline">
-              Buka Katalog Layanan Surat
+              Masuk dengan NIK
             </Link>
           </p>
         </div>

@@ -118,7 +118,7 @@ export default function HomePage() {
             </h1>
 
             <p className="text-sm sm:text-base text-emerald-100/95 leading-relaxed font-normal max-w-2xl mx-auto drop-shadow-xs">
-              Layanan mandiri pengajuan surat kependudukan, izin usaha, dan pengaduan aspirasi masyarakat. Langsung diajukan tanpa login, cukup gunakan NIK dan verifikasi keamanan Captcha.
+              Layanan pengajuan surat kependudukan, perizinan usaha, dan pengaduan aspirasi masyarakat secara transparan dan terintegrasi.
             </p>
 
             <div className="pt-4 flex flex-col sm:flex-row items-center justify-center gap-3.5">
@@ -155,12 +155,9 @@ export default function HomePage() {
                 Lacak Status Surat & Pengaduan Warga
               </h2>
               <p className="text-xs text-slate-500 mt-0.5">
-                Masukkan Nomor Registrasi (JMB-2026-xxxxx / PGD-2026-xxxxx) atau 16 digit NIK Anda.
+                Masukkan Nomor Registrasi atau NIK Anda.
               </p>
             </div>
-            <span className="text-[11px] px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 font-semibold border border-emerald-200 shrink-0">
-              Akses Mandiri Publik
-            </span>
           </div>
 
           <form onSubmit={handleTrackingSubmit} className="flex flex-col sm:flex-row gap-3">
@@ -169,7 +166,7 @@ export default function HomePage() {
                 type="text"
                 value={trackingNumber}
                 onChange={(e) => setTrackingNumber(e.target.value)}
-                placeholder="Contoh: JMB-2026-00012 atau NIK 16 digit"
+                placeholder="Nomor Registrasi atau NIK"
                 className="w-full px-4 py-3 text-sm border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-600 bg-slate-50 uppercase font-mono font-semibold text-slate-900"
               />
             </div>
@@ -196,9 +193,10 @@ export default function HomePage() {
               Profil Resmi Desa Jombe, Turatea, Jeneponto
             </h3>
             <p className="text-xs text-slate-300 leading-relaxed">
-              Pelajari informasi riil kependudukan (2.854 jiwa, 742 KK, 4 dusun), peta interaktif wilayah, potensi jagung & padi, serta susunan aparatur di bawah kepemimpinan Kepala Desa <strong>JUSMAEDY, S.Pd</strong>.
+              Informasi kependudukan, peta interaktif wilayah, potensi pertanian, serta aparatur pemerintah desa di bawah kepemimpinan Kepala Desa <strong>JUSMAEDY, S.Pd</strong>.
             </p>
           </div>
+
 
           <Link
             href="/profil"

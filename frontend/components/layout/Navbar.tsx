@@ -193,7 +193,7 @@ export default function Navbar() {
                   className="px-3.5 py-2 text-xs font-bold text-slate-700 hover:text-emerald-900 hover:bg-slate-100 rounded-xl transition-all flex items-center gap-1.5 border border-slate-200"
                 >
                   <User className="w-3.5 h-3.5 text-slate-600" />
-                  <span>Masuk (NIK)</span>
+                  <span>Masuk</span>
                 </Link>
                 <Link
                   href="/register"
@@ -331,7 +331,7 @@ export default function Navbar() {
                   onClick={() => setMobileMenuOpen(false)}
                   className="block text-center py-2.5 text-xs font-bold text-slate-800 bg-slate-100 hover:bg-slate-200 rounded-xl"
                 >
-                  Masuk (NIK)
+                  Masuk
                 </Link>
                 <Link
                   href="/register"

@@ -146,7 +146,7 @@ export default function PengaduanPage() {
               Formulir Aspirasi & Pengaduan
             </h2>
             <p className="text-xs text-slate-500 mt-2">
-              Isi data diri pemohon dan rincian masalah. Wajib menyertakan NIK 16 digit yang sah.
+              Isi data diri pemohon dan rincian masalah.
             </p>
           </div>
 
@@ -159,17 +159,16 @@ export default function PengaduanPage() {
 
           <form onSubmit={handleSubmit} className="space-y-4 text-xs">
             <div className="space-y-1">
-              <label className="font-bold text-gray-700">NIK (Nomor Induk Kependudukan) *</label>
+              <label className="font-bold text-gray-700">NIK *</label>
               <input
                 type="text"
                 required
                 maxLength={16}
                 value={nik}
                 onChange={(e) => setNik(e.target.value.replace(/\D/g, ''))}
-                placeholder="16 digit angka NIK KTP"
+                placeholder="Masukkan NIK KTP"
                 className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-gray-50 text-gray-900 font-mono"
               />
-              <span className="text-[10px] text-slate-400">Wajib 16 digit angka untuk verifikasi warga Desa Jombe</span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -185,13 +184,13 @@ export default function PengaduanPage() {
                 />
               </div>
               <div className="space-y-1">
-                <label className="font-bold text-gray-700">No. HP / Telepon *</label>
+                <label className="font-bold text-gray-700">Nomor Telepon *</label>
                 <input
                   type="tel"
                   required
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
-                  placeholder="08123456789"
+                  placeholder="Nomor Telepon / HP"
                   className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-gray-50 text-gray-900"
                 />
               </div>
@@ -219,7 +218,7 @@ export default function PengaduanPage() {
                 className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-gray-50 text-gray-900 font-medium"
               >
                 <option value="Jalan & Jembatan">Jalan & Jembatan</option>
-                <option value="Penerangan Jalan (PJU)">Penerangan Jalan (PJU)</option>
+                <option value="Penerangan Jalan">Penerangan Jalan</option>
                 <option value="Kebersihan & Lingkungan">Kebersihan & Lingkungan</option>
                 <option value="Fasilitas Umum & Air">Fasilitas Umum & Air</option>
                 <option value="Keamanan & Ketertiban">Keamanan & Ketertiban</option>

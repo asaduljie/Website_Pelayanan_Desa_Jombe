@@ -372,10 +372,9 @@ export default function ServiceApplicationFormPage() {
 
       {/* Header Banner */}
       <div className="bg-gradient-to-br from-emerald-950 via-emerald-900 to-emerald-800 text-white rounded-3xl p-8 shadow-lg border border-emerald-800/60 space-y-2">
-        <span className="text-[10px] text-emerald-300 font-bold uppercase tracking-widest block">Formulir Permohonan Surat Mandiri (Tanpa Login)</span>
-        <h1 className="text-2xl sm:text-3xl font-extrabold">{service?.name || 'Surat Keterangan Usaha (SKU)'}</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold">{service?.name || 'Surat Keterangan Usaha'}</h1>
         <p className="text-xs text-emerald-100/90 leading-relaxed max-w-2xl">
-          Layanan administrasi resmi Desa Jombe dapat diajukan secara langsung dan mandiri. Masukkan NIK Anda, unggah foto dokumen persyaratan, dan sistem akan langsung menerbitkan nomor registrasi lacak surat.
+          Layanan administrasi resmi Desa Jombe. Masukkan NIK Anda, unggah foto dokumen persyaratan, dan sistem akan menerbitkan nomor registrasi lacak surat.
         </p>
       </div>
 
@@ -386,12 +385,11 @@ export default function ServiceApplicationFormPage() {
             <h3 className="text-sm font-extrabold text-slate-900 uppercase tracking-wider flex items-center gap-2">
               <FileText className="w-4 h-4 text-emerald-800" /> 1. Data Identitas Pemohon
             </h3>
-            <p className="text-xs text-slate-500">Pastikan data yang dimasukkan sesuai dengan Kartu Tanda Penduduk (e-KTP).</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">NIK (Nomor Induk Kependudukan - 16 Digit) *</label>
+              <label className="font-bold text-slate-700 block">NIK *</label>
               <input
                 type="text"
                 inputMode="numeric"
@@ -399,27 +397,26 @@ export default function ServiceApplicationFormPage() {
                 maxLength={16}
                 required
                 value={nik}
-                placeholder="Contoh: 730401xxxxxxxxxx"
+                placeholder="Masukkan NIK"
                 onChange={(e) => setNik(e.target.value.replace(/\D/g, ''))}
                 className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-mono font-medium focus:ring-2 focus:ring-emerald-700"
               />
-              <span className="text-[10px] text-slate-400 block">{nik.length}/16 Digit</span>
             </div>
 
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">Nama Lengkap Pemohon (Sesuai KTP) *</label>
+              <label className="font-bold text-slate-700 block">Nama Lengkap *</label>
               <input
                 type="text"
                 required
                 value={nama}
-                placeholder="Contoh: Siti Rahmawati"
+                placeholder="Nama Pemohon"
                 onChange={(e) => setNama(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">Dusun / Wilayah Tempat Tinggal di Desa Jombe *</label>
+              <label className="font-bold text-slate-700 block">Dusun *</label>
               <select
                 value={dusun}
                 onChange={(e) => setDusun(e.target.value)}
@@ -433,19 +430,19 @@ export default function ServiceApplicationFormPage() {
             </div>
 
             <div className="space-y-1">
-              <label className="font-bold text-slate-700 block">Nomor Kontak / HP Pemohon *</label>
+              <label className="font-bold text-slate-700 block">Nomor Telepon *</label>
               <input
                 type="tel"
                 required
                 value={phone}
-                placeholder="Contoh: 081234567890"
+                placeholder="Nomor Telepon / HP"
                 onChange={(e) => setPhone(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
               />
             </div>
 
             <div className="sm:col-span-2 space-y-1">
-              <label className="font-bold text-slate-700 block">Keterangan Alamat / RT / RW (Opsional)</label>
+              <label className="font-bold text-slate-700 block">Alamat Lengkap</label>
               <input
                 type="text"
                 value={alamatLengkap}
