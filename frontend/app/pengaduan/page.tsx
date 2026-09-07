@@ -204,9 +204,10 @@ export default function PengaduanPage() {
                 className="w-full px-3.5 py-2.5 border border-gray-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-gray-50 text-gray-900 font-medium"
               >
                 <option value="Dusun Jombe Utara">Dusun Jombe Utara</option>
+                <option value="Dusun Jombe Tengah">Dusun Jombe Tengah</option>
                 <option value="Dusun Jombe Selatan">Dusun Jombe Selatan</option>
-                <option value="Dusun Bulo-Bulo">Dusun Bulo-Bulo</option>
-                <option value="Dusun Kaluku">Dusun Kaluku</option>
+                <option value="Dusun Tompo Balang">Dusun Tompo Balang</option>
+                <option value="Dusun Muncu-muncu">Dusun Muncu-muncu</option>
               </select>
             </div>
 

@@ -1,5 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { Building2, Phone, Mail, MapPin, Search, ShieldCheck, Heart } from 'lucide-react';
 
 export default function Footer() {
@@ -10,9 +11,13 @@ export default function Footer() {
           {/* Brand Info */}
           <div className="md:col-span-1 space-y-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-emerald-800 to-amber-600 text-amber-200 flex items-center justify-center shadow-lg border border-amber-400/30 font-black text-xs">
-                LD
-              </div>
+              <Image
+                src="/logo_jeneponto.png"
+                alt="Logo Kabupaten Jeneponto"
+                width={42}
+                height={42}
+                className="shrink-0 drop-shadow-sm"
+              />
               <div>
                 <span className="text-lg font-heading font-black tracking-tight text-white block">LENTERA DESA</span>
                 <span className="text-[10px] text-emerald-400 uppercase tracking-widest block font-bold">Pelayanan Desa Jombe</span>

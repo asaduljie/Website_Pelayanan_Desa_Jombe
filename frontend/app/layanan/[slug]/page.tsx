@@ -422,10 +422,11 @@ export default function ServiceApplicationFormPage() {
                 onChange={(e) => setDusun(e.target.value)}
                 className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl bg-slate-50 text-slate-900 font-medium focus:ring-2 focus:ring-emerald-700"
               >
-                <option value="Dusun Jombe Selatan">Dusun Jombe Selatan</option>
-                <option value="Dusun Jombe Barat">Dusun Jombe Barat</option>
-                <option value="Dusun Jombe Timur">Dusun Jombe Timur</option>
                 <option value="Dusun Jombe Utara">Dusun Jombe Utara</option>
+                <option value="Dusun Jombe Tengah">Dusun Jombe Tengah</option>
+                <option value="Dusun Jombe Selatan">Dusun Jombe Selatan</option>
+                <option value="Dusun Tompo Balang">Dusun Tompo Balang</option>
+                <option value="Dusun Muncu-muncu">Dusun Muncu-muncu</option>
               </select>
             </div>
 
