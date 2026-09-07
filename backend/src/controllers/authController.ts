@@ -1,5 +1,4 @@
 import { Request, Response } from 'express';
-import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { z } from 'zod';
 import prisma from '../config/db';
@@ -7,19 +6,10 @@ import { AuthRequest } from '../middleware/auth';
 
 const registerSchema = z.object({
   nik: z.string().length(16, 'NIK harus persis 16 digit angka'),
-  name: z.string().min(3, 'Nama minimal 3 karakter'),
-  email: z.string().email('Format email tidak valid').optional().or(z.literal('')),
-  phone: z.string().min(10, 'Nomor HP minimal 10 digit'),
-  password: z.string().min(6, 'Kata sandi minimal 6 karakter'),
-  address: z.string().min(5, 'Alamat wajib diisi'),
-  dusun: z.string().optional(),
-  rt: z.string().optional(),
-  rw: z.string().optional(),
 });
 
 const loginSchema = z.object({
-  nik: z.string().min(1, 'NIK wajib diisi'),
-  password: z.string().min(1, 'Kata sandi wajib diisi'),
+  nik: z.string().length(16, 'NIK harus persis 16 digit angka'),
 });
 
 // Demo accounts fallback helper
@@ -71,53 +61,38 @@ const getDemoUser = (nik: string) => {
 
 export const register = async (req: Request, res: Response) => {
   try {
-    const validatedData = registerSchema.parse(req.body);
+    const { nik } = registerSchema.parse(req.body);
 
     const existingUser = await prisma.user.findUnique({
-      where: { nik: validatedData.nik },
+      where: { nik },
     }).catch(() => null);
 
     if (existingUser) {
-      return res.status(400).json({ status: 'error', message: 'NIK sudah terdaftar dalam sistem. Silakan login.' });
+      return res.status(400).json({ status: 'error', message: 'NIK sudah terdaftar. Silakan masuk.' });
     }
-
-    const hashedPassword = await bcrypt.hash(validatedData.password, 12);
 
     let newUser: any = null;
     try {
       newUser = await prisma.user.create({
         data: {
-          nik: validatedData.nik,
-          name: validatedData.name,
-          email: validatedData.email || null,
-          phone: validatedData.phone,
-          password: hashedPassword,
-          address: validatedData.address,
-          dusun: validatedData.dusun || 'Jombe',
-          rt: validatedData.rt || '001',
-          rw: validatedData.rw || '001',
+          nik,
+          name: `Warga ${nik.slice(-4)}`,
           role: 'MASYARAKAT',
         },
         select: {
           id: true,
           nik: true,
           name: true,
-          email: true,
-          phone: true,
           role: true,
-          address: true,
           createdAt: true,
         },
       });
     } catch (dbErr) {
       newUser = {
         id: `user-${Date.now()}`,
-        nik: validatedData.nik,
-        name: validatedData.name,
-        email: validatedData.email,
-        phone: validatedData.phone,
+        nik,
+        name: `Warga ${nik.slice(-4)}`,
         role: 'MASYARAKAT',
-        address: validatedData.address,
         createdAt: new Date(),
       };
     }
@@ -126,12 +101,12 @@ export const register = async (req: Request, res: Response) => {
     const token = jwt.sign(
       { id: newUser.id, nik: newUser.nik, role: newUser.role, name: newUser.name },
       jwtSecret,
-      { expiresIn: '7d' }
+      { expiresIn: '30d' }
     );
 
     return res.status(201).json({
       status: 'success',
-      message: 'Pendaftaran berhasil. Selamat datang di JOMBE DIGITAL!',
+      message: 'Pendaftaran berhasil.',
       data: { user: newUser, token },
     });
   } catch (error: any) {
@@ -144,46 +119,32 @@ export const register = async (req: Request, res: Response) => {
 
 export const login = async (req: Request, res: Response) => {
   try {
-    const { nik, password } = loginSchema.parse(req.body);
+    const { nik } = loginSchema.parse(req.body);
 
     let user: any = null;
     try {
       user = await prisma.user.findUnique({
-        where: { nik: nik },
+        where: { nik },
       });
     } catch (dbError) {
-      // Fallback if DB not reachable
       user = null;
     }
 
     // Check demo accounts fallback
     if (!user) {
-      const demoUser = getDemoUser(nik);
-      if (demoUser && (password === 'password123' || password.length >= 6)) {
-        user = {
-          ...demoUser,
-          isActive: true,
-          password: await bcrypt.hash('password123', 10),
-        };
-      }
+      user = getDemoUser(nik);
+      if (user) user.isActive = true;
     }
 
-    if (!user || !user.isActive) {
-      return res.status(401).json({ status: 'error', message: 'NIK atau kata sandi tidak valid.' });
-    }
-
-    if (user.password && (user.password.startsWith('$2a$') || user.password.startsWith('$2b$'))) {
-      const isMatch = await bcrypt.compare(password, user.password).catch(() => false);
-      if (!isMatch && password !== 'password123') {
-        return res.status(401).json({ status: 'error', message: 'NIK atau kata sandi tidak valid.' });
-      }
+    if (!user) {
+      return res.status(401).json({ status: 'error', message: 'NIK tidak ditemukan. Daftarkan NIK Anda terlebih dahulu.' });
     }
 
     const jwtSecret = process.env.JWT_SECRET || 'jombe_digital_secure_jwt_secret_key_2026_super_encrypted';
     const token = jwt.sign(
       { id: user.id, nik: user.nik, role: user.role, name: user.name },
       jwtSecret,
-      { expiresIn: '7d' }
+      { expiresIn: '30d' }
     );
 
     // Write audit log if DB connected
@@ -223,7 +184,7 @@ export const login = async (req: Request, res: Response) => {
     if (error instanceof z.ZodError) {
       return res.status(400).json({ status: 'error', message: error.errors[0].message });
     }
-    return res.status(500).json({ status: 'error', message: 'Gagal melakukan login. Silakan periksa kembali NIK dan kata sandi.' });
+    return res.status(500).json({ status: 'error', message: 'Gagal melakukan login. Silakan periksa kembali NIK Anda.' });
   }
 };
 
