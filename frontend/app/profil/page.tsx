@@ -36,84 +36,100 @@ export default function ProfilDesaPage() {
     },
     {
       jabatan: 'Sekretaris Desa',
-      nama: 'Herman, S.Sos',
+      nama: 'SYAMSUL RISWAN',
       status: 'Koordinator Administrasi',
       avatarColor: 'from-emerald-800 to-slate-900',
-      periode: 'Aparatur Desa Aktif',
+      periode: 'TA 2025',
       tugas: 'Mengkoordinasikan administrasi pemerintahan, keuangan, perumusan kebijakan desa, dan arsip kepegawaian.'
     },
     {
       jabatan: 'Kasi Pemerintahan',
-      nama: 'Syamsuddin',
+      nama: 'ZAINAL MUTTAQIN AHMAD',
       status: 'Aparatur Desa Aktif',
       avatarColor: 'from-teal-800 to-slate-900',
-      periode: 'Aparatur Desa Aktif',
+      periode: 'TA 2025',
       tugas: 'Mengelola tata kelola kependudukan, pertanahan, ketertiban umum, dan penyusunan profil wilayah desa.'
     },
     {
-      jabatan: 'Kasi Kesejahteraan & Pelayanan',
-      nama: 'Hasnah, S.Pd',
+      jabatan: 'Kasi Pelayanan Umum',
+      nama: 'SARDI',
       status: 'Aparatur Desa Aktif',
       avatarColor: 'from-emerald-700 to-cyan-900',
-      periode: 'Aparatur Desa Aktif',
-      tugas: 'Melaksanakan pembangunan sarana prasarana desa, kesehatan (Posyandu), pemberdayaan perempuan, dan pelayanan sosial.'
+      periode: 'TA 2025',
+      tugas: 'Melaksanakan pelayanan administrasi kependudukan, penerbitan surat keterangan, dan layanan masyarakat umum.'
+    },
+    {
+      jabatan: 'Kasi Kesra',
+      nama: 'SUKARDI',
+      status: 'Aparatur Desa Aktif',
+      avatarColor: 'from-teal-700 to-emerald-900',
+      periode: 'TA 2025',
+      tugas: 'Mengelola program kesejahteraan rakyat, kesehatan, bantuan sosial, dan pemberdayaan masyarakat desa.'
+    },
+    {
+      jabatan: 'Kaur Perencanaan',
+      nama: 'SYARIF AL-QADRI',
+      status: 'Aparatur Desa Aktif',
+      avatarColor: 'from-slate-700 to-emerald-950',
+      periode: 'TA 2025',
+      tugas: 'Menyusun RKPDes, RPJMDes, inventaris aset kekayaan desa, dan perencanaan pembangunan desa.'
     },
     {
       jabatan: 'Kaur Keuangan',
-      nama: 'Nurul Hidayah, S.E',
+      nama: 'ARIANTO',
       status: 'Aparatur Desa Aktif',
-      avatarColor: 'from-teal-700 to-emerald-900',
-      periode: 'Aparatur Desa Aktif',
+      avatarColor: 'from-emerald-800 to-slate-800',
+      periode: 'TA 2025',
       tugas: 'Menatausahakan APBDes, penerimaan pendapatan asli desa, transfer dana desa (ADD/DD), serta laporan pertanggungjawaban keuangan.'
     },
     {
-      jabatan: 'Kaur Perencanaan & Umum',
-      nama: 'Rahmat Kurniawan',
+      jabatan: 'Kaur Administrasi dan T.U',
+      nama: 'KASMAWATI',
       status: 'Aparatur Desa Aktif',
-      avatarColor: 'from-slate-700 to-emerald-950',
-      periode: 'Aparatur Desa Aktif',
-      tugas: 'Menyusun RKPDes, RPJMDes, inventaris aset kekayaan desa, dan administrasi perkantoran umum.'
+      avatarColor: 'from-teal-800 to-slate-800',
+      periode: 'TA 2025',
+      tugas: 'Mengelola administrasi umum perkantoran desa, tata usaha, pengarsipan surat masuk dan keluar.'
     },
     {
       jabatan: 'Kepala Dusun Jombe Utara',
-      nama: 'Kamaruddin Daeng Gassing',
+      nama: 'MUHAJRIN JUMARANG',
       status: 'Kepala Kewilayahan',
-      avatarColor: 'from-emerald-800 to-slate-800',
+      avatarColor: 'from-emerald-900 to-teal-800',
       periode: 'Dusun Jombe Utara',
       tugas: 'Pembinaan ketertiban, pelayanan warga dusun, dan penggerak gotong royong di wilayah Jombe Utara.'
     },
     {
-      jabatan: 'Kepala Dusun Jombe Selatan',
-      nama: 'Dg. Nuntung',
+      jabatan: 'Kepala Dusun Jombe Tengah',
+      nama: 'BASO',
       status: 'Kepala Kewilayahan',
-      avatarColor: 'from-teal-800 to-slate-800',
+      avatarColor: 'from-slate-800 to-teal-900',
+      periode: 'Dusun Jombe Tengah',
+      tugas: 'Koordinator kewilayahan, penyalur aspirasi warga dan penggerak swadaya Dusun Jombe Tengah.'
+    },
+    {
+      jabatan: 'Kepala Dusun Jombe Selatan',
+      nama: 'SAPARUDDIN',
+      status: 'Kepala Kewilayahan',
+      avatarColor: 'from-teal-800 to-emerald-900',
       periode: 'Dusun Jombe Selatan',
       tugas: 'Pembinaan ketertiban dan pelayanan warga masyarakat di wilayah Dusun Jombe Selatan.'
     },
     {
-      jabatan: 'Kepala Dusun Bulo-Bulo',
-      nama: 'Mustari Daeng Rangka',
+      jabatan: 'Kepala Dusun Tompo Balang',
+      nama: 'NURLELA KAMARUDDIN',
       status: 'Kepala Kewilayahan',
-      avatarColor: 'from-emerald-900 to-teal-800',
-      periode: 'Dusun Bulo-Bulo',
-      tugas: 'Koordinator kewilayahan, penyalur aspirasi warga dan penggerak swadaya dusun Bulo-Bulo.'
+      avatarColor: 'from-emerald-800 to-cyan-900',
+      periode: 'Dusun Tompo Balang',
+      tugas: 'Koordinator pelayanan administrasi dan pembinaan kemasyarakatan di wilayah Dusun Tompo Balang.'
     },
     {
-      jabatan: 'Kepala Dusun Kaluku',
-      nama: 'Dg. Nai',
+      jabatan: 'Kepala Dusun Muncu-muncu',
+      nama: 'ICAL RAHMAN',
       status: 'Kepala Kewilayahan',
-      avatarColor: 'from-slate-800 to-teal-900',
-      periode: 'Dusun Kaluku',
-      tugas: 'Koordinator pelayanan administrasi dan pembinaan kemasyarakatan di wilayah Dusun Kaluku.'
-    },
-    {
-      jabatan: 'Ketua BPD Desa Jombe',
-      nama: 'Ruslan, S.Pd',
-      status: 'Badan Permusyawaratan Desa',
       avatarColor: 'from-indigo-900 to-slate-900',
-      periode: 'Mitra Pengawas Desa',
-      tugas: 'Membahas dan menyepakati rancangan Perdes bersama Kepala Desa, menampung aspirasi warga, dan mengawasi kinerja Pemdes.'
-    }
+      periode: 'Dusun Muncu-muncu',
+      tugas: 'Koordinator pelayanan administrasi dan pembinaan kemasyarakatan di wilayah Dusun Muncu-muncu.'
+    },
   ];
 
   return (
@@ -140,7 +156,7 @@ export default function ProfilDesaPage() {
               <Shield className="w-4 h-4 text-emerald-400" /> Kepala Desa: <strong>JUSMAEDY, S.Pd</strong>
             </span>
             <span className="flex items-center gap-1.5">
-              <TreePine className="w-4 h-4 text-emerald-400" /> 4 Dusun Terintegrasi
+              <TreePine className="w-4 h-4 text-emerald-400" /> 5 Dusun Terintegrasi
             </span>
           </div>
         </div>
@@ -206,23 +222,23 @@ export default function ProfilDesaPage() {
           {/* Quick Metrics */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft text-center space-y-1">
-              <span className="text-3xl font-black text-emerald-800">2.854</span>
+              <span className="text-3xl font-black text-emerald-800">2.670</span>
               <span className="text-xs text-slate-500 font-bold block uppercase tracking-wide">Total Penduduk</span>
-              <span className="text-[10px] text-slate-400">Jiwa Terdaftar</span>
+              <span className="text-[10px] text-slate-400">Data Kemendagri 2025</span>
             </div>
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft text-center space-y-1">
-              <span className="text-3xl font-black text-teal-800">742</span>
+              <span className="text-3xl font-black text-teal-800">850</span>
               <span className="text-xs text-slate-500 font-bold block uppercase tracking-wide">Kepala Keluarga</span>
               <span className="text-[10px] text-slate-400">Data KK Aktif</span>
             </div>
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft text-center space-y-1">
-              <span className="text-3xl font-black text-emerald-800">4</span>
+              <span className="text-3xl font-black text-emerald-800">5</span>
               <span className="text-xs text-slate-500 font-bold block uppercase tracking-wide">Dusun Wilayah</span>
               <span className="text-[10px] text-slate-400">Pemerintahan Wilayah</span>
             </div>
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft text-center space-y-1">
-              <span className="text-3xl font-black text-teal-800">5,42</span>
-              <span className="text-xs text-slate-500 font-bold block uppercase tracking-wide">Luas Wilayah (km²)</span>
+              <span className="text-3xl font-black text-teal-800">46</span>
+              <span className="text-xs text-slate-500 font-bold block uppercase tracking-wide">Kepadatan (Jiwa/km²)</span>
               <span className="text-[10px] text-slate-400">Kecamatan Turatea</span>
             </div>
           </div>
@@ -415,75 +431,63 @@ export default function ProfilDesaPage() {
           </div>
 
           {/* Rincian Persebaran 4 Dusun */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-black text-xs">
-                01
-              </div>
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-black text-xs">01</div>
               <h3 className="text-base font-extrabold text-slate-900">Dusun Jombe Utara</h3>
               <p className="text-xs text-slate-600">Pusat pemukiman warga bagian utara dan sentra persawahan padi.</p>
               <div className="pt-2 border-t border-slate-100 text-xs space-y-1 font-medium text-slate-700">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Kepala Dusun:</span>
-                  <span className="font-bold">Kamaruddin Dg. Gassing</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Estimasi KK:</span>
-                  <span className="font-bold text-emerald-800">± 198 KK</span>
+                  <span className="font-bold">MUHAJRIN JUMARANG</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-900 flex items-center justify-center font-black text-xs">
-                02
+              <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-900 flex items-center justify-center font-black text-xs">02</div>
+              <h3 className="text-base font-extrabold text-slate-900">Dusun Jombe Tengah</h3>
+              <p className="text-xs text-slate-600">Wilayah tengah desa, sentra kegiatan sosial dan kemasyarakatan.</p>
+              <div className="pt-2 border-t border-slate-100 text-xs space-y-1 font-medium text-slate-700">
+                <div className="flex justify-between">
+                  <span className="text-slate-400">Kepala Dusun:</span>
+                  <span className="font-bold">BASO</span>
+                </div>
               </div>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft space-y-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-black text-xs">03</div>
               <h3 className="text-base font-extrabold text-slate-900">Dusun Jombe Selatan</h3>
               <p className="text-xs text-slate-600">Wilayah kantor desa, sentra perdagangan kecil, dan sarana umum.</p>
               <div className="pt-2 border-t border-slate-100 text-xs space-y-1 font-medium text-slate-700">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Kepala Dusun:</span>
-                  <span className="font-bold">Dg. Nuntung</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Estimasi KK:</span>
-                  <span className="font-bold text-emerald-800">± 185 KK</span>
+                  <span className="font-bold">SAPARUDDIN</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-black text-xs">
-                03
-              </div>
-              <h3 className="text-base font-extrabold text-slate-900">Dusun Bulo-Bulo</h3>
-              <p className="text-xs text-slate-600">Wilayah lumbung jagung kuning dan peternakan sapi masyarakat.</p>
+              <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-900 flex items-center justify-center font-black text-xs">04</div>
+              <h3 className="text-base font-extrabold text-slate-900">Dusun Tompo Balang</h3>
+              <p className="text-xs text-slate-600">Kawasan pertanian jagung hibrida dan peternakan masyarakat.</p>
               <div className="pt-2 border-t border-slate-100 text-xs space-y-1 font-medium text-slate-700">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Kepala Dusun:</span>
-                  <span className="font-bold">Mustari Dg. Rangka</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Estimasi KK:</span>
-                  <span className="font-bold text-emerald-800">± 182 KK</span>
+                  <span className="font-bold">NURLELA KAMARUDDIN</span>
                 </div>
               </div>
             </div>
 
             <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-soft space-y-3">
-              <div className="w-10 h-10 rounded-xl bg-teal-100 text-teal-900 flex items-center justify-center font-black text-xs">
-                04
-              </div>
-              <h3 className="text-base font-extrabold text-slate-900">Dusun Kaluku</h3>
-              <p className="text-xs text-slate-600">Kawasan perkebunan kelapa, jagung hibrida, dan peternakan kuda.</p>
+              <div className="w-10 h-10 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-black text-xs">05</div>
+              <h3 className="text-base font-extrabold text-slate-900">Dusun Muncu-muncu</h3>
+              <p className="text-xs text-slate-600">Kawasan perkebunan kelapa, jagung, dan peternakan kuda tradisional.</p>
               <div className="pt-2 border-t border-slate-100 text-xs space-y-1 font-medium text-slate-700">
                 <div className="flex justify-between">
                   <span className="text-slate-400">Kepala Dusun:</span>
-                  <span className="font-bold">Dg. Nai</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-slate-400">Estimasi KK:</span>
-                  <span className="font-bold text-emerald-800">± 177 KK</span>
+                  <span className="font-bold">ICAL RAHMAN</span>
                 </div>
               </div>
             </div>
@@ -494,26 +498,27 @@ export default function ProfilDesaPage() {
             <h3 className="text-base font-extrabold text-slate-900">Komposisi Penduduk Berdasarkan Gender & Pekerjaan</h3>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs">
               <div className="border border-slate-200 rounded-2xl p-5 space-y-3">
-                <span className="font-bold text-slate-800 block text-sm">Jenis Kelamin:</span>
+                <span className="font-bold text-slate-800 block text-sm">Jenis Kelamin (Kemendagri, Mei 2025):</span>
                 <div className="space-y-2">
                   <div>
                     <div className="flex justify-between font-medium mb-1">
                       <span>Laki-Laki</span>
-                      <span className="font-bold text-emerald-800">1.412 Jiwa (49.5%)</span>
+                      <span className="font-bold text-emerald-800">1.336 Jiwa (50,0%)</span>
                     </div>
                     <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="bg-emerald-700 h-full rounded-full" style={{ width: '49.5%' }}></div>
+                      <div className="bg-emerald-700 h-full rounded-full" style={{ width: '50%' }}></div>
                     </div>
                   </div>
                   <div>
                     <div className="flex justify-between font-medium mb-1">
                       <span>Perempuan</span>
-                      <span className="font-bold text-teal-800">1.442 Jiwa (50.5%)</span>
+                      <span className="font-bold text-teal-800">1.334 Jiwa (50,0%)</span>
                     </div>
                     <div className="w-full h-2.5 bg-slate-100 rounded-full overflow-hidden">
-                      <div className="bg-teal-600 h-full rounded-full" style={{ width: '50.5%' }}></div>
+                      <div className="bg-teal-600 h-full rounded-full" style={{ width: '50%' }}></div>
                     </div>
                   </div>
+                  <p className="text-[11px] text-slate-400 pt-1">Kode PUM: 7304082009 · Total: 2.670 jiwa · 850 KK</p>
                 </div>
               </div>
 
