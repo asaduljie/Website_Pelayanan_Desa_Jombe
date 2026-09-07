@@ -25,61 +25,73 @@ export default function ProfilDesaPage() {
       jabatan: 'Sekretaris Desa',
       nama: 'SYAMSUL RISWAN',
       avatarColor: 'from-emerald-800 to-slate-900',
+      tugas: 'Mengkoordinasikan administrasi pemerintahan, keuangan, perumusan kebijakan desa, dan pengarsipan kepegawaian.',
     },
     {
       jabatan: 'Kasi Pemerintahan',
       nama: 'ZAINAL MUTTAQIN AHMAD',
       avatarColor: 'from-teal-800 to-slate-900',
+      tugas: 'Mengelola tata kelola kependudukan, pertanahan, ketertiban umum, dan penyusunan profil wilayah desa.',
     },
     {
       jabatan: 'Kasi Pelayanan Umum',
       nama: 'SARDI',
       avatarColor: 'from-emerald-700 to-cyan-900',
+      tugas: 'Melaksanakan pelayanan administrasi kependudukan dan penerbitan surat keterangan untuk masyarakat.',
     },
     {
       jabatan: 'Kasi Kesra',
       nama: 'SUKARDI',
       avatarColor: 'from-teal-700 to-emerald-900',
+      tugas: 'Mengelola program kesejahteraan rakyat, kesehatan, bantuan sosial, dan pemberdayaan masyarakat desa.',
     },
     {
       jabatan: 'Kaur Perencanaan',
       nama: 'SYARIF AL-QADRI',
       avatarColor: 'from-slate-700 to-emerald-950',
+      tugas: 'Menyusun RKPDes, RPJMDes, inventaris aset kekayaan desa, dan perencanaan pembangunan desa.',
     },
     {
       jabatan: 'Kaur Keuangan',
       nama: 'ARIANTO',
       avatarColor: 'from-emerald-800 to-slate-800',
+      tugas: 'Menatausahakan APBDes, penerimaan pendapatan asli desa, transfer dana desa (ADD/DD), serta laporan keuangan.',
     },
     {
       jabatan: 'Kaur Administrasi dan T.U',
       nama: 'KASMAWATI',
       avatarColor: 'from-teal-800 to-slate-800',
+      tugas: 'Mengelola administrasi umum perkantoran desa, tata usaha, dan pengarsipan surat masuk dan keluar.',
     },
     {
       jabatan: 'Kepala Dusun Jombe Utara',
       nama: 'MUHAJRIN JUMARANG',
       avatarColor: 'from-emerald-900 to-teal-800',
+      tugas: 'Pembinaan ketertiban, pelayanan warga, dan penggerak gotong royong di wilayah Dusun Jombe Utara.',
     },
     {
       jabatan: 'Kepala Dusun Jombe Tengah',
       nama: 'BASO',
       avatarColor: 'from-slate-800 to-teal-900',
+      tugas: 'Koordinator kewilayahan, penyalur aspirasi warga, dan penggerak swadaya Dusun Jombe Tengah.',
     },
     {
       jabatan: 'Kepala Dusun Jombe Selatan',
       nama: 'SAPARUDDIN',
       avatarColor: 'from-teal-800 to-emerald-900',
+      tugas: 'Pembinaan ketertiban dan pelayanan warga masyarakat di wilayah Dusun Jombe Selatan.',
     },
     {
       jabatan: 'Kepala Dusun Tompo Balang',
       nama: 'NURLELA KAMARUDDIN',
       avatarColor: 'from-emerald-800 to-cyan-900',
+      tugas: 'Koordinator pelayanan administrasi dan pembinaan kemasyarakatan di wilayah Dusun Tompo Balang.',
     },
     {
       jabatan: 'Kepala Dusun Muncu-muncu',
       nama: 'ICAL RAHMAN',
       avatarColor: 'from-indigo-900 to-slate-900',
+      tugas: 'Koordinator pelayanan administrasi dan pembinaan kemasyarakatan di wilayah Dusun Muncu-muncu.',
     },
   ];
 
@@ -199,34 +211,38 @@ export default function ProfilDesaPage() {
                 Kepala Desa Jombe
               </span>
               <h3 className="text-2xl sm:text-3xl font-black tracking-tight">JUSMAEDY, S.Pd</h3>
-              <p className="text-xs text-emerald-300 font-mono">Periode Jabatan: 2021 – 2027</p>
             </div>
           </div>
 
-          {/* Tabel Perangkat */}
-          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm overflow-hidden">
-            <div className="px-6 py-5 border-b border-slate-100 flex items-center gap-2">
+          {/* Card Grid Perangkat */}
+          <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-sm">
+            <div className="flex items-center gap-2 border-b border-slate-100 pb-4 mb-6">
               <Users className="w-5 h-5 text-emerald-800" />
-              <h2 className="text-base font-black text-slate-900">
-                Perangkat Desa Jombe — Tahun Anggaran 2025
-              </h2>
+              <h2 className="text-base font-black text-slate-900">Perangkat Desa Jombe — Tahun Anggaran 2025</h2>
             </div>
-            <div className="divide-y divide-slate-100">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {aparatDesa.map((item, idx) => (
-                <div key={idx} className="flex items-center gap-4 px-6 py-4 hover:bg-slate-50 transition-colors">
-                  <span className="w-7 h-7 rounded-full bg-slate-100 text-slate-600 flex items-center justify-center font-bold text-xs shrink-0">
-                    {idx + 2}
-                  </span>
-                  <div className={`w-10 h-10 rounded-xl bg-gradient-to-br ${item.avatarColor} flex items-center justify-center text-white font-black text-xs shadow shrink-0`}>
-                    {item.nama.substring(0, 2).toUpperCase()}
+                <div
+                  key={idx}
+                  className="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm space-y-3 hover:border-emerald-300 hover:shadow-md transition-all flex flex-col justify-between"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-3">
+                      <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${item.avatarColor} flex items-center justify-center text-white font-black text-sm shadow shrink-0`}>
+                        {item.nama.substring(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-emerald-800 block">{item.jabatan}</span>
+                        <h4 className="text-sm font-extrabold text-slate-900 leading-tight">{item.nama}</h4>
+                      </div>
+                    </div>
+                    <p className="text-xs text-slate-600 leading-relaxed border-t border-slate-100 pt-3">
+                      {item.tugas}
+                    </p>
                   </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-extrabold text-slate-900 text-sm truncate">{item.nama}</p>
-                    <p className="text-xs text-emerald-800 font-semibold">{item.jabatan}</p>
+                  <div className="pt-2 flex justify-end">
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-full border border-emerald-200">Aktif</span>
                   </div>
-                  <span className="text-[10px] bg-emerald-50 text-emerald-700 font-bold px-2.5 py-1 rounded-full border border-emerald-200 shrink-0">
-                    Aktif
-                  </span>
                 </div>
               ))}
             </div>
