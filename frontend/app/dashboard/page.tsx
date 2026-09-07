@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FileText, Clock, CheckCircle2, AlertCircle, PlusCircle, ArrowRight, User, Phone, MapPin, Bell } from 'lucide-react';
+import { FileText, Clock, CheckCircle2, AlertCircle, PlusCircle, ArrowRight, User, Phone, MapPin, Bell, Download } from 'lucide-react';
 import api from '@/lib/api';
 
 export default function CitizenDashboardPage() {
@@ -114,12 +114,24 @@ export default function CitizenDashboardPage() {
                       </span>
                     </div>
 
-                    <Link
-                      href={`/permohonan/${app.id}`}
-                      className="px-4 py-2 bg-white border border-gray-200 hover:bg-jombe-700 hover:text-white hover:border-jombe-700 text-jombe-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-2xs"
-                    >
-                      Detail & Tracking <ArrowRight className="w-3.5 h-3.5" />
-                    </Link>
+                    <div className="flex items-center gap-2">
+                      {app.status === 'COMPLETED' && (
+                        <a
+                          href={app.pdfUrl || `/api/operator/pdf/${app.id}`}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-2xs"
+                        >
+                          <Download className="w-3.5 h-3.5" /> Surat PDF
+                        </a>
+                      )}
+                      <Link
+                        href={`/permohonan/${app.id}`}
+                        className="px-4 py-2 bg-white border border-gray-200 hover:bg-jombe-700 hover:text-white hover:border-jombe-700 text-jombe-800 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-2xs"
+                      >
+                        Detail & Tracking <ArrowRight className="w-3.5 h-3.5" />
+                      </Link>
+                    </div>
                   </div>
                 ))}
               </div>

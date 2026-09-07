@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import prisma from '../config/db';
 import { WaApplicationRecord } from '../controllers/whatsappBotController';
 
 const DATA_DIR = process.env.VERCEL
@@ -57,6 +58,31 @@ export interface AnnouncementRecord {
 }
 
 export class PersistentDatabase {
+  // Sync helper with Prisma PersistentStore table for permanent storage across deployments/restarts
+  private static async syncToPrismaStore(key: string, dataObj: any): Promise<void> {
+    try {
+      const jsonStr = JSON.stringify(dataObj);
+      await prisma.persistentStore.upsert({
+        where: { key },
+        update: { data: jsonStr },
+        create: { key, data: jsonStr },
+      });
+    } catch (e) {
+      // Ignore errors if DB is temporarily unreachable
+    }
+  }
+
+  private static async loadFromPrismaStore(key: string): Promise<any[] | null> {
+    try {
+      const record = await prisma.persistentStore.findUnique({ where: { key } });
+      if (record && record.data) {
+        const parsed = JSON.parse(record.data);
+        return Array.isArray(parsed) ? parsed : null;
+      }
+    } catch (e) {}
+    return null;
+  }
+
   // ================= APPLICATIONS =================
   public static loadApplications(): WaApplicationRecord[] {
     try {
@@ -75,14 +101,14 @@ export class PersistentDatabase {
 
   public static saveApplications(records: WaApplicationRecord[]): void {
     try {
-      // Write then atomically replace: a power loss can at worst retain the
-      // previous complete file, never leave a half-written JSON database.
       const tempFile = `${DB_FILE}.${process.pid}.tmp`;
       fs.writeFileSync(tempFile, JSON.stringify(records, null, 2), 'utf-8');
       fs.renameSync(tempFile, DB_FILE);
     } catch (e) {
       console.error('Error saving persistent applications DB:', e);
     }
+    // Background sync to PostgreSQL database for permanent persistence
+    this.syncToPrismaStore('applications_db', records);
   }
 
   public static addApplication(record: WaApplicationRecord): void {
@@ -244,6 +270,8 @@ export class PersistentDatabase {
     } catch (e) {
       console.error('Error saving complaints DB:', e);
     }
+    // Background sync to PostgreSQL database for permanent persistence
+    this.syncToPrismaStore('complaints_db', records);
   }
 
   public static addComplaint(record: ComplaintRecord): void {

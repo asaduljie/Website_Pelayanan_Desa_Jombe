@@ -783,6 +783,17 @@ Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
                         </td>
                         <td className="px-6 py-4 text-right">
                           <div className="flex items-center justify-end gap-2">
+                            {app.status === 'COMPLETED' && (
+                              <a
+                                href={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '')}/operator/pdf/${app.id}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-3.5 py-1.5 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-colors shadow-xs flex items-center gap-1.5 shrink-0"
+                                title="Cetak & Download PDF Surat (Siap Print & TTD Kades)"
+                              >
+                                <Download className="w-3.5 h-3.5" /> Cetak PDF
+                              </a>
+                            )}
                             <button
                               onClick={() => handleSelectApp(app)}
                               className="px-3.5 py-1.5 bg-emerald-800 hover:bg-emerald-900 text-white font-bold rounded-xl text-xs transition-colors shadow-xs flex items-center gap-1.5"
@@ -1670,6 +1681,16 @@ Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
                   <Check className="w-4 h-4 text-emerald-300" />
                   IYA (Setujui & Terbitkan Surat Balasan SKU ke WhatsApp Warga)
                 </button>
+                <a
+                  href={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '')}/operator/pdf/${selectedApp.id}`}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="px-5 py-3 bg-teal-700 hover:bg-teal-800 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+                  title="Cetak PDF Hasil Jadi untuk Di-print & TTD Aparat Desa / Kepala Desa"
+                >
+                  <Download className="w-4 h-4" />
+                  Cetak / Download PDF (TTD Kades)
+                </a>
                 <button
                   onClick={handleRejectNo}
                   disabled={actionLoading}

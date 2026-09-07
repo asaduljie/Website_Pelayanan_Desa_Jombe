@@ -10,7 +10,33 @@ import { realtimeEvents } from '../services/realtimeEvents';
 
 export const getOperatorDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
-    const allApps = PersistentDatabase.loadApplications();
+    let allApps = PersistentDatabase.loadApplications();
+
+    try {
+      const dbApps = await prisma.application.findMany({
+        include: { user: true, service: true },
+      });
+      for (const dbApp of dbApps) {
+        if (!allApps.some((a) => a.id === dbApp.id || a.applicationNumber === dbApp.applicationNumber) && dbApp.user) {
+          const rec: any = {
+            id: dbApp.id,
+            applicationNumber: dbApp.applicationNumber,
+            userId: dbApp.userId,
+            userNik: dbApp.user.nik,
+            userName: dbApp.user.name,
+            userPhone: dbApp.user.phone || '-',
+            serviceId: dbApp.serviceId,
+            serviceName: dbApp.service?.name || 'Surat Keterangan',
+            serviceSlug: dbApp.service?.slug || 'surat-keterangan-usaha',
+            status: dbApp.status,
+            detailValue: `Permohonan diajukan oleh ${dbApp.user.name} (NIK: ${dbApp.user.nik})`,
+            createdAt: dbApp.createdAt.toISOString(),
+          };
+          allApps.unshift(rec);
+          PersistentDatabase.addApplication(rec);
+        }
+      }
+    } catch (e) {}
 
     const pendingCount = allApps.filter((w) => w.status === 'PENDING').length;
     const processingCount = allApps.filter((w) => w.status === 'PROCESSING').length;
@@ -37,7 +63,35 @@ export const getOperatorApplications = async (req: AuthRequest, res: Response) =
   try {
     const { status, search } = req.query;
 
-    const allApps = PersistentDatabase.loadApplications();
+    let allApps = PersistentDatabase.loadApplications();
+
+    // Merge from Prisma DB if any records exist there
+    try {
+      const dbApps = await prisma.application.findMany({
+        include: { user: true, service: true },
+        orderBy: { createdAt: 'desc' },
+      });
+      for (const dbApp of dbApps) {
+        if (!allApps.some((a) => a.id === dbApp.id || a.applicationNumber === dbApp.applicationNumber) && dbApp.user) {
+          const rec: any = {
+            id: dbApp.id,
+            applicationNumber: dbApp.applicationNumber,
+            userId: dbApp.userId,
+            userNik: dbApp.user.nik,
+            userName: dbApp.user.name,
+            userPhone: dbApp.user.phone || '-',
+            serviceId: dbApp.serviceId,
+            serviceName: dbApp.service?.name || 'Surat Keterangan',
+            serviceSlug: dbApp.service?.slug || 'surat-keterangan-usaha',
+            status: dbApp.status,
+            detailValue: `Permohonan diajukan oleh ${dbApp.user.name} (NIK: ${dbApp.user.nik})`,
+            createdAt: dbApp.createdAt.toISOString(),
+          };
+          allApps.unshift(rec);
+          PersistentDatabase.addApplication(rec);
+        }
+      }
+    } catch (e) {}
 
     // Map persistent applications with full photo and citizen details
     const waAppsMapped = allApps.map((w) => {

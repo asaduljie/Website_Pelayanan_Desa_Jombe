@@ -6,6 +6,7 @@ import path from 'path';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import { waApplicationsStore } from './whatsappBotController';
+import { PersistentDatabase } from '../utils/persistentDb';
 
 /**
  * Generate & Direct Stream PDF to Browser
@@ -28,25 +29,30 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
       });
     } catch (dbErr) {}
 
-    // 2. Try WA Store
+    // 2. Try Persistent Database / WA Store
     if (!application) {
-      const waMatch = waApplicationsStore.find((w) => w.id === id || w.applicationNumber === id);
-      if (waMatch) {
+      const persistentList = PersistentDatabase.loadApplications();
+      const match = persistentList.find((w) => w.id === id || w.applicationNumber === id) ||
+        waApplicationsStore.find((w) => w.id === id || w.applicationNumber === id);
+
+      if (match) {
         application = {
-          id: waMatch.id,
-          applicationNumber: waMatch.applicationNumber,
+          id: match.id,
+          applicationNumber: match.applicationNumber,
+          letterNumber: match.letterNumber,
+          letterContent: match.letterContent,
           user: {
-            name: waMatch.userName,
-            nik: waMatch.userNik,
-            phone: waMatch.userPhone,
+            name: match.userName,
+            nik: match.userNik,
+            phone: match.userPhone,
             address: 'Desa Jombe',
           },
           service: {
-            name: waMatch.serviceName,
+            name: match.serviceName,
             letterTemplates: [{ codePrefix: '470' }],
           },
           fieldValues: [
-            { field: { label: 'Rincian Keterangan' }, value: waMatch.detailValue },
+            { field: { label: 'Rincian Keterangan' }, value: match.detailValue },
           ],
         };
       }

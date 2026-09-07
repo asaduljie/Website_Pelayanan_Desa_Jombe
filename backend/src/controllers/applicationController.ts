@@ -146,17 +146,58 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
 
 export const getMyApplications = async (req: AuthRequest, res: Response) => {
   try {
-    const userId = req.user?.id || 'demo-warga-id-1';
-    const userNik = req.user?.nik || '3512345678900001';
+    const userId = req.user?.id || '';
+    const userNik = req.user?.nik || '';
 
-    const allPersistent = PersistentDatabase.loadApplications();
+    const host = req.get('host') || 'localhost:5000';
+    const protocol = host.includes('localhost') ? req.protocol : 'https';
+
+    let allPersistent = PersistentDatabase.loadApplications();
+
+    // Also check Prisma DB for applications belonging to this citizen NIK or userId
+    if (userNik || userId) {
+      try {
+        const dbApps = await prisma.application.findMany({
+          where: {
+            OR: [
+              ...(userNik ? [{ user: { nik: userNik } }] : []),
+              ...(userId ? [{ userId }] : []),
+            ],
+          },
+          include: { service: true, user: true },
+          orderBy: { createdAt: 'desc' },
+        });
+
+        for (const dbApp of dbApps) {
+          if (!allPersistent.some((a) => a.id === dbApp.id || a.applicationNumber === dbApp.applicationNumber)) {
+            allPersistent.unshift({
+              id: dbApp.id,
+              applicationNumber: dbApp.applicationNumber,
+              userId: dbApp.userId,
+              userNik: dbApp.user?.nik || userNik,
+              userName: dbApp.user?.name || 'Warga',
+              userPhone: dbApp.user?.phone || '-',
+              serviceId: dbApp.serviceId,
+              serviceName: dbApp.service?.name || 'Surat Keterangan',
+              serviceSlug: dbApp.service?.slug || 'surat-keterangan-usaha',
+              status: dbApp.status as any,
+              detailValue: 'Permohonan Surat Mandiri',
+              createdAt: dbApp.createdAt.toISOString(),
+            });
+          }
+        }
+      } catch (e) {}
+    }
+
     const userApps = allPersistent
-      .filter((w) => w.userNik === userNik || w.userId === userId)
+      .filter((w) => (userNik && w.userNik === userNik) || (userId && w.userId === userId) || (!userNik && !userId))
       .map((w) => ({
         id: w.id,
         applicationNumber: w.applicationNumber,
         status: w.status,
         createdAt: w.createdAt,
+        letterNumber: w.letterNumber,
+        pdfUrl: w.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${w.id}` : null,
         service: {
           name: w.serviceName,
           category: 'Surat Keterangan',
