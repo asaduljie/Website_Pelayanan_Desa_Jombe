@@ -49,8 +49,8 @@ model User {
   nikEncrypted     String?           
   name             String
   email            String?           @unique
-  phone            String            
-  password         String            
+  phone            String?
+  password         String?
   role             Role              @default(MASYARAKAT)
   address          String?
   dusun            String?
