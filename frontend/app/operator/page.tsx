@@ -97,105 +97,14 @@ export default function OperatorDashboardPage() {
   const [assistedPhone, setAssistedPhone] = useState('');
   const [assistedServiceId, setAssistedServiceId] = useState('');
   const [assistedNotes, setAssistedNotes] = useState('');
-
-  // Live Baileys WhatsApp Connection State
-  const [showWaQrModal, setShowWaQrModal] = useState(false);
+  // Approval Result Modal
   const [approvalModal, setApprovalModal] = useState<{
     citizenName: string;
-    phone: string;
     serviceName: string;
     letterNumber: string;
     applicationNumber: string;
     pdfUrl: string;
-    waText: string;
-    waLink: string;
   } | null>(null);
-  const [copiedNotice, setCopiedNotice] = useState(false);
-  const [waConnectMode, setWaConnectMode] = useState<'PAIRING' | 'QR'>('PAIRING');
-  const [pairingPhone, setPairingPhone] = useState('087853617893');
-  const [waStatus, setWaStatus] = useState<any>({
-    status: 'DISCONNECTED',
-    qrCodeDataUrl: null,
-    pairingCode: null,
-    phoneNumber: null,
-    userName: null,
-  });
-  const [waLoading, setWaLoading] = useState(false);
-
-  useEffect(() => {
-    fetchWaStatus();
-  }, []);
-
-  useEffect(() => {
-    let interval: any = null;
-    if (showWaQrModal || waStatus.status === 'SCAN_QR' || waStatus.status === 'CONNECTING') {
-      interval = setInterval(() => {
-        fetchWaStatus();
-      }, 2500);
-    }
-    return () => {
-      if (interval) clearInterval(interval);
-    };
-  }, [showWaQrModal, waStatus.status]);
-
-  const fetchWaStatus = async () => {
-    try {
-      const res = await api.get('/whatsapp/status');
-      if (res.data.status === 'success') {
-        setWaStatus(res.data.data);
-      }
-    } catch (e) { }
-  };
-
-  const handleStartWaConnection = async (forceNew = false) => {
-    setWaLoading(true);
-    setShowWaQrModal(true);
-    try {
-      const res = await api.post('/whatsapp/connect', { forceNew: forceNew || waStatus.status !== 'CONNECTED' });
-      if (res.data.status === 'success') {
-        setWaStatus(res.data.data);
-      }
-    } catch (e: any) {
-      alert('Gagal menghubungkan WhatsApp: ' + (e.response?.data?.message || e.message));
-    } finally {
-      setWaLoading(false);
-    }
-  };
-
-  const handleRequestPairingCode = async () => {
-    if (!pairingPhone) {
-      alert('Masukkan nomor WhatsApp terlebih dahulu.');
-      return;
-    }
-    setWaLoading(true);
-    setShowWaQrModal(true);
-    try {
-      const res = await api.post('/whatsapp/connect', { phoneNumber: pairingPhone });
-      if (res.data.status === 'success') {
-        if (res.data.data) {
-          setWaStatus(res.data.data);
-        }
-        fetchWaStatus();
-      }
-    } catch (e: any) {
-      alert('Gagal meminta kode pairing: ' + (e.response?.data?.message || e.message));
-    } finally {
-      setWaLoading(false);
-    }
-  };
-
-  const handleDisconnectWa = async () => {
-    if (!confirm('Putuskan koneksi nomor WhatsApp ini?')) return;
-    setWaLoading(true);
-    try {
-      await api.post('/whatsapp/disconnect');
-      fetchWaStatus();
-      alert('Sesi WhatsApp berhasil diputuskan.');
-    } catch (e) { }
-    finally {
-      setWaLoading(false);
-    }
-  };
 
   useEffect(() => {
     const stored = localStorage.getItem('jombe_user');
@@ -214,10 +123,6 @@ export default function OperatorDashboardPage() {
     fetchDashboardData();
   }, [statusFilter, search]);
 
-  // A request made through WhatsApp or the public website is pushed to an
-  // already-open operator dashboard immediately. EventSource reconnects by
-  // itself after a short network interruption, so a browser refresh is not
-  // needed to keep receiving new applications.
   useEffect(() => {
     const token = localStorage.getItem('jombe_token');
     if (!token) return;
@@ -225,7 +130,6 @@ export default function OperatorDashboardPage() {
     const stream = new EventSource(`${baseUrl}/operator/events?access_token=${encodeURIComponent(token)}`);
     const refresh = () => fetchDashboardData();
     stream.addEventListener('application.changed', refresh);
-    stream.addEventListener('whatsapp.status', fetchWaStatus);
     return () => stream.close();
   }, [statusFilter, search]);
 
@@ -264,7 +168,7 @@ export default function OperatorDashboardPage() {
     );
   };
 
-  // ACTION: "IYA" (Setujui Permohonan & Terbitkan Surat Balasan SKU Otomatis)
+  // ACTION: "IYA" (Setujui Permohonan & Terbitkan Surat Balasan Resmi)
   const handleApproveYes = async () => {
     if (!selectedApp) return;
 
@@ -277,54 +181,19 @@ export default function OperatorDashboardPage() {
 
       if (res.data.status === 'success') {
         const approvedData = res.data.data || {};
-        const targetPhone = approvedData.phone || selectedApp.user?.phone || selectedApp.userPhone || '';
-        let cleanPhone = targetPhone.replace(/\D/g, '');
-        if (cleanPhone.startsWith('0')) {
-          cleanPhone = '62' + cleanPhone.slice(1);
-        } else if (cleanPhone.startsWith('8')) {
-          cleanPhone = '62' + cleanPhone;
-        }
-
         const citizenName = approvedData.citizenName || selectedApp.user?.name || selectedApp.userName || 'Warga';
         const serviceName = approvedData.serviceName || selectedApp.service?.name || selectedApp.serviceName || 'Surat Keterangan';
         const letterNum = approvedData.letterNumber || editLetterNumber;
         const regNum = approvedData.applicationNumber || selectedApp.applicationNumber;
         const pdfUrl = approvedData.pdfUrl || `${window.location.origin}/api/operator/pdf/${selectedApp.id}`;
 
-        const waText = 
-`*PEMERINTAH DESA JOMBE*
-_Kecamatan Turatea, Kabupaten Jeneponto_
-------------------------------------------------
-Yth. Bapak/Ibu *${citizenName}*,
-
-Permohonan surat Anda telah *DISETUJUI & DITERBITKAN* oleh Kepala Desa Jombe (JUSMAEDY, S.Pd).
-
-📄 *Jenis Surat*: ${serviceName}
-🔢 *Nomor Surat*: ${letterNum}
-📋 *No. Registrasi*: ${regNum}
-
-Dokumen resmi PDF bertanda tangan dan ber-KOP resmi dapat diunduh melalui tautan resmi berikut:
-🔗 ${pdfUrl}
-
-Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
-
-        const waLink = cleanPhone ? `https://api.whatsapp.com/send?phone=${cleanPhone}&text=${encodeURIComponent(waText)}` : '';
-
         setApprovalModal({
           citizenName,
-          phone: cleanPhone || targetPhone,
           serviceName,
           letterNumber: letterNum,
           applicationNumber: regNum,
           pdfUrl,
-          waText,
-          waLink,
         });
-
-        // Open WhatsApp in a new tab if phone is available
-        if (waLink) {
-          window.open(waLink, '_blank');
-        }
 
         fetchDashboardData();
         setSelectedApp(null);
@@ -568,31 +437,6 @@ Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
         </div>
 
         <div className="flex flex-wrap items-center gap-3 shrink-0">
-          {/* Real WhatsApp Live Connection Button */}
-          <button
-            onClick={() => {
-              if (waStatus.status === 'CONNECTED') {
-                setShowWaQrModal(true);
-              } else {
-                handleStartWaConnection();
-              }
-            }}
-            className={`px-4 py-3 font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 border ${waStatus.status === 'CONNECTED'
-                ? 'bg-emerald-500 hover:bg-emerald-400 text-emerald-950 border-emerald-300'
-                : 'bg-emerald-800 hover:bg-emerald-700 text-emerald-100 border-emerald-600'
-              }`}
-          >
-            <Phone className="w-4 h-4" />
-            {waStatus.status === 'CONNECTED' ? (
-              <span className="flex items-center gap-1.5">
-                <span className="w-2 h-2 rounded-full bg-emerald-950 animate-pulse"></span>
-                WA Aktif: {waStatus.phoneNumber || 'Terhubung'}
-              </span>
-            ) : (
-              <span>Hubungkan WhatsApp Asli (Scan QR)</span>
-            )}
-          </button>
-
           <button
             onClick={() => setShowAssistedModal(true)}
             className="px-5 py-3 bg-amber-500 hover:bg-amber-400 text-amber-950 font-extrabold text-xs rounded-2xl shadow-md transition-all flex items-center gap-2 shrink-0 border border-amber-400/40"
@@ -1652,10 +1496,10 @@ Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
               <div className="flex items-center justify-between">
                 <div>
                   <h4 className="text-sm font-extrabold text-emerald-950">
-                    Apakah surat sudah benar dan sesuai?
+                    Apakah permohonan surat sudah benar dan sesuai?
                   </h4>
                   <p className="text-xs text-emerald-900/80 mt-0.5">
-                    Menekan tombol <strong>IYA</strong> akan langsung otomatis membuat Surat Balasan SKU resmi dan mengirim notifikasi WhatsApp + berkas PDF ke warga.
+                    Menekan tombol <strong>IYA</strong> akan langsung otomatis menyetujui surat dan menerbitkan berkas PDF resmi bertanda tangan Kepala Desa Jombe.
                   </p>
                 </div>
                 {activeTab === 'SURAT_BALASAN_SKU' && (
@@ -1679,18 +1523,8 @@ Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
                   className="flex-1 py-3 bg-emerald-800 hover:bg-emerald-900 disabled:opacity-50 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
                 >
                   <Check className="w-4 h-4 text-emerald-300" />
-                  IYA (Setujui & Terbitkan Surat Balasan SKU ke WhatsApp Warga)
+                  IYA (Setujui & Terbitkan Surat Resmi)
                 </button>
-                <a
-                  href={`${(process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '')}/operator/pdf/${selectedApp.id}`}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="px-5 py-3 bg-teal-700 hover:bg-teal-800 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-                  title="Cetak PDF Hasil Jadi untuk Di-print & TTD Aparat Desa / Kepala Desa"
-                >
-                  <Download className="w-4 h-4" />
-                  Cetak / Download PDF (TTD Kades)
-                </a>
                 <button
                   onClick={handleRejectNo}
                   disabled={actionLoading}
@@ -1817,207 +1651,10 @@ Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
         </div>
       )}
 
-      {/* ======================================================== */}
-      {/* REAL WHATSAPP LIVE QR SCAN & CONNECTION MODAL            */}
-      {/* ======================================================== */}
-      {showWaQrModal && (
-        <div className="fixed inset-0 z-60 bg-black/80 backdrop-blur-sm flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-6 shadow-2xl overflow-hidden animate-in fade-in zoom-in-95 duration-200">
-            <div className="flex justify-between items-start border-b border-slate-100 pb-3">
-              <div>
-                <span className="text-[10px] font-bold uppercase text-emerald-800 tracking-wider">
-                  Koneksi WhatsApp Resmi Desa (Baileys Engine)
-                </span>
-                <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                  <Phone className="w-5 h-5 text-emerald-600" />
-                  {waStatus.status === 'CONNECTED' ? 'WhatsApp Terhubung!' : 'Pindai Kode QR WhatsApp'}
-                </h3>
-              </div>
-              <button
-                onClick={() => setShowWaQrModal(false)}
-                className="p-1.5 rounded-lg text-slate-400 hover:text-slate-800 hover:bg-slate-100 transition-colors"
-              >
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            {/* STATUS: CONNECTED */}
-            {waStatus.status === 'CONNECTED' ? (
-              <div className="text-center space-y-4 py-4">
-                <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center border-2 border-emerald-300 shadow-xs">
-                  <CheckCircle2 className="w-10 h-10" />
-                </div>
-                <div className="space-y-1">
-                  <h4 className="text-sm font-extrabold text-emerald-950">
-                    Nomor WhatsApp Resmi Siap Melayani
-                  </h4>
-                  <p className="text-xs font-mono font-bold text-slate-700 bg-slate-100 py-1.5 px-3 rounded-xl inline-block border border-slate-200">
-                    📱 +{waStatus.phoneNumber || '628xxxxxxxx'}
-                  </p>
-                  <p className="text-[11px] text-slate-500 pt-1">
-                    Setiap permohonan surat yang masuk ke nomor ini akan otomatis disusun dan surat balasan PDF resmi akan dikirimkan langsung ke WhatsApp warga.
-                  </p>
-                </div>
-
-                <div className="pt-4 border-t border-slate-100 flex gap-2">
-                  <button
-                    onClick={() => setShowWaQrModal(false)}
-                    className="flex-1 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white text-xs font-bold rounded-xl"
-                  >
-                    Tutup Layar
-                  </button>
-                  <button
-                    onClick={handleDisconnectWa}
-                    className="px-4 py-2.5 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-bold rounded-xl transition-colors"
-                  >
-                    Putuskan Sesi
-                  </button>
-                </div>
-              </div>
-            ) : (
-              /* STATUS: SCAN QR / PAIRING CODE */
-              <div className="space-y-4">
-                {/* Method Selector Tabs */}
-                <div className="flex gap-2 bg-slate-100 p-1 rounded-xl">
-                  <button
-                    type="button"
-                    onClick={() => setWaConnectMode('PAIRING')}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${waConnectMode === 'PAIRING'
-                        ? 'bg-emerald-700 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                  >
-                    🔢 Kode 8 Digit (Mudah & Cepat)
-                  </button>
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setWaConnectMode('QR');
-                      handleStartWaConnection(true);
-                    }}
-                    className={`flex-1 py-2 text-xs font-bold rounded-lg transition-all ${waConnectMode === 'QR'
-                        ? 'bg-emerald-700 text-white shadow-xs'
-                        : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                  >
-                    📷 Scan QR Code
-                  </button>
-                </div>
-
-                {/* MODE 1: PAIRING CODE (NO CAMERA SCAN NEEDED) */}
-                {waConnectMode === 'PAIRING' && (
-                  <div className="space-y-4">
-                    <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 space-y-3">
-                      <label className="text-xs font-bold text-emerald-950 block">
-                        Nomor WhatsApp Bot / Operator:
-                      </label>
-                      <div className="flex gap-2">
-                        <input
-                          type="text"
-                          value={pairingPhone}
-                          onChange={(e) => setPairingPhone(e.target.value)}
-                          placeholder="087853617893"
-                          className="flex-1 px-3 py-2 bg-white border border-emerald-300 rounded-xl text-xs font-mono font-bold text-slate-900"
-                        />
-                        <button
-                          type="button"
-                          onClick={handleRequestPairingCode}
-                          disabled={waLoading}
-                          className="px-4 py-2 bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold rounded-xl transition-all disabled:opacity-50"
-                        >
-                          {waLoading ? 'Memproses...' : 'Dapatkan Kode'}
-                        </button>
-                      </div>
-                    </div>
-
-                    {waStatus.pairingCode ? (
-                      <div className="p-5 bg-emerald-100/90 rounded-2xl border-2 border-emerald-500 text-center space-y-2 animate-in fade-in zoom-in-95">
-                        <span className="text-[11px] font-bold text-emerald-900 uppercase block">
-                          Kode Pairing 8 Digit WhatsApp Anda:
-                        </span>
-                        <span className="text-3xl font-mono font-extrabold tracking-widest text-emerald-950 block py-2 bg-white rounded-xl border border-emerald-400 shadow-inner">
-                          {waStatus.pairingCode}
-                        </span>
-                        <p className="text-[11px] text-emerald-900 font-medium">
-                          Masukkan 8 karakter kode ini di WhatsApp HP Anda sekarang.
-                        </p>
-                      </div>
-                    ) : (
-                      <div className="text-center py-2">
-                        <p className="text-xs text-slate-500">
-                          Klik tombol <strong>"Dapatkan Kode"</strong> di atas untuk membuat 8 digit kode pertautan.
-                        </p>
-                      </div>
-                    )}
-
-                    {/* Step by step for Pairing code */}
-                    <div className="bg-slate-50 p-3.5 rounded-xl border border-slate-200 text-xs space-y-1.5 text-slate-800">
-                      <p className="font-bold text-slate-900">Cara Memasukkan Kode di HP (Tanpa Kamera):</p>
-                      <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-600">
-                        <li>Buka aplikasi <strong>WhatsApp</strong> di HP Anda.</li>
-                        <li>Ketuk <strong>Menu (titik tiga)</strong> di pojok kanan atas ➔ <strong>Perangkat Tertaut</strong>.</li>
-                        <li>Ketuk <strong>Tautkan Perangkat</strong>.</li>
-                        <li>Di layar scan kamera, ketuk tulisan <strong>"Tautkan dengan nomor telepon saja"</strong> di bagian paling bawah layar HP!</li>
-                        <li>Ketik <strong>8 karakter kode</strong> yang muncul di atas. Selesai!</li>
-                      </ol>
-                    </div>
-                  </div>
-                )}
-
-                {/* MODE 2: AUTHENTIC BAILEYS QR CODE */}
-                {waConnectMode === 'QR' && (
-                  <div className="space-y-4">
-                    {waStatus.qrCodeDataUrl ? (
-                      <div className="p-4 bg-slate-50 rounded-2xl border border-slate-200 flex flex-col items-center justify-center space-y-3">
-                        <img
-                          src={waStatus.qrCodeDataUrl}
-                          alt="WhatsApp Web QR Code"
-                          className="w-56 h-56 rounded-xl border border-slate-300 shadow-sm bg-white p-2"
-                        />
-                        <span className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
-                          <RefreshCw className="w-3 h-3 animate-spin text-emerald-700" /> Kode QR Resmi Siap Scan
-                        </span>
-                      </div>
-                    ) : (
-                      <div className="p-8 bg-slate-50 rounded-2xl border border-slate-200 text-center space-y-3">
-                        <RefreshCw className="w-8 h-8 text-emerald-700 animate-spin mx-auto" />
-                        <p className="text-xs text-slate-600 font-bold">
-                          Sedang menyiapkan Kode QR WhatsApp Asli dari Server...
-                        </p>
-                        <p className="text-[11px] text-slate-500">
-                          Pastikan server backend lokal Anda sedang berjalan.
-                        </p>
-                        <button
-                          onClick={() => handleStartWaConnection(true)}
-                          className="text-xs text-emerald-700 font-bold hover:underline"
-                        >
-                          Muat Ulang
-                        </button>
-                      </div>
-                    )}
-
-                    {/* Step by step for QR */}
-                    <div className="bg-emerald-50/70 p-3.5 rounded-xl border border-emerald-200 text-xs space-y-1.5 text-slate-800">
-                      <p className="font-bold text-emerald-950">Cara Scan dari HP:</p>
-                      <ol className="list-decimal list-inside space-y-1 text-[11px] text-slate-700">
-                        <li>Buka aplikasi <strong>WhatsApp</strong> di HP Anda.</li>
-                        <li>Ketuk <strong>Menu (titik tiga)</strong> di pojok kanan atas ➔ Pilih <strong>Perangkat Tertaut</strong>.</li>
-                        <li>Ketuk <strong>Tautkan Perangkat</strong>.</li>
-                        <li>Arahkan kamera ke <strong>Kode QR</strong> di atas.</li>
-                      </ol>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* MODAL APPROVAL SUCCESS & WHATSAPP DELIVERY */}
+      {/* MODAL APPROVAL SUCCESS */}
       {approvalModal && (
         <div className="fixed inset-0 z-[10000] bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-lg w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-emerald-200 animate-in zoom-in-95 duration-150 text-xs">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-emerald-200 animate-in zoom-in-95 duration-150 text-xs">
             <div className="flex items-center gap-3 border-b border-slate-100 pb-4">
               <div className="w-12 h-12 rounded-2xl bg-emerald-100 text-emerald-800 flex items-center justify-center shrink-0">
                 <Check className="w-6 h-6" />
@@ -2034,8 +1671,8 @@ Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
                 <strong className="text-slate-900">{approvalModal.citizenName}</strong>
               </div>
               <div className="flex justify-between">
-                <span className="text-slate-500">Nomor Telepon:</span>
-                <strong className="font-mono text-emerald-800">{approvalModal.phone || 'Tidak tersedia'}</strong>
+                <span className="text-slate-500">Jenis Surat:</span>
+                <strong className="text-slate-900">{approvalModal.serviceName}</strong>
               </div>
               <div className="flex justify-between">
                 <span className="text-slate-500">Nomor Surat:</span>
@@ -2047,49 +1684,25 @@ Terima kasih atas partisipasi Anda dalam pelayanan digital Desa Jombe.`;
               </div>
             </div>
 
-            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-2">
-              <span className="font-bold text-emerald-950 block">Pesan Notifikasi Pengantar Dokumen:</span>
-              <pre className="text-[11px] font-sans text-slate-700 whitespace-pre-wrap bg-white p-3 rounded-xl border border-emerald-100 max-h-36 overflow-y-auto">
-                {approvalModal.waText}
-              </pre>
+            <div className="p-3.5 rounded-2xl bg-emerald-50 border border-emerald-200 text-emerald-950">
+              <p className="leading-relaxed">
+                Surat telah disahkan. Berkas PDF resmi telah tersedia di sistem dan pemohon dapat mengunduhnya langsung melalui portal lacak surat.
+              </p>
             </div>
 
             <div className="flex flex-col gap-2 pt-1">
-              {approvalModal.waLink && (
-                <a
-                  href={approvalModal.waLink}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="w-full py-3 bg-emerald-600 hover:bg-emerald-500 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
-                >
-                  <MessageSquare className="w-4 h-4" />
-                  <span>Kirim / Buka WhatsApp Pemohon Sekarang</span>
-                </a>
-              )}
-              <div className="grid grid-cols-2 gap-2">
-                <a
-                  href={approvalModal.pdfUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="py-2.5 px-4 bg-slate-800 hover:bg-slate-900 text-white font-bold text-xs rounded-xl transition-colors flex items-center justify-center gap-1.5"
-                >
-                  <Download className="w-3.5 h-3.5" />
-                  <span>Unduh Dokumen PDF</span>
-                </a>
-                <button
-                  onClick={() => {
-                    navigator.clipboard.writeText(approvalModal.waText);
-                    setCopiedNotice(true);
-                    setTimeout(() => setCopiedNotice(false), 2000);
-                  }}
-                  className="py-2.5 px-4 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
-                >
-                  {copiedNotice ? 'Tersalin!' : 'Salin Teks Notifikasi'}
-                </button>
-              </div>
+              <a
+                href={approvalModal.pdfUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2"
+              >
+                <Download className="w-4 h-4" />
+                <span>Cetak / Unduh Dokumen PDF (Siap Print)</span>
+              </a>
               <button
                 onClick={() => setApprovalModal(null)}
-                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-600 font-bold text-xs rounded-xl transition-colors mt-1"
+                className="w-full py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-colors"
               >
                 Tutup Jendela
               </button>

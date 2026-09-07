@@ -18,7 +18,7 @@ export default function VerifikasiTteDetailPage() {
 
     const fetchVerification = async () => {
       setLoading(true);
-      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://quinoa-legal-ostrich.abasthan.app/api').replace(/\/$/, '');
+      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://lentera-desa-backend.vercel.app/api').replace(/\/$/, '');
       try {
         const res = await fetch(`${baseUrl}/public/verify-tte/${encodeURIComponent(idOrNumber)}`);
         const json = await res.json();
@@ -220,7 +220,7 @@ export default function VerifikasiTteDetailPage() {
             {/* Action Buttons */}
             <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
               <a
-                href={tteData?.pdfDownloadUrl || `${(process.env.NEXT_PUBLIC_API_URL || 'https://quinoa-legal-ostrich.abasthan.app/api').replace(/\/$/, '')}/operator/pdf/${idOrNumber}`}
+                href={tteData?.pdfDownloadUrl || `${(process.env.NEXT_PUBLIC_API_URL || 'https://lentera-desa-backend.vercel.app/api').replace(/\/$/, '')}/operator/pdf/${idOrNumber}`}
                 target="_blank"
                 rel="noreferrer"
                 className="w-full sm:w-auto px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-colors"

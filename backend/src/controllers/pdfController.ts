@@ -5,7 +5,6 @@ import fs from 'fs';
 import path from 'path';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
-import { waApplicationsStore } from './whatsappBotController';
 import { PersistentDatabase } from '../utils/persistentDb';
 
 /**
@@ -29,16 +28,16 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
       });
     } catch (dbErr) {}
 
-    // 2. Try Persistent Database / WA Store
+    // 2. Try Persistent Database
     if (!application) {
       const persistentList = PersistentDatabase.loadApplications();
-      const match = persistentList.find((w) => w.id === id || w.applicationNumber === id) ||
-        waApplicationsStore.find((w) => w.id === id || w.applicationNumber === id);
+      const match = persistentList.find((w) => w.id === id || w.applicationNumber === id);
 
       if (match) {
         application = {
           id: match.id,
           applicationNumber: match.applicationNumber,
+          status: match.status,
           letterNumber: match.letterNumber,
           letterContent: match.letterContent,
           user: {
@@ -58,11 +57,34 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
       }
     }
 
-    // 3. Fallback demo
+    // Strict validation: Only allow PDF if status is COMPLETED or requested by authorized operator
+    if (application && application.status && application.status !== 'COMPLETED') {
+      const isOperator = req.user?.role === 'OPERATOR' || req.user?.role === 'ADMIN';
+      if (!isOperator) {
+        return res.status(403).send(`
+          <html>
+            <head><title>Surat Belum Disetujui</title></head>
+            <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc;">
+              <div style="background: white; padding: 32px; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 480px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                <div style="font-size: 48px; margin-bottom: 12px;">⏳</div>
+                <h2 style="color: #0f172a; margin: 0 0 8px 0; font-size: 18px;">Surat Belum Dapat Diunduh</h2>
+                <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 20px 0;">
+                  Permohonan surat (<strong>${application.applicationNumber}</strong>) saat ini berstatus <strong>${application.status}</strong> dan masih menunggu pemeriksaan serta persetujuan Kepala Desa Jombe.
+                </p>
+                <a href="/lacak?no=${application.applicationNumber}" style="display: inline-block; background: #064e3b; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: bold;">Lacak Status Surat</a>
+              </div>
+            </body>
+          </html>
+        `);
+      }
+    }
+
+    // Fallback demo for operator testing
     if (!application) {
       application = {
         id: id || 'demo-app-1',
         applicationNumber: 'JMB-2026-00012',
+        status: 'COMPLETED',
         user: {
           name: 'Siti Rahmawati',
           nik: '3512345678900001',
@@ -268,23 +290,24 @@ export const generateLetterPdf = async (req: AuthRequest, res: Response) => {
     } catch (dbErr) {}
 
     if (!application) {
-      const waMatch = waApplicationsStore.find((w) => w.id === applicationId || w.applicationNumber === applicationId);
-      if (waMatch) {
+      const persistentList = PersistentDatabase.loadApplications();
+      const match = persistentList.find((w) => w.id === applicationId || w.applicationNumber === applicationId);
+      if (match) {
         application = {
-          id: waMatch.id,
-          applicationNumber: waMatch.applicationNumber,
+          id: match.id,
+          applicationNumber: match.applicationNumber,
           user: {
-            name: waMatch.userName,
-            nik: waMatch.userNik,
-            phone: waMatch.userPhone,
+            name: match.userName,
+            nik: match.userNik,
+            phone: match.userPhone,
             address: 'Desa Jombe',
           },
           service: {
-            name: waMatch.serviceName,
+            name: match.serviceName,
             letterTemplates: [{ codePrefix: '470' }],
           },
           fieldValues: [
-            { field: { label: 'Rincian Keterangan' }, value: waMatch.detailValue },
+            { field: { label: 'Rincian Keterangan' }, value: match.detailValue },
           ],
         };
       }
@@ -315,11 +338,7 @@ export const generateLetterPdf = async (req: AuthRequest, res: Response) => {
     const letterSeq = Math.floor(100 + Math.random() * 900);
     const letterNumber = `${templateCodePrefix}/${letterSeq}/DS-JMB/${new Date().getFullYear()}`;
 
-    // Update DB / WA match status to COMPLETED
-    const waMatch = waApplicationsStore.find((w) => w.id === applicationId || w.applicationNumber === applicationId);
-    if (waMatch) {
-      waMatch.status = 'COMPLETED';
-    }
+    PersistentDatabase.updateApplication(applicationId, { status: 'COMPLETED' });
 
     try {
       await prisma.application.update({

@@ -1,8 +1,6 @@
 import { Request, Response } from 'express';
-import { z } from 'zod';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
-import { waApplicationsStore } from './whatsappBotController';
 import { PersistentDatabase } from '../utils/persistentDb';
 import { realtimeEvents } from '../services/realtimeEvents';
 import { verifyCaptchaToken } from './captchaController';
@@ -46,41 +44,62 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
     const userName = String(bodyName || req.user?.name || 'Warga Desa Jombe').trim();
     const userPhone = String(bodyPhone || (req.user as any)?.phone || '-').trim();
     const userAddress = String(bodyAddress || (req.user as any)?.address || 'Desa Jombe, Kec. Turatea').trim();
-    const userId = req.user?.id || `warga-${userNik}`;
 
-    const appCount = waApplicationsStore.length + 12;
-    const applicationNumber = `JMB-${new Date().getFullYear()}-${String(appCount + 1).padStart(5, '0')}`;
-
-    let serviceName = customServiceName || 'Surat Keterangan Usaha (SKU)';
-    if (serviceId && !customServiceName) {
-      const s = await prisma.service.findUnique({ where: { id: serviceId } }).catch(() => null);
-      if (s) serviceName = s.name;
+    // 3. Cari / Buat User di Supabase DB
+    let citizen = await prisma.user.findUnique({ where: { nik: userNik } }).catch(() => null);
+    if (!citizen) {
+      citizen = await prisma.user.create({
+        data: {
+          nik: userNik,
+          name: userName,
+          phone: userPhone,
+          address: userAddress,
+          role: 'MASYARAKAT',
+          password: 'PUBLIC_NO_PASSWORD',
+        },
+      }).catch(async () => {
+        return await prisma.user.findUnique({ where: { nik: userNik } });
+      });
+    } else {
+      // Update data terbaru jika ada perubahan
+      citizen = await prisma.user.update({
+        where: { id: citizen.id },
+        data: {
+          name: userName || citizen.name,
+          phone: userPhone !== '-' ? userPhone : citizen.phone,
+          address: userAddress || citizen.address,
+        },
+      }).catch(() => citizen);
     }
 
+    const userId = citizen?.id || req.user?.id || `warga-${userNik}`;
+
+    // 4. Resolve Service
+    let resolvedService = serviceSlug
+      ? await prisma.service.findUnique({ where: { slug: serviceSlug } }).catch(() => null)
+      : serviceId
+      ? await prisma.service.findUnique({ where: { id: serviceId } }).catch(() => null)
+      : null;
+
+    if (!resolvedService) {
+      resolvedService = await prisma.service.findFirst().catch(() => null);
+    }
+
+    const serviceName = customServiceName || resolvedService?.name || 'Surat Keterangan Usaha (SKU)';
+    const sId = resolvedService?.id || 'service-sku-1';
+    const sSlug = serviceSlug || resolvedService?.slug || 'surat-keterangan-usaha';
+
+    // 5. Generate Application Number
+    const totalApps = await prisma.application.count().catch(() => 0);
+    const applicationNumber = `JMB-${new Date().getFullYear()}-${String(totalApps + 1).padStart(5, '0')}`;
     const newAppId = `app-web-${Date.now()}`;
-    const letterNumber = `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${new Date().getFullYear()}`;
+    const defaultLetterNumber = `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${new Date().getFullYear()}`;
 
-    // Simpan data warga jika di DB
-    try {
-      let citizen = await prisma.user.findUnique({ where: { nik: userNik } }).catch(() => null);
-      if (!citizen) {
-        citizen = await prisma.user.create({
-          data: {
-            nik: userNik,
-            name: userName,
-            phone: userPhone,
-            address: userAddress,
-            role: 'MASYARAKAT',
-            password: 'PUBLIC_NO_PASSWORD',
-          },
-        }).catch(() => null);
-      }
-
-      let resolvedService = serviceId ? await prisma.service.findUnique({ where: { id: serviceId } }).catch(() => null) : null;
-      if (!resolvedService) resolvedService = await prisma.service.findFirst().catch(() => null);
-
-      if (resolvedService && citizen) {
-        await prisma.application.create({
+    // 6. Simpan ke Supabase PostgreSQL
+    let createdDbApp: any = null;
+    if (citizen && resolvedService) {
+      try {
+        createdDbApp = await prisma.application.create({
           data: {
             applicationNumber,
             userId: citizen.id,
@@ -94,40 +113,48 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
               },
             },
           },
-        }).catch(() => null);
+          include: {
+            service: true,
+            user: true,
+          },
+        });
+      } catch (dbErr) {
+        console.error('Error creating app in prisma:', dbErr);
       }
-    } catch (dbErr) {}
+    }
 
-    const newAppRecord = {
-      id: newAppId,
+    const actualId = createdDbApp?.id || newAppId;
+
+    // 7. Simpan Record Lengkap ke PersistentDatabase
+    const appRecord = {
+      id: actualId,
       applicationNumber,
-      userId,
+      userId: citizen?.id || userId,
       userNik,
       userName,
       userPhone,
-      serviceId: serviceId || 'service-sku-1',
+      serviceId: sId,
       serviceName,
-      serviceSlug: serviceSlug || 'surat-keterangan-usaha',
+      serviceSlug: sSlug,
       status: 'PENDING' as const,
       detailValue: typeof fieldValues === 'string' ? fieldValues : `Alamat: ${userAddress}. Keterangan: Pengajuan Surat Mandiri Portal Website Desa Jombe`,
       uploadedPhotos: Array.isArray(uploadedPhotos) && uploadedPhotos.length > 0 ? uploadedPhotos : [
         { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
         { title: 'Foto Kartu Keluarga (KK)', type: 'KK' },
       ],
-      letterNumber,
+      letterNumber: defaultLetterNumber,
       letterContent: `Menerangkan dengan sebenarnya bahwa ${userName} (NIK: ${userNik}, Alamat: ${userAddress}) adalah benar warga Desa Jombe yang bersangkutan.`,
       createdAt: new Date().toISOString(),
     };
 
-    waApplicationsStore.unshift(newAppRecord);
-    await PersistentDatabase.addApplicationAsync(newAppRecord);
-    realtimeEvents.publish('application.changed', { action: 'created', source: 'website', applicationId: newAppId });
+    await PersistentDatabase.addApplicationAsync(appRecord);
+    realtimeEvents.publish('application.changed', { action: 'created', source: 'website', applicationId: actualId });
 
     return res.status(201).json({
       status: 'success',
       message: 'Permohonan surat berhasil dikirim! Simpan Nomor Registrasi Anda untuk melacak status.',
       data: {
-        id: newAppId,
+        id: actualId,
         applicationNumber,
         serviceName,
         userName,
@@ -137,6 +164,7 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
       },
     });
   } catch (error: any) {
+    console.error('Create application error:', error);
     return res.status(500).json({
       status: 'error',
       message: 'Gagal mengirim permohonan surat: ' + error.message,
@@ -149,61 +177,65 @@ export const getMyApplications = async (req: AuthRequest, res: Response) => {
     const userId = req.user?.id || '';
     const userNik = req.user?.nik || '';
 
-    const host = req.get('host') || 'localhost:5000';
+    const host = req.get('host') || 'lentera-desa-backend.vercel.app';
     const protocol = host.includes('localhost') ? req.protocol : 'https';
 
-    let allPersistent = await PersistentDatabase.loadApplicationsAsync();
+    // 1. Ambil dari Supabase DB
+    const dbApps = await prisma.application.findMany({
+      where: {
+        OR: [
+          ...(userNik ? [{ user: { nik: userNik } }] : []),
+          ...(userId ? [{ userId }] : []),
+        ],
+      },
+      include: { service: true, user: true },
+      orderBy: { createdAt: 'desc' },
+    }).catch(() => []);
 
-    // Also check Prisma DB for applications belonging to this citizen NIK or userId
-    if (userNik || userId) {
-      try {
-        const dbApps = await prisma.application.findMany({
-          where: {
-            OR: [
-              ...(userNik ? [{ user: { nik: userNik } }] : []),
-              ...(userId ? [{ userId }] : []),
-            ],
-          },
-          include: { service: true, user: true },
-          orderBy: { createdAt: 'desc' },
-        });
+    // 2. Ambil dari PersistentDatabase
+    const persistentList = await PersistentDatabase.loadApplicationsAsync();
 
-        for (const dbApp of dbApps) {
-          if (!allPersistent.some((a) => a.id === dbApp.id || a.applicationNumber === dbApp.applicationNumber)) {
-            allPersistent.unshift({
-              id: dbApp.id,
-              applicationNumber: dbApp.applicationNumber,
-              userId: dbApp.userId,
-              userNik: dbApp.user?.nik || userNik,
-              userName: dbApp.user?.name || 'Warga',
-              userPhone: dbApp.user?.phone || '-',
-              serviceId: dbApp.serviceId,
-              serviceName: dbApp.service?.name || 'Surat Keterangan',
-              serviceSlug: dbApp.service?.slug || 'surat-keterangan-usaha',
-              status: dbApp.status as any,
-              detailValue: 'Permohonan Surat Mandiri',
-              createdAt: dbApp.createdAt.toISOString(),
-            });
-          }
-        }
-      } catch (e) {}
+    const mergedMap = new Map<string, any>();
+
+    // DB apps first
+    for (const app of dbApps) {
+      mergedMap.set(app.id, {
+        id: app.id,
+        applicationNumber: app.applicationNumber,
+        status: app.status,
+        createdAt: app.createdAt.toISOString ? app.createdAt.toISOString() : app.createdAt,
+        letterNumber: null,
+        pdfUrl: app.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${app.id}` : null,
+        service: {
+          name: app.service?.name || 'Surat Keterangan',
+          category: app.service?.category || 'Surat Keterangan',
+          slug: app.service?.slug || 'surat-keterangan-usaha',
+        },
+      });
     }
 
-    const userApps = allPersistent
-      .filter((w) => (userNik && w.userNik === userNik) || (userId && w.userId === userId) || (!userNik && !userId))
-      .map((w) => ({
-        id: w.id,
-        applicationNumber: w.applicationNumber,
-        status: w.status,
-        createdAt: w.createdAt,
-        letterNumber: w.letterNumber,
-        pdfUrl: w.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${w.id}` : null,
-        service: {
-          name: w.serviceName,
-          category: 'Surat Keterangan',
-          slug: w.serviceSlug || 'surat-keterangan-usaha',
-        },
-      }));
+    // Overlay persistent apps
+    for (const w of persistentList) {
+      if ((userNik && w.userNik === userNik) || (userId && w.userId === userId) || (!userNik && !userId)) {
+        mergedMap.set(w.id, {
+          id: w.id,
+          applicationNumber: w.applicationNumber,
+          status: w.status,
+          createdAt: w.createdAt,
+          letterNumber: w.letterNumber,
+          pdfUrl: w.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${w.id}` : null,
+          service: {
+            name: w.serviceName,
+            category: 'Surat Keterangan',
+            slug: w.serviceSlug || 'surat-keterangan-usaha',
+          },
+        });
+      }
+    }
+
+    const userApps = Array.from(mergedMap.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
     return res.status(200).json({ status: 'success', data: userApps });
   } catch (error) {
@@ -213,7 +245,7 @@ export const getMyApplications = async (req: AuthRequest, res: Response) => {
 
 export const trackApplication = async (req: any, res: Response) => {
   try {
-    const query = String(req.query.applicationNumber || req.query.nik || req.query.query || '').trim();
+    const query = String(req.query.applicationNumber || req.query.nik || req.query.regNo || req.query.query || '').trim();
     if (!query) {
       return res.status(400).json({ status: 'error', message: 'Masukkan Nomor Registrasi Surat atau NIK untuk melacak.' });
     }
@@ -221,41 +253,10 @@ export const trackApplication = async (req: any, res: Response) => {
     const upperQuery = query.toUpperCase();
     const cleanDigits = query.replace(/\D/g, '');
 
-    const host = req.get('host') || 'quinoa-legal-ostrich.abasthan.app';
+    const host = req.get('host') || 'lentera-desa-backend.vercel.app';
     const protocol = host.includes('localhost') ? req.protocol : 'https';
 
-    const allPersistent = await PersistentDatabase.loadApplicationsAsync();
-    const matches = allPersistent.filter((w) => {
-      if (w.applicationNumber && w.applicationNumber.toUpperCase().includes(upperQuery)) return true;
-      if (cleanDigits && cleanDigits.length >= 6 && w.userNik && w.userNik.includes(cleanDigits)) return true;
-      return false;
-    });
-
-    if (matches.length > 0) {
-      const results = matches.map((match) => ({
-        id: match.id,
-        applicationNumber: match.applicationNumber,
-        status: match.status,
-        serviceName: match.serviceName,
-        createdAt: match.createdAt,
-        user: { name: match.userName, nik: match.userNik },
-        letterNumber: match.letterNumber,
-        pdfUrl: match.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${match.id}` : null,
-        revisionNotes:
-          match.status === 'COMPLETED'
-            ? 'Surat resmi telah disetujui & ditandatangani Kepala Desa Jombe.'
-            : match.status === 'NEED_REVISION'
-            ? match.detailValue || 'Memerlukan perbaikan dokumen lampiran.'
-            : 'Permohonan sedang dalam antrean pemeriksaan oleh Operator Kantor Desa Jombe.',
-      }));
-
-      return res.status(200).json({
-        status: 'success',
-        data: results[0],
-        allMatches: results,
-      });
-    }
-
+    // 1. Query Supabase Prisma
     let dbApps: any[] = [];
     try {
       dbApps = await prisma.application.findMany({
@@ -270,26 +271,67 @@ export const trackApplication = async (req: any, res: Response) => {
           user: { select: { name: true, nik: true } },
           history: { orderBy: { createdAt: 'desc' } },
         },
-        take: 5,
+        orderBy: { createdAt: 'desc' },
+        take: 10,
       });
     } catch (e) {}
 
-    if (dbApps.length > 0) {
-      const results = dbApps.map((app) => ({
+    // 2. Query PersistentDatabase
+    const persistentList = await PersistentDatabase.loadApplicationsAsync();
+    const persistentMatches = persistentList.filter((w) => {
+      if (w.applicationNumber && w.applicationNumber.toUpperCase().includes(upperQuery)) return true;
+      if (cleanDigits && cleanDigits.length >= 6 && w.userNik && w.userNik.includes(cleanDigits)) return true;
+      return false;
+    });
+
+    const resultMap = new Map<string, any>();
+
+    for (const app of dbApps) {
+      resultMap.set(app.id, {
         id: app.id,
         applicationNumber: app.applicationNumber,
         status: app.status,
-        serviceName: app.service?.name,
-        createdAt: app.createdAt,
+        serviceName: app.service?.name || 'Surat Keterangan',
+        createdAt: app.createdAt.toISOString ? app.createdAt.toISOString() : app.createdAt,
         user: app.user,
         pdfUrl: app.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${app.id}` : null,
-        history: app.history,
-      }));
+        revisionNotes:
+          app.status === 'COMPLETED'
+            ? 'Surat resmi telah disetujui & ditandatangani Kepala Desa Jombe.'
+            : app.status === 'NEED_REVISION'
+            ? app.revisionNotes || 'Memerlukan perbaikan dokumen lampiran.'
+            : 'Permohonan sedang dalam antrean pemeriksaan oleh Operator Kantor Desa Jombe.',
+      });
+    }
 
+    for (const match of persistentMatches) {
+      resultMap.set(match.id, {
+        id: match.id,
+        applicationNumber: match.applicationNumber,
+        status: match.status,
+        serviceName: match.serviceName,
+        createdAt: match.createdAt,
+        user: { name: match.userName, nik: match.userNik },
+        letterNumber: match.letterNumber,
+        pdfUrl: match.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${match.id}` : null,
+        revisionNotes:
+          match.status === 'COMPLETED'
+            ? 'Surat resmi telah disetujui & ditandatangani Kepala Desa Jombe.'
+            : match.status === 'NEED_REVISION'
+            ? match.detailValue || 'Memerlukan perbaikan dokumen lampiran.'
+            : 'Permohonan sedang dalam antrean pemeriksaan oleh Operator Kantor Desa Jombe.',
+      });
+    }
+
+    const allResults = Array.from(resultMap.values()).sort(
+      (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    if (allResults.length > 0) {
       return res.status(200).json({
         status: 'success',
-        data: results[0],
-        allMatches: results,
+        data: allResults[0],
+        allMatches: allResults,
       });
     }
 
@@ -306,51 +348,52 @@ export const getApplicationDetail = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
 
-    // Check WA store
-    const waMatch = waApplicationsStore.find((w) => w.id === id || w.applicationNumber === id);
-    if (waMatch) {
+    const host = req.get('host') || 'lentera-desa-backend.vercel.app';
+    const protocol = host.includes('localhost') ? req.protocol : 'https';
+
+    // 1. Try DB
+    let app = await prisma.application.findUnique({
+      where: { id },
+      include: {
+        service: true,
+        user: { select: { name: true, nik: true, phone: true, address: true } },
+        documents: true,
+        fieldValues: { include: { field: true } },
+        history: { orderBy: { createdAt: 'desc' } },
+      },
+    }).catch(() => null);
+
+    if (app) {
       return res.status(200).json({
         status: 'success',
         data: {
-          id: waMatch.id,
-          applicationNumber: waMatch.applicationNumber,
-          status: waMatch.status,
-          createdAt: waMatch.createdAt,
-          service: { name: waMatch.serviceName, slug: 'surat-keterangan-usaha' },
-          user: { name: waMatch.userName, nik: waMatch.userNik, phone: waMatch.userPhone },
-          fieldValues: [{ field: { label: 'Detail Permohonan' }, value: waMatch.detailValue }],
-          history: [{ status: 'PROCESSING', actorName: 'Sistem Pelayanan JOMBE DIGITAL', notes: waMatch.detailValue, createdAt: waMatch.createdAt }],
+          ...app,
+          pdfUrl: app.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${app.id}` : null,
         },
       });
     }
 
-    let app: any = null;
-    try {
-      app = await prisma.application.findUnique({
-        where: { id },
-        include: {
-          service: true,
-          user: { select: { name: true, nik: true, phone: true, address: true } },
-          documents: true,
-          fieldValues: { include: { field: true } },
-          history: { orderBy: { createdAt: 'desc' } },
+    // 2. Try Persistent Store
+    const persistentList = await PersistentDatabase.loadApplicationsAsync();
+    const match = persistentList.find((w) => w.id === id || w.applicationNumber === id);
+    if (match) {
+      return res.status(200).json({
+        status: 'success',
+        data: {
+          id: match.id,
+          applicationNumber: match.applicationNumber,
+          status: match.status,
+          createdAt: match.createdAt,
+          service: { name: match.serviceName, slug: match.serviceSlug || 'surat-keterangan-usaha' },
+          user: { name: match.userName, nik: match.userNik, phone: match.userPhone },
+          fieldValues: [{ field: { label: 'Detail Permohonan' }, value: match.detailValue }],
+          pdfUrl: match.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${match.id}` : null,
+          history: [{ status: match.status, actorName: 'Sistem Pelayanan JOMBE DIGITAL', notes: match.detailValue, createdAt: match.createdAt }],
         },
       });
-    } catch (e) {}
-
-    if (!app) {
-      app = {
-        id: id || 'demo-app-1',
-        applicationNumber: 'JMB-2026-00012',
-        status: 'PENDING',
-        service: { name: 'Surat Keterangan Usaha (SKU)' },
-        user: { name: 'Siti Rahmawati', nik: '3512345678900001', phone: '085712345678' },
-        fieldValues: [{ field: { label: 'Keperluan' }, value: 'Pengantar Izin Usaha Sembako' }],
-        history: [{ status: 'PENDING', actorName: 'Pemohon', notes: 'Permohonan berhasil dikirim.' }],
-      };
     }
 
-    return res.status(200).json({ status: 'success', data: app });
+    return res.status(404).json({ status: 'error', message: 'Permohonan tidak ditemukan.' });
   } catch (error) {
     return res.status(500).json({ status: 'error', message: 'Gagal mengambil detail permohonan.' });
   }

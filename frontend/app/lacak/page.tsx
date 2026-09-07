@@ -86,6 +86,7 @@ function LacakContent() {
 
   const getStatusBadge = (status: string) => {
     switch (status) {
+      case 'COMPLETED':
       case 'APPROVED':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900 border border-emerald-300">
@@ -94,10 +95,18 @@ function LacakContent() {
           </span>
         );
       case 'PROCESSING':
+      case 'VERIFIED':
         return (
           <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-sky-100 text-sky-900 border border-sky-300">
             <Clock className="w-4 h-4 text-sky-700" />
             Sedang Diverifikasi Petugas
+          </span>
+        );
+      case 'NEED_REVISION':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-orange-100 text-orange-900 border border-orange-300">
+            <AlertCircle className="w-4 h-4 text-orange-700" />
+            Perlu Perbaikan Berkas
           </span>
         );
       case 'REJECTED':
@@ -300,14 +309,14 @@ function LacakContent() {
 
                     <div
                       className={`p-3 rounded-xl border flex items-center gap-2 font-medium ${
-                        item.status === 'PROCESSING' || item.status === 'APPROVED'
+                        item.status === 'PROCESSING' || item.status === 'VERIFIED' || item.status === 'COMPLETED' || item.status === 'APPROVED'
                           ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
                           : item.status === 'REJECTED'
                           ? 'bg-rose-50 border-rose-200 text-rose-950'
                           : 'bg-slate-50 border-slate-200 text-slate-400'
                       }`}
                     >
-                      {item.status === 'PROCESSING' || item.status === 'APPROVED' ? (
+                      {item.status === 'PROCESSING' || item.status === 'VERIFIED' || item.status === 'COMPLETED' || item.status === 'APPROVED' ? (
                         <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
                       ) : item.status === 'REJECTED' ? (
                         <XCircle className="w-4 h-4 text-rose-700 shrink-0" />
@@ -319,14 +328,14 @@ function LacakContent() {
 
                     <div
                       className={`p-3 rounded-xl border flex items-center gap-2 font-medium ${
-                        item.status === 'APPROVED'
+                        item.status === 'COMPLETED' || item.status === 'APPROVED'
                           ? 'bg-emerald-50 border-emerald-200 text-emerald-950'
                           : item.status === 'REJECTED'
                           ? 'bg-rose-50 border-rose-200 text-rose-950'
                           : 'bg-slate-50 border-slate-200 text-slate-400'
                       }`}
                     >
-                      {item.status === 'APPROVED' ? (
+                      {item.status === 'COMPLETED' || item.status === 'APPROVED' ? (
                         <CheckCircle2 className="w-4 h-4 text-emerald-700 shrink-0" />
                       ) : item.status === 'REJECTED' ? (
                         <XCircle className="w-4 h-4 text-rose-700 shrink-0" />
@@ -351,8 +360,8 @@ function LacakContent() {
                   </div>
                 )}
 
-                {/* Approved Download Action */}
-                {item.status === 'APPROVED' && (
+                {/* Approved Download Action (Strictly Only When Completed / Approved) */}
+                {(item.status === 'COMPLETED' || item.status === 'APPROVED') ? (
                   <div className="p-5 rounded-2xl bg-gradient-to-r from-emerald-50 to-teal-50 border border-emerald-200 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
                     <div>
                       <span className="font-extrabold text-sm text-emerald-950 block flex items-center gap-1.5">
@@ -360,12 +369,12 @@ function LacakContent() {
                         Surat Resmi Telah Diterbitkan
                       </span>
                       <p className="text-xs text-emerald-800 mt-0.5">
-                        Dokumen telah ditandatangani Kepala Desa Jombe (Jusmaedy, S.Pd) dengan KOP resmi dan QR Code validasi keaslian.
+                        Dokumen telah ditandatangani Kepala Desa Jombe (Jusmaedy, S.Pd) dengan KOP resmi dan siap dicetak / diunduh.
                       </p>
                     </div>
 
                     <a
-                      href={item.pdfUrl}
+                      href={item.pdfUrl || `${(process.env.NEXT_PUBLIC_API_URL || 'https://lentera-desa-backend.vercel.app/api').replace(/\/$/, '')}/operator/pdf/${item.id}`}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="px-5 py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl shadow-md transition-all flex items-center justify-center gap-2 shrink-0"
@@ -373,6 +382,11 @@ function LacakContent() {
                       <Download className="w-4 h-4" />
                       <span>Unduh & Cetak Dokumen PDF</span>
                     </a>
+                  </div>
+                ) : (
+                  <div className="p-4 rounded-2xl bg-amber-50/80 border border-amber-200 text-amber-900 text-xs flex items-center gap-2.5">
+                    <Clock className="w-4 h-4 text-amber-700 shrink-0" />
+                    <span>Surat masih dalam proses verifikasi oleh Operator Kantor Desa Jombe. Dokumen PDF baru dapat diunduh setelah disetujui.</span>
                   </div>
                 )}
               </div>

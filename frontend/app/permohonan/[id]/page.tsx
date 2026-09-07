@@ -32,7 +32,7 @@ export default function PermohonanDetailPage() {
   };
 
   const handleDownloadPdf = () => {
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://quinoa-legal-ostrich.abasthan.app/api').replace(/\/$/, '');
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://lentera-desa-backend.vercel.app/api').replace(/\/$/, '');
     const downloadUrl = `${baseUrl}/operator/pdf/${id}`;
     window.open(downloadUrl, '_blank');
   };
@@ -50,6 +50,8 @@ export default function PermohonanDetailPage() {
       </div>
     );
   }
+
+  const isCompleted = application.status === 'COMPLETED' || application.status === 'APPROVED';
 
   return (
     <div className="min-h-screen py-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
@@ -71,17 +73,29 @@ export default function PermohonanDetailPage() {
           </div>
 
           <div className="flex items-center gap-3">
-            <span className="px-3 py-1 rounded-full text-xs font-bold bg-emerald-100 text-emerald-900">
+            <span className={`px-3 py-1 rounded-full text-xs font-bold ${
+              isCompleted
+                ? 'bg-emerald-100 text-emerald-900 border border-emerald-300'
+                : application.status === 'NEED_REVISION'
+                ? 'bg-orange-100 text-orange-900 border border-orange-300'
+                : 'bg-amber-100 text-amber-900 border border-amber-300'
+            }`}>
               {application.status}
             </span>
 
-            {/* Direct Download Button */}
-            <button
-              onClick={handleDownloadPdf}
-              className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
-            >
-              <Download className="w-4 h-4" /> Unduh Surat PDF Resmi
-            </button>
+            {/* Direct Download Button (Only when completed/approved) */}
+            {isCompleted ? (
+              <button
+                onClick={handleDownloadPdf}
+                className="px-4 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 shadow-md"
+              >
+                <Download className="w-4 h-4" /> Unduh Surat PDF Resmi
+              </button>
+            ) : (
+              <span className="text-[11px] text-amber-800 font-medium bg-amber-50 px-3 py-1.5 rounded-xl border border-amber-200 flex items-center gap-1">
+                <Clock className="w-3.5 h-3.5" /> Menunggu Persetujuan Operator
+              </span>
+            )}
           </div>
         </div>
 

@@ -1,48 +1,18 @@
 import { Response } from 'express';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
-import {
-  waApplicationsStore,
-  SERVICE_PHOTO_REQUIREMENTS
-} from './whatsappBotController';
 import { PersistentDatabase } from '../utils/persistentDb';
 import { realtimeEvents } from '../services/realtimeEvents';
 
 export const getOperatorDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
-    let allApps = await PersistentDatabase.loadApplicationsAsync();
-
-    try {
-      const dbApps = await prisma.application.findMany({
-        include: { user: true, service: true },
-      });
-      for (const dbApp of dbApps) {
-        if (!allApps.some((a) => a.id === dbApp.id || a.applicationNumber === dbApp.applicationNumber) && dbApp.user) {
-          const rec: any = {
-            id: dbApp.id,
-            applicationNumber: dbApp.applicationNumber,
-            userId: dbApp.userId,
-            userNik: dbApp.user.nik,
-            userName: dbApp.user.name,
-            userPhone: dbApp.user.phone || '-',
-            serviceId: dbApp.serviceId,
-            serviceName: dbApp.service?.name || 'Surat Keterangan',
-            serviceSlug: dbApp.service?.slug || 'surat-keterangan-usaha',
-            status: dbApp.status,
-            detailValue: `Permohonan diajukan oleh ${dbApp.user.name} (NIK: ${dbApp.user.nik})`,
-            createdAt: dbApp.createdAt.toISOString(),
-          };
-          allApps.unshift(rec);
-          PersistentDatabase.addApplication(rec);
-        }
-      }
-    } catch (e) {}
-
-    const pendingCount = allApps.filter((w) => w.status === 'PENDING').length;
-    const processingCount = allApps.filter((w) => w.status === 'PROCESSING').length;
-    const revisionCount = allApps.filter((w) => w.status === 'NEED_REVISION').length;
-    const completedCount = allApps.filter((w) => w.status === 'COMPLETED').length;
-    const totalCount = allApps.length;
+    const [pendingCount, processingCount, revisionCount, completedCount, totalCount] = await Promise.all([
+      prisma.application.count({ where: { status: 'PENDING' } }).catch(() => 0),
+      prisma.application.count({ where: { status: 'PROCESSING' } }).catch(() => 0),
+      prisma.application.count({ where: { status: 'NEED_REVISION' } }).catch(() => 0),
+      prisma.application.count({ where: { status: 'COMPLETED' } }).catch(() => 0),
+      prisma.application.count().catch(() => 0),
+    ]);
 
     return res.status(200).json({
       status: 'success',
@@ -63,174 +33,179 @@ export const getOperatorApplications = async (req: AuthRequest, res: Response) =
   try {
     const { status, search } = req.query;
 
-    let allApps = await PersistentDatabase.loadApplicationsAsync();
+    const whereClause: any = {};
+    if (status && status !== 'ALL') {
+      whereClause.status = status;
+    }
+    if (search) {
+      const s = String(search).trim();
+      whereClause.OR = [
+        { applicationNumber: { contains: s, mode: 'insensitive' } },
+        { user: { name: { contains: s, mode: 'insensitive' } } },
+        { user: { nik: { contains: s } } },
+      ];
+    }
 
-    // Merge from Prisma DB if any records exist there
-    try {
-      const dbApps = await prisma.application.findMany({
-        include: { user: true, service: true },
-        orderBy: { createdAt: 'desc' },
-      });
-      for (const dbApp of dbApps) {
-        if (!allApps.some((a) => a.id === dbApp.id || a.applicationNumber === dbApp.applicationNumber) && dbApp.user) {
-          const rec: any = {
-            id: dbApp.id,
-            applicationNumber: dbApp.applicationNumber,
-            userId: dbApp.userId,
-            userNik: dbApp.user.nik,
-            userName: dbApp.user.name,
-            userPhone: dbApp.user.phone || '-',
-            serviceId: dbApp.serviceId,
-            serviceName: dbApp.service?.name || 'Surat Keterangan',
-            serviceSlug: dbApp.service?.slug || 'surat-keterangan-usaha',
-            status: dbApp.status,
-            detailValue: `Permohonan diajukan oleh ${dbApp.user.name} (NIK: ${dbApp.user.nik})`,
-            createdAt: dbApp.createdAt.toISOString(),
-          };
-          allApps.unshift(rec);
-          PersistentDatabase.addApplication(rec);
-        }
-      }
-    } catch (e) {}
+    const dbApps = await prisma.application.findMany({
+      where: whereClause,
+      include: {
+        user: true,
+        service: true,
+        documents: true,
+        fieldValues: { include: { field: true } },
+        history: { orderBy: { createdAt: 'desc' } },
+      },
+      orderBy: { createdAt: 'desc' },
+    }).catch(() => []);
 
-    // Map persistent applications with full photo and citizen details
-    const waAppsMapped = allApps.map((w) => {
-      const serviceSlug = w.serviceSlug || 'surat-keterangan-usaha';
-      const defaultReqs = SERVICE_PHOTO_REQUIREMENTS[serviceSlug] || ['Foto e-KTP Asli Pemohon', 'Foto Dokumen Pendukung'];
+    // Also check persistent DB for any fallback items
+    const persistentList = await PersistentDatabase.loadApplicationsAsync();
+    const appMap = new Map<string, any>();
 
-      const photos = w.uploadedPhotos && w.uploadedPhotos.length > 0
-        ? w.uploadedPhotos
-        : defaultReqs.map((title) => ({
-            title,
-            type: title.toLowerCase().includes('ktp') ? 'KTP' : title.toLowerCase().includes('usaha') ? 'USAHA' : 'KK',
-          }));
+    for (const dbApp of dbApps) {
+      const serviceSlug = dbApp.service?.slug || 'surat-keterangan-usaha';
+      const photos = [
+        { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
+        { title: 'Foto Kartu Keluarga (KK)', type: 'KK' },
+      ];
 
-      return {
-        id: w.id,
-        applicationNumber: w.applicationNumber,
-        status: w.status,
-        createdAt: w.createdAt,
-        letterNumber: w.letterNumber || `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/2026`,
-        letterContent: w.letterContent || `Menerangkan bahwa ${w.userName} adalah warga Desa Jombe dengan keterangan: ${w.detailValue}`,
+      appMap.set(dbApp.id, {
+        id: dbApp.id,
+        applicationNumber: dbApp.applicationNumber,
+        status: dbApp.status,
+        createdAt: dbApp.createdAt.toISOString ? dbApp.createdAt.toISOString() : dbApp.createdAt,
+        letterNumber: `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${new Date().getFullYear()}`,
+        letterContent: `Menerangkan bahwa ${dbApp.user?.name || 'Warga'} adalah benar penduduk Desa Jombe Kecamatan Turatea Kabupaten Jeneponto.`,
         uploadedPhotos: photos,
         service: {
-          id: w.serviceId,
-          name: w.serviceName,
-          category: 'Surat Keterangan',
+          id: dbApp.service?.id || 'service-sku-1',
+          name: dbApp.service?.name || 'Surat Keterangan Usaha (SKU)',
+          category: dbApp.service?.category || 'Surat Keterangan',
           slug: serviceSlug,
         },
         user: {
-          id: w.userId,
-          name: w.userName,
-          nik: w.userNik,
-          phone: w.userPhone,
-          address: 'Desa Jombe',
+          id: dbApp.user?.id || dbApp.userId,
+          name: dbApp.user?.name || 'Warga Desa',
+          nik: dbApp.user?.nik || '-',
+          phone: dbApp.user?.phone || '-',
+          address: dbApp.user?.address || 'Desa Jombe, Kec. Turatea',
         },
-        documents: [],
-        fieldValues: [
-          { field: { label: 'Rincian Keterangan' }, value: w.detailValue },
-        ],
-      };
-    });
+        documents: dbApp.documents || [],
+        fieldValues: dbApp.fieldValues || [],
+      });
+    }
 
-    let filtered = waAppsMapped;
+    for (const w of persistentList) {
+      if (!appMap.has(w.id)) {
+        appMap.set(w.id, {
+          id: w.id,
+          applicationNumber: w.applicationNumber,
+          status: w.status,
+          createdAt: w.createdAt,
+          letterNumber: w.letterNumber || `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/2026`,
+          letterContent: w.letterContent || `Menerangkan bahwa ${w.userName} adalah warga Desa Jombe dengan keterangan: ${w.detailValue}`,
+          uploadedPhotos: w.uploadedPhotos || [
+            { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
+            { title: 'Foto Kartu Keluarga (KK)', type: 'KK' },
+          ],
+          service: {
+            id: w.serviceId,
+            name: w.serviceName,
+            category: 'Surat Keterangan',
+            slug: w.serviceSlug || 'surat-keterangan-usaha',
+          },
+          user: {
+            id: w.userId,
+            name: w.userName,
+            nik: w.userNik,
+            phone: w.userPhone,
+            address: 'Desa Jombe',
+          },
+          documents: [],
+          fieldValues: [
+            { field: { label: 'Rincian Keterangan' }, value: w.detailValue },
+          ],
+        });
+      }
+    }
+
+    let results = Array.from(appMap.values());
     if (status && status !== 'ALL') {
-      filtered = waAppsMapped.filter((c) => c.status === status);
+      results = results.filter((c) => c.status === status);
     }
     if (search) {
       const s = String(search).toLowerCase();
-      filtered = filtered.filter(
+      results = results.filter(
         (c) =>
-          c.applicationNumber.toLowerCase().includes(s) ||
-          c.user?.name.toLowerCase().includes(s) ||
-          c.user?.nik.toLowerCase().includes(s)
+          c.applicationNumber?.toLowerCase().includes(s) ||
+          c.user?.name?.toLowerCase().includes(s) ||
+          c.user?.nik?.toLowerCase().includes(s)
       );
     }
 
-    return res.status(200).json({ status: 'success', data: filtered });
+    return res.status(200).json({ status: 'success', data: results });
   } catch (error) {
     return res.status(500).json({ status: 'error', message: 'Gagal mengambil permohonan operator.' });
   }
 };
 
 /**
- * Approve and Send Letter to Citizen WhatsApp
+ * Approve Application & Issue Official Letter PDF
  */
 export const approveAndSendLetter = async (req: AuthRequest, res: Response) => {
   try {
     const { id } = req.params;
     const { letterNumber, letterContent } = req.body;
 
-    let targetAppNumber = '';
-    let targetPhone = '6281299887766';
-    let targetServiceName = 'Surat Keterangan Usaha (SKU)';
-    let officialLetterNum = letterNumber || `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/2026`;
+    const currentYear = new Date().getFullYear();
+    const officialLetterNum = letterNumber || `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${currentYear}`;
 
-    // 1. Update in Persistent Database
+    // 1. Update in Prisma Supabase DB
+    let appDb = await prisma.application.update({
+      where: { id },
+      data: {
+        status: 'COMPLETED',
+        history: {
+          create: {
+            status: 'COMPLETED',
+            actorName: `Operator (${req.user?.name || 'Operator'})`,
+            notes: `Surat resmi disetujui & diterbitkan (Nomor: ${officialLetterNum}) oleh Kepala Desa Jombe.`,
+          },
+        },
+      },
+      include: { user: true, service: true },
+    }).catch(async () => {
+      return await prisma.application.findUnique({
+        where: { id },
+        include: { user: true, service: true },
+      });
+    });
+
+    // 2. Update Persistent Store as well
     const updated = PersistentDatabase.updateApplication(id, {
       status: 'COMPLETED',
       letterNumber: officialLetterNum,
       letterContent: letterContent || undefined,
     });
-    if (updated) realtimeEvents.publish('application.changed', { action: 'updated', applicationId: updated.id });
+    realtimeEvents.publish('application.changed', { action: 'updated', applicationId: id });
 
-    if (updated) {
-      targetAppNumber = updated.applicationNumber;
-      targetPhone = updated.userPhone || '6281299887766';
-      targetServiceName = updated.serviceName;
-      officialLetterNum = updated.letterNumber;
-    }
-
-    // Fallback: If not in PersistentDatabase or userPhone is default, fetch from Prisma
-    if (!targetAppNumber || !targetPhone || targetPhone === '6281299887766') {
-      try {
-        const appDb = await prisma.application.findUnique({
-          where: { id },
-          include: { user: true, service: true },
-        });
-        if (appDb) {
-          targetAppNumber = appDb.applicationNumber || targetAppNumber;
-          if (appDb.user?.phone) {
-            targetPhone = appDb.user.phone;
-          }
-          if (appDb.service?.name) {
-            targetServiceName = appDb.service.name;
-          }
-        }
-      } catch (e) { }
-    }
-
-    // 2. Try DB Update
-    try {
-      await prisma.application.update({
-        where: { id },
-        data: {
-          status: 'COMPLETED',
-          history: {
-            create: {
-              status: 'COMPLETED',
-              actorName: `Operator (${req.user?.name || 'Operator'})`,
-              notes: `Surat resmi disetujui (Nomor: ${officialLetterNum}) dan dikirimkan otomatis ke WhatsApp warga.`,
-            },
-          },
-        },
-      }).catch(() => null);
-    } catch (e) {}
-
-    const host = req.get('host') || 'quinoa-legal-ostrich.abasthan.app';
+    const host = req.get('host') || 'lentera-desa-backend.vercel.app';
     const protocol = host.includes('localhost') ? req.protocol : 'https';
     const pdfUrl = `${protocol}://${host}/api/operator/pdf/${id}`;
 
+    const targetAppNumber = appDb?.applicationNumber || updated?.applicationNumber || id;
+    const citizenName = appDb?.user?.name || updated?.userName || 'Warga Desa Jombe';
+    const serviceName = appDb?.service?.name || updated?.serviceName || 'Surat Keterangan';
+
     return res.status(200).json({
       status: 'success',
-      message: `Surat resmi berhasil disetujui dan diterbitkan (Nomor: ${officialLetterNum})! Dokumen PDF telah siap diunduh oleh pemohon di portal lacak surat.`,
+      message: `Surat resmi berhasil disetujui dan diterbitkan (Nomor: ${officialLetterNum})! Dokumen PDF telah siap dicetak dan diunduh.`,
       data: {
         applicationNumber: targetAppNumber,
         letterNumber: officialLetterNum,
         pdfUrl: pdfUrl,
-        phone: targetPhone,
-        citizenName: updated?.userName || undefined,
-        serviceName: targetServiceName,
+        citizenName,
+        serviceName,
       },
     });
   } catch (error: any) {
@@ -247,12 +222,6 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
       return res.status(400).json({ status: 'error', message: 'Status baru wajib diisi.' });
     }
 
-    const updated = PersistentDatabase.updateApplication(id, {
-      status,
-      detailValue: revisionNotes ? `Catatan: ${revisionNotes}` : undefined,
-    });
-    if (updated) realtimeEvents.publish('application.changed', { action: 'updated', applicationId: updated.id });
-
     try {
       await prisma.application.update({
         where: { id },
@@ -262,13 +231,19 @@ export const updateApplicationStatus = async (req: AuthRequest, res: Response) =
           history: {
             create: {
               status,
-              actorName: req.user!.name,
+              actorName: req.user?.name || 'Operator',
               notes: revisionNotes || `Status diperbarui menjadi ${status} oleh operator.`,
             },
           },
         },
       }).catch(() => null);
     } catch (e) {}
+
+    const updated = PersistentDatabase.updateApplication(id, {
+      status,
+      detailValue: revisionNotes ? `Catatan: ${revisionNotes}` : undefined,
+    });
+    realtimeEvents.publish('application.changed', { action: 'updated', applicationId: id });
 
     return res.status(200).json({
       status: 'success',
@@ -288,34 +263,66 @@ export const createApplicationForCitizen = async (req: AuthRequest, res: Respons
       return res.status(400).json({ status: 'error', message: 'NIK, Nama, dan Jenis Layanan wajib diisi.' });
     }
 
-    const count = PersistentDatabase.loadApplications().length + 15;
-    const applicationNumber = `JMB-${new Date().getFullYear()}-${String(count + 1).padStart(5, '0')}`;
-    const newAppId = `app-assisted-${Date.now()}`;
-    const letterNumber = `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${new Date().getFullYear()}`;
+    const cleanNik = String(citizenNik).replace(/\D/g, '');
+    let citizen = await prisma.user.findUnique({ where: { nik: cleanNik } }).catch(() => null);
+    if (!citizen) {
+      citizen = await prisma.user.create({
+        data: {
+          nik: cleanNik,
+          name: citizenName,
+          phone: citizenPhone || '-',
+          address: 'Desa Jombe',
+          role: 'MASYARAKAT',
+          password: 'PUBLIC_NO_PASSWORD',
+        },
+      }).catch(async () => {
+        return await prisma.user.findUnique({ where: { nik: cleanNik } });
+      });
+    }
+
+    const totalApps = await prisma.application.count().catch(() => 0);
+    const applicationNumber = `JMB-${new Date().getFullYear()}-${String(totalApps + 1).padStart(5, '0')}`;
+
+    const createdApp = await prisma.application.create({
+      data: {
+        applicationNumber,
+        userId: citizen?.id || `user-${cleanNik}`,
+        serviceId,
+        status: 'PENDING',
+        history: {
+          create: {
+            status: 'PENDING',
+            actorName: `Operator (${req.user?.name || 'Petugas'})`,
+            notes: `Permohonan dibuatkan oleh Operator: ${notes || '-'}`,
+          },
+        },
+      },
+      include: { service: true, user: true },
+    }).catch(() => null);
+
+    const actualId = createdApp?.id || `app-assisted-${Date.now()}`;
 
     const newRecord: any = {
-      id: newAppId,
+      id: actualId,
       applicationNumber,
-      userId: `user-${Date.now()}`,
-      userNik: citizenNik,
+      userId: citizen?.id || `user-${Date.now()}`,
+      userNik: cleanNik,
       userName: citizenName,
-      userPhone: citizenPhone || '081234567890',
+      userPhone: citizenPhone || '-',
       serviceId,
-      serviceName: 'Surat Keterangan Usaha (SKU)',
-      serviceSlug: 'surat-keterangan-usaha',
+      serviceName: createdApp?.service?.name || 'Surat Keterangan Usaha (SKU)',
+      serviceSlug: createdApp?.service?.slug || 'surat-keterangan-usaha',
       status: 'PENDING',
       detailValue: notes || 'Permohonan dibuatkan oleh Operator',
       uploadedPhotos: [
         { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
-        { title: 'Foto Tempat / Kegiatan Usaha', type: 'USAHA' },
+        { title: 'Foto Kartu Keluarga (KK)', type: 'KK' },
       ],
-      letterNumber,
-      letterContent: `Menerangkan bahwa ${citizenName} adalah benar warga Desa Jombe dengan keterangan: ${notes || '-'}`,
       createdAt: new Date().toISOString(),
     };
 
     PersistentDatabase.addApplication(newRecord);
-    realtimeEvents.publish('application.changed', { action: 'created', source: 'operator', applicationId: newAppId });
+    realtimeEvents.publish('application.changed', { action: 'created', source: 'operator', applicationId: actualId });
 
     return res.status(201).json({
       status: 'success',
@@ -348,6 +355,9 @@ export const deleteOperatorApplication = async (req: AuthRequest, res: Response)
 export const clearAllOperatorApplications = async (req: AuthRequest, res: Response) => {
   try {
     PersistentDatabase.clearApplications();
+    try {
+      await prisma.application.deleteMany({}).catch(() => null);
+    } catch (e) {}
     realtimeEvents.publish('application.changed', { action: 'cleared' });
     return res.status(200).json({
       status: 'success',
@@ -357,3 +367,4 @@ export const clearAllOperatorApplications = async (req: AuthRequest, res: Respon
     return res.status(500).json({ status: 'error', message: 'Gagal mengosongkan berkas.' });
   }
 };
+
