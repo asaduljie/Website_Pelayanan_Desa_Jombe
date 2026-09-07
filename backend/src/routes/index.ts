@@ -151,6 +151,12 @@ router.patch(
   updateProfile
 );
 
+router.put(
+  '/auth/profile',
+  authenticateToken,
+  updateProfile
+);
+
 
 // ============================================================================
 // PUBLIC & OPERATOR CONTENT ROUTES

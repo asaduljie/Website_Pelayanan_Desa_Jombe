@@ -35,10 +35,9 @@ export default function HomePage() {
   const [trackingError, setTrackingError] = useState('');
 
   const [realStats, setRealStats] = useState<any>({
-    totalPopulation: 2854,
-    totalDusun: 4,
-    availableServices: 6,
-    completedApplications: 0,
+    totalPopulation: 2581,
+    totalDusun: 5,
+    availableServices: 9,
   });
 
   const [services, setServices] = useState<any[]>([]);
@@ -51,10 +50,9 @@ export default function HomePage() {
       if (res.data.status === 'success') {
         const s = res.data.data.stats || {};
         setRealStats({
-          totalPopulation: s.totalPopulation || 2854,
-          totalDusun: s.totalDusun || 4,
-          availableServices: s.availableServices || 6,
-          completedApplications: s.completedApplications || 0,
+          totalPopulation: s.totalPopulation || 2581,
+          totalDusun: s.totalDusun || 5,
+          availableServices: s.availableServices || 9,
         });
       }
     }).catch(() => {});
@@ -286,26 +284,29 @@ export default function HomePage() {
       </section>
 
       {/* REAL DYNAMIC VILLAGE STATISTICS SECTION */}
-      <section className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 text-white py-16 border-y border-emerald-800">
+      <section className="bg-gradient-to-r from-emerald-950 via-emerald-900 to-emerald-950 text-white py-14 border-y border-emerald-800 shadow-inner">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-emerald-800/60">
-            <div className="space-y-1 pt-4 sm:pt-0">
-              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">
-                {realStats.totalPopulation ? realStats.totalPopulation.toLocaleString('id-ID') : '2.854'}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-emerald-800/60">
+            <div className="space-y-1.5 pt-4 sm:pt-0 sm:px-4">
+              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block tracking-tight">
+                {realStats.totalPopulation ? realStats.totalPopulation.toLocaleString('id-ID') : '2.581'}
               </span>
-              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Jumlah Penduduk (Jiwa)</span>
+              <span className="text-xs text-emerald-100/90 font-bold uppercase tracking-wider block">Jumlah Penduduk (Jiwa)</span>
+              <span className="text-[11px] text-emerald-300/80 block">1.269 Laki-laki • 1.312 Perempuan</span>
             </div>
-            <div className="space-y-1 pt-4 sm:pt-0">
-              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">{realStats.totalDusun || '4'}</span>
-              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Wilayah Dusun</span>
+            <div className="space-y-1.5 pt-4 sm:pt-0 sm:px-4">
+              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block tracking-tight">
+                {realStats.totalDusun || '5'}
+              </span>
+              <span className="text-xs text-emerald-100/90 font-bold uppercase tracking-wider block">Wilayah Dusun</span>
+              <span className="text-[11px] text-emerald-300/80 block">Jombe Utara, Tengah, Selatan, Tompo Balang, Muncu-muncu</span>
             </div>
-            <div className="space-y-1 pt-4 sm:pt-0">
-              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">{realStats.availableServices || '6'}</span>
-              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Layanan Surat Online</span>
-            </div>
-            <div className="space-y-1 pt-4 sm:pt-0">
-              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block">{realStats.completedApplications}</span>
-              <span className="text-xs text-emerald-100/80 font-medium uppercase tracking-wider block">Surat Diterbitkan</span>
+            <div className="space-y-1.5 pt-4 sm:pt-0 sm:px-4">
+              <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block tracking-tight">
+                {realStats.availableServices || '9'}
+              </span>
+              <span className="text-xs text-emerald-100/90 font-bold uppercase tracking-wider block">Layanan Surat Online</span>
+              <span className="text-[11px] text-emerald-300/80 block">Pelayanan Administrasi Digital Mandiri</span>
             </div>
           </div>
         </div>

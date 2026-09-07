@@ -7,8 +7,8 @@ import { AuthRequest } from '../middleware/auth';
 const defaultProfile = {
   id: 'default',
   name: 'Desa Jombe',
-  address: 'Jl. Raya Desa Jombe No. 01, Kec. Jombang, Kab. Jombang, Jawa Timur 61419',
-  phone: '0812-3456-7890',
+  address: 'Jl. Poros Desa Jombe, Kec. Turatea, Kab. Jeneponto, Sulawesi Selatan 92351',
+  phone: '0852-5555-1234',
   email: 'pemdes@jombe.desa.id',
   vision: 'Terwujudnya Desa Jombe yang Mandiri, Sejahtera, Transparan, dan Berkelanjutan Berbasis Pelayanan Digital.',
   mission: '1. Meningkatkan kualitas pelayanan publik secara cepat dan transparan.\n2. Mengembangkan sarana dan prasarana infrastruktur desa yang merata.\n3. Memajukan ekonomi kerakyatan melalui digitalisasi UMKM desa.',
@@ -16,16 +16,16 @@ const defaultProfile = {
 
 const defaultStats = {
   id: 'default',
-  totalPopulation: 3850,
-  totalFamily: 1120,
-  malePopulation: 1920,
-  femalePopulation: 1930,
-  totalDusun: 4,
-  totalRw: 8,
-  totalRt: 18,
-  availableServices: 3,
-  completedApplications: 142,
-  totalApplications: 154,
+  totalPopulation: 2581,
+  totalFamily: 680,
+  malePopulation: 1269,
+  femalePopulation: 1312,
+  totalDusun: 5,
+  totalRw: 10,
+  totalRt: 20,
+  availableServices: 9,
+  completedApplications: 0,
+  totalApplications: 0,
 };
 
 export const getVillageProfile = async (req: Request, res: Response) => {
@@ -38,18 +38,15 @@ export const getVillageProfile = async (req: Request, res: Response) => {
       stats = await prisma.villageStatistic.findUnique({ where: { id: 'default' } });
     } catch (e) {}
 
-    const completedFromStore = waApplicationsStore.filter((w) => w.status === 'COMPLETED').length;
-    const totalFromStore = waApplicationsStore.length;
-
     return res.status(200).json({
       status: 'success',
       data: {
         profile: profile || defaultProfile,
         stats: {
           ...(stats || defaultStats),
-          availableServices: 3,
-          completedApplications: (stats?.completedApplications || 142) + completedFromStore,
-          totalApplications: (stats?.totalApplications || 154) + totalFromStore,
+          totalPopulation: stats?.totalPopulation || 2581,
+          totalDusun: stats?.totalDusun || 5,
+          availableServices: 9,
         },
       },
     });

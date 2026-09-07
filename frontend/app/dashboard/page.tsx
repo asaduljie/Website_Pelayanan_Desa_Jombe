@@ -3,8 +3,9 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { FileText, Clock, CheckCircle2, AlertCircle, PlusCircle, ArrowRight, User, Phone, MapPin, Bell, Download } from 'lucide-react';
+import { FileText, Clock, CheckCircle2, AlertCircle, PlusCircle, ArrowRight, User, Phone, MapPin, Bell, Download, Edit3 } from 'lucide-react';
 import api from '@/lib/api';
+import ProfileModal from '@/components/layout/ProfileModal';
 
 export default function CitizenDashboardPage() {
   const router = useRouter();
@@ -12,15 +13,27 @@ export default function CitizenDashboardPage() {
   const [applications, setApplications] = useState<any[]>([]);
   const [notifications, setNotifications] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isEditProfileOpen, setIsEditProfileOpen] = useState(false);
 
   useEffect(() => {
-    const stored = localStorage.getItem('jombe_user');
-    if (!stored) {
-      router.push('/login');
-      return;
-    }
-    setUser(JSON.parse(stored));
+    const syncUser = () => {
+      const stored = localStorage.getItem('jombe_user');
+      if (!stored) {
+        router.push('/login');
+        return;
+      }
+      try {
+        setUser(JSON.parse(stored));
+      } catch (e) {}
+    };
+
+    syncUser();
     fetchDashboardData();
+
+    window.addEventListener('jombe-auth-changed', syncUser);
+    return () => {
+      window.removeEventListener('jombe-auth-changed', syncUser);
+    };
   }, []);
 
   const fetchDashboardData = async () => {
@@ -151,10 +164,18 @@ export default function CitizenDashboardPage() {
         <div className="space-y-6">
           {/* Profile Card */}
           <div className="bg-white rounded-3xl p-6 border border-gray-100 shadow-soft space-y-4">
-            <h3 className="text-sm font-bold text-gray-900 border-b border-gray-100 pb-3 flex items-center gap-2">
-              <User className="w-4 h-4 text-jombe-700" />
-              Profil Saya
-            </h3>
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <h3 className="text-sm font-bold text-gray-900 flex items-center gap-2">
+                <User className="w-4 h-4 text-jombe-700" />
+                Profil Saya
+              </h3>
+              <button
+                onClick={() => setIsEditProfileOpen(true)}
+                className="text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 bg-emerald-50 hover:bg-emerald-100 px-2.5 py-1 rounded-xl transition-all"
+              >
+                <Edit3 className="w-3.5 h-3.5" /> Edit
+              </button>
+            </div>
 
             <div className="space-y-3 text-xs text-gray-700">
               <div>
@@ -167,7 +188,11 @@ export default function CitizenDashboardPage() {
               </div>
               <div>
                 <span className="text-[10px] font-bold text-gray-400 uppercase block">Nomor Handphone / Kontak</span>
-                <span className="font-semibold text-gray-900">{user.phone}</span>
+                <span className="font-semibold text-gray-900">{user.phone || '-'}</span>
+              </div>
+              <div>
+                <span className="text-[10px] font-bold text-gray-400 uppercase block">Wilayah Dusun</span>
+                <span className="font-semibold text-emerald-900">{user.dusun || 'Dusun Jombe Utara'}</span>
               </div>
               <div>
                 <span className="text-[10px] font-bold text-gray-400 uppercase block">Alamat</span>
@@ -198,6 +223,13 @@ export default function CitizenDashboardPage() {
           </div>
         </div>
       </div>
+
+      <ProfileModal
+        isOpen={isEditProfileOpen}
+        onClose={() => setIsEditProfileOpen(false)}
+        currentUser={user}
+        onProfileUpdated={(updated) => setUser(updated)}
+      />
     </div>
   );
 }
