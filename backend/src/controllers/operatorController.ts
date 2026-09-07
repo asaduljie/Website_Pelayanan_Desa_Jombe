@@ -10,7 +10,7 @@ import { realtimeEvents } from '../services/realtimeEvents';
 
 export const getOperatorDashboardStats = async (req: AuthRequest, res: Response) => {
   try {
-    let allApps = PersistentDatabase.loadApplications();
+    let allApps = await PersistentDatabase.loadApplicationsAsync();
 
     try {
       const dbApps = await prisma.application.findMany({
@@ -63,7 +63,7 @@ export const getOperatorApplications = async (req: AuthRequest, res: Response) =
   try {
     const { status, search } = req.query;
 
-    let allApps = PersistentDatabase.loadApplications();
+    let allApps = await PersistentDatabase.loadApplicationsAsync();
 
     // Merge from Prisma DB if any records exist there
     try {

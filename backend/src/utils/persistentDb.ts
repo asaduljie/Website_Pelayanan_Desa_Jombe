@@ -58,8 +58,11 @@ export interface AnnouncementRecord {
 }
 
 export class PersistentDatabase {
+  private static cachedApplications: WaApplicationRecord[] | null = null;
+  private static cachedComplaints: ComplaintRecord[] | null = null;
+
   // Sync helper with Prisma PersistentStore table for permanent storage across deployments/restarts
-  private static async syncToPrismaStore(key: string, dataObj: any): Promise<void> {
+  public static async syncToPrismaStore(key: string, dataObj: any): Promise<void> {
     try {
       const jsonStr = JSON.stringify(dataObj);
       await prisma.persistentStore.upsert({
@@ -72,7 +75,7 @@ export class PersistentDatabase {
     }
   }
 
-  private static async loadFromPrismaStore(key: string): Promise<any[] | null> {
+  public static async loadFromPrismaStore(key: string): Promise<any[] | null> {
     try {
       const record = await prisma.persistentStore.findUnique({ where: { key } });
       if (record && record.data) {
@@ -85,21 +88,52 @@ export class PersistentDatabase {
 
   // ================= APPLICATIONS =================
   public static loadApplications(): WaApplicationRecord[] {
-    try {
-      if (!fs.existsSync(DB_FILE)) {
-        const initialData: WaApplicationRecord[] = [];
-        this.saveApplications(initialData);
-        return initialData;
-      }
-      const raw = fs.readFileSync(DB_FILE, 'utf-8');
-      const data = JSON.parse(raw);
-      return Array.isArray(data) ? data : [];
-    } catch (e) {
-      return [];
+    if (this.cachedApplications && this.cachedApplications.length > 0) {
+      return this.cachedApplications;
     }
+    try {
+      if (fs.existsSync(DB_FILE)) {
+        const raw = fs.readFileSync(DB_FILE, 'utf-8');
+        const data = JSON.parse(raw);
+        if (Array.isArray(data)) {
+          this.cachedApplications = data;
+          return data;
+        }
+      }
+    } catch (e) {}
+    return this.cachedApplications || [];
+  }
+
+  public static async loadApplicationsAsync(): Promise<WaApplicationRecord[]> {
+    let list = this.loadApplications();
+    const dbData = await this.loadFromPrismaStore('applications_db');
+
+    if (dbData && Array.isArray(dbData)) {
+      const mergedMap = new Map<string, WaApplicationRecord>();
+      // First add DB records
+      for (const item of dbData) {
+        if (item && (item.id || item.applicationNumber)) {
+          mergedMap.set(item.id || item.applicationNumber, item);
+        }
+      }
+      // Then overlay local records if newer
+      for (const item of list) {
+        if (item && (item.id || item.applicationNumber)) {
+          mergedMap.set(item.id || item.applicationNumber, item);
+        }
+      }
+      list = Array.from(mergedMap.values());
+    }
+
+    this.cachedApplications = list;
+    if (list.length > 0) {
+      this.saveApplications(list);
+    }
+    return list;
   }
 
   public static saveApplications(records: WaApplicationRecord[]): void {
+    this.cachedApplications = records;
     try {
       const tempFile = `${DB_FILE}.${process.pid}.tmp`;
       fs.writeFileSync(tempFile, JSON.stringify(records, null, 2), 'utf-8');
@@ -113,6 +147,13 @@ export class PersistentDatabase {
 
   public static addApplication(record: WaApplicationRecord): void {
     const apps = this.loadApplications();
+    const filtered = apps.filter((a) => a.id !== record.id && a.applicationNumber !== record.applicationNumber);
+    filtered.unshift(record);
+    this.saveApplications(filtered);
+  }
+
+  public static async addApplicationAsync(record: WaApplicationRecord): Promise<void> {
+    const apps = await this.loadApplicationsAsync();
     const filtered = apps.filter((a) => a.id !== record.id && a.applicationNumber !== record.applicationNumber);
     filtered.unshift(record);
     this.saveApplications(filtered);
@@ -137,6 +178,7 @@ export class PersistentDatabase {
   }
 
   public static clearApplications(): void {
+    this.cachedApplications = [];
     this.saveApplications([]);
   }
 
@@ -248,21 +290,50 @@ export class PersistentDatabase {
 
   // ================= COMPLAINTS =================
   public static loadComplaints(): ComplaintRecord[] {
-    try {
-      if (!fs.existsSync(COMPLAINTS_FILE)) {
-        const initial: ComplaintRecord[] = [];
-        this.saveComplaints(initial);
-        return initial;
-      }
-      const raw = fs.readFileSync(COMPLAINTS_FILE, 'utf-8');
-      const data = JSON.parse(raw);
-      return Array.isArray(data) ? data : [];
-    } catch (e) {
-      return [];
+    if (this.cachedComplaints && this.cachedComplaints.length > 0) {
+      return this.cachedComplaints;
     }
+    try {
+      if (fs.existsSync(COMPLAINTS_FILE)) {
+        const raw = fs.readFileSync(COMPLAINTS_FILE, 'utf-8');
+        const data = JSON.parse(raw);
+        if (Array.isArray(data)) {
+          this.cachedComplaints = data;
+          return data;
+        }
+      }
+    } catch (e) {}
+    return this.cachedComplaints || [];
+  }
+
+  public static async loadComplaintsAsync(): Promise<ComplaintRecord[]> {
+    let list = this.loadComplaints();
+    const dbData = await this.loadFromPrismaStore('complaints_db');
+
+    if (dbData && Array.isArray(dbData)) {
+      const mergedMap = new Map<string, ComplaintRecord>();
+      for (const item of dbData) {
+        if (item && (item.id || item.ticketNumber)) {
+          mergedMap.set(item.id || item.ticketNumber, item);
+        }
+      }
+      for (const item of list) {
+        if (item && (item.id || item.ticketNumber)) {
+          mergedMap.set(item.id || item.ticketNumber, item);
+        }
+      }
+      list = Array.from(mergedMap.values());
+    }
+
+    this.cachedComplaints = list;
+    if (list.length > 0) {
+      this.saveComplaints(list);
+    }
+    return list;
   }
 
   public static saveComplaints(records: ComplaintRecord[]): void {
+    this.cachedComplaints = records;
     try {
       const tempFile = `${COMPLAINTS_FILE}.${process.pid}.tmp`;
       fs.writeFileSync(tempFile, JSON.stringify(records, null, 2), 'utf-8');
@@ -276,6 +347,13 @@ export class PersistentDatabase {
 
   public static addComplaint(record: ComplaintRecord): void {
     const list = this.loadComplaints();
+    const filtered = list.filter((c) => c.id !== record.id && c.ticketNumber !== record.ticketNumber);
+    filtered.unshift(record);
+    this.saveComplaints(filtered);
+  }
+
+  public static async addComplaintAsync(record: ComplaintRecord): Promise<void> {
+    const list = await this.loadComplaintsAsync();
     const filtered = list.filter((c) => c.id !== record.id && c.ticketNumber !== record.ticketNumber);
     filtered.unshift(record);
     this.saveComplaints(filtered);

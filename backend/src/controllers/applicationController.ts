@@ -120,7 +120,7 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
     };
 
     waApplicationsStore.unshift(newAppRecord);
-    PersistentDatabase.addApplication(newAppRecord);
+    await PersistentDatabase.addApplicationAsync(newAppRecord);
     realtimeEvents.publish('application.changed', { action: 'created', source: 'website', applicationId: newAppId });
 
     return res.status(201).json({
@@ -152,7 +152,7 @@ export const getMyApplications = async (req: AuthRequest, res: Response) => {
     const host = req.get('host') || 'localhost:5000';
     const protocol = host.includes('localhost') ? req.protocol : 'https';
 
-    let allPersistent = PersistentDatabase.loadApplications();
+    let allPersistent = await PersistentDatabase.loadApplicationsAsync();
 
     // Also check Prisma DB for applications belonging to this citizen NIK or userId
     if (userNik || userId) {
@@ -224,7 +224,7 @@ export const trackApplication = async (req: any, res: Response) => {
     const host = req.get('host') || 'quinoa-legal-ostrich.abasthan.app';
     const protocol = host.includes('localhost') ? req.protocol : 'https';
 
-    const allPersistent = PersistentDatabase.loadApplications();
+    const allPersistent = await PersistentDatabase.loadApplicationsAsync();
     const matches = allPersistent.filter((w) => {
       if (w.applicationNumber && w.applicationNumber.toUpperCase().includes(upperQuery)) return true;
       if (cleanDigits && cleanDigits.length >= 6 && w.userNik && w.userNik.includes(cleanDigits)) return true;

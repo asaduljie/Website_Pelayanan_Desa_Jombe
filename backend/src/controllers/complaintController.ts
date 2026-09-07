@@ -100,7 +100,7 @@ export const createComplaint = async (req: AuthRequest, res: Response) => {
 
 export const getComplaints = async (req: AuthRequest, res: Response) => {
   try {
-    const all = PersistentDatabase.loadComplaints();
+    const all = await PersistentDatabase.loadComplaintsAsync();
     // Publik / Warga dapat melihat daftar pengaduan (transparansi publik) atau disaring jika ada login
     let result = all;
     if (req.user && req.user.role === 'MASYARAKAT') {
