@@ -533,16 +533,22 @@ export default function OperatorDashboardPage() {
             {/* Controls Bar */}
             <div className="p-6 border-b border-slate-100 flex flex-col sm:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-2 overflow-x-auto w-full sm:w-auto pb-2 sm:pb-0">
-                {['ALL', 'PENDING', 'PROCESSING', 'NEED_REVISION', 'COMPLETED'].map((st) => (
+                {[
+                  { key: 'ALL', label: 'Semua Berkas' },
+                  { key: 'PENDING', label: 'Menunggu Verifikasi' },
+                  { key: 'PROCESSING', label: 'Sedang Diproses' },
+                  { key: 'NEED_REVISION', label: 'Perlu Perbaikan' },
+                  { key: 'COMPLETED', label: 'Disetujui / Selesai' },
+                ].map((st) => (
                   <button
-                    key={st}
-                    onClick={() => setStatusFilter(st)}
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 ${statusFilter === st
+                    key={st.key}
+                    onClick={() => setStatusFilter(st.key)}
+                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 cursor-pointer ${statusFilter === st.key
                         ? 'bg-emerald-900 text-white shadow-xs'
                         : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                       }`}
                   >
-                    {st === 'ALL' ? 'Semua Berkas' : st}
+                    {st.label}
                   </button>
                 ))}
               </div>
@@ -570,7 +576,7 @@ export default function OperatorDashboardPage() {
                         alert('Gagal mengosongkan berkas.');
                       }
                     }}
-                    className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5"
+                    className="px-3.5 py-2 bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 rounded-xl text-xs font-bold transition-colors shrink-0 flex items-center gap-1.5 cursor-pointer"
                     title="Kosongkan Semua Berkas Uji Coba"
                   >
                     <Trash2 className="w-3.5 h-3.5" /> Bersihkan Semua
@@ -615,14 +621,27 @@ export default function OperatorDashboardPage() {
                         </td>
                         <td className="px-6 py-4">
                           <span
-                            className={`px-3 py-1 rounded-full text-[10px] font-bold ${app.status === 'COMPLETED'
+                            className={`px-3 py-1 rounded-full text-[10px] font-bold ${
+                              app.status === 'COMPLETED' || app.status === 'APPROVED'
                                 ? 'bg-emerald-100 text-emerald-900'
-                                : app.status === 'PROCESSING'
-                                  ? 'bg-sky-100 text-sky-900'
-                                  : 'bg-amber-100 text-amber-900'
-                              }`}
+                                : app.status === 'PROCESSING' || app.status === 'VERIFIED'
+                                ? 'bg-sky-100 text-sky-900'
+                                : app.status === 'NEED_REVISION'
+                                ? 'bg-orange-100 text-orange-900'
+                                : app.status === 'REJECTED'
+                                ? 'bg-rose-100 text-rose-900'
+                                : 'bg-amber-100 text-amber-900'
+                            }`}
                           >
-                            {app.status}
+                            {app.status === 'COMPLETED' || app.status === 'APPROVED'
+                              ? 'Disetujui / Selesai'
+                              : app.status === 'PROCESSING' || app.status === 'VERIFIED'
+                              ? 'Sedang Diproses'
+                              : app.status === 'NEED_REVISION'
+                              ? 'Perlu Perbaikan'
+                              : app.status === 'REJECTED'
+                              ? 'Ditolak'
+                              : 'Menunggu Verifikasi'}
                           </span>
                         </td>
                         <td className="px-6 py-4 text-right">

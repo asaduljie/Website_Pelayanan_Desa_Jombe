@@ -14,7 +14,6 @@ import {
   ShieldCheck,
   Copy,
   ExternalLink,
-  Sparkles,
 } from 'lucide-react';
 import api from '@/lib/api';
 import Captcha from '@/components/ui/Captcha';

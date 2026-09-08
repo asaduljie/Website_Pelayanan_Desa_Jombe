@@ -242,7 +242,7 @@ export default function HomePage() {
                 <HomeIcon className="w-6 h-6" />
               </div>
               <h3 className="text-base font-bold text-slate-900 mb-1.5 group-hover:text-emerald-800 transition-colors">Surat Keterangan Domisili</h3>
-              <p className="text-xs text-slate-500 leading-relaxed mb-4">Keterangan resmi tempat tinggal warga di wilayah 4 dusun Desa Jombe.</p>
+              <p className="text-xs text-slate-500 leading-relaxed mb-4">Keterangan resmi tempat tinggal warga di wilayah 5 dusun Desa Jombe.</p>
             </div>
             <span className="text-xs font-bold text-emerald-800 flex items-center gap-1 pt-3 border-t border-slate-100">
               Ajukan Mandiri <ChevronRight className="w-4 h-4" />

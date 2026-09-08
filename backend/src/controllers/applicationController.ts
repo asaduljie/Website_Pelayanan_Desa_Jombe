@@ -245,7 +245,7 @@ export const getMyApplications = async (req: AuthRequest, res: Response) => {
 
 export const trackApplication = async (req: any, res: Response) => {
   try {
-    const query = String(req.query.applicationNumber || req.query.nik || req.query.regNo || req.query.query || '').trim();
+    const query = String(req.query.applicationNumber || req.query.nik || req.query.regNo || req.query.query || req.query.no || '').trim();
     if (!query) {
       return res.status(400).json({ status: 'error', message: 'Masukkan Nomor Registrasi Surat atau NIK untuk melacak.' });
     }
@@ -262,31 +262,46 @@ export const trackApplication = async (req: any, res: Response) => {
       dbApps = await prisma.application.findMany({
         where: {
           OR: [
+            { id: { equals: query } },
             { applicationNumber: { contains: upperQuery, mode: 'insensitive' } },
-            ...(cleanDigits && cleanDigits.length >= 6 ? [{ user: { nik: { contains: cleanDigits } } }] : []),
+            { applicantName: { contains: upperQuery, mode: 'insensitive' } },
+            { applicantNik: { contains: query } },
+            ...(cleanDigits && cleanDigits.length >= 4 ? [
+              { applicantNik: { contains: cleanDigits } },
+              { user: { nik: { contains: cleanDigits } } }
+            ] : []),
+            { user: { name: { contains: upperQuery, mode: 'insensitive' } } },
           ],
         },
         include: {
           service: true,
-          user: { select: { name: true, nik: true } },
+          user: { select: { name: true, nik: true, address: true, dusun: true, phone: true } },
           history: { orderBy: { createdAt: 'desc' } },
+          fieldValues: { include: { field: true } },
         },
         orderBy: { createdAt: 'desc' },
-        take: 10,
+        take: 20,
       });
     } catch (e) {}
 
     // 2. Query PersistentDatabase
     const persistentList = await PersistentDatabase.loadApplicationsAsync();
     const persistentMatches = persistentList.filter((w) => {
+      if (w.id && String(w.id) === query) return true;
       if (w.applicationNumber && w.applicationNumber.toUpperCase().includes(upperQuery)) return true;
-      if (cleanDigits && cleanDigits.length >= 6 && w.userNik && w.userNik.includes(cleanDigits)) return true;
+      if (w.userName && w.userName.toUpperCase().includes(upperQuery)) return true;
+      if (w.userNik && w.userNik.includes(query)) return true;
+      if (cleanDigits && cleanDigits.length >= 4 && w.userNik && w.userNik.includes(cleanDigits)) return true;
       return false;
     });
 
     const resultMap = new Map<string, any>();
 
     for (const app of dbApps) {
+      const applicantName = app.applicantName || app.user?.name || 'Warga Desa';
+      const applicantNik = app.applicantNik || app.user?.nik || '-';
+      const applicantAddress = app.applicantAddress || app.user?.address || (app.user?.dusun ? `${app.user.dusun}, Desa Jombe` : 'Desa Jombe');
+
       resultMap.set(app.id, {
         id: app.id,
         applicationNumber: app.applicationNumber,
@@ -294,33 +309,46 @@ export const trackApplication = async (req: any, res: Response) => {
         serviceName: app.service?.name || 'Surat Keterangan',
         createdAt: app.createdAt.toISOString ? app.createdAt.toISOString() : app.createdAt,
         user: app.user,
-        pdfUrl: app.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${app.id}` : null,
+        applicantName,
+        applicantNik,
+        applicantAddress,
+        fieldValues: app.fieldValues,
+        pdfUrl: (app.status === 'COMPLETED' || app.status === 'APPROVED') ? `${protocol}://${host}/api/operator/pdf/${app.id}` : null,
         revisionNotes:
-          app.status === 'COMPLETED'
+          app.status === 'COMPLETED' || app.status === 'APPROVED'
             ? 'Surat resmi telah disetujui & ditandatangani Kepala Desa Jombe.'
             : app.status === 'NEED_REVISION'
             ? app.revisionNotes || 'Memerlukan perbaikan dokumen lampiran.'
+            : app.status === 'REJECTED'
+            ? app.rejectionReason || 'Permohonan ditolak oleh operator.'
             : 'Permohonan sedang dalam antrean pemeriksaan oleh Operator Kantor Desa Jombe.',
       });
     }
 
     for (const match of persistentMatches) {
-      resultMap.set(match.id, {
-        id: match.id,
-        applicationNumber: match.applicationNumber,
-        status: match.status,
-        serviceName: match.serviceName,
-        createdAt: match.createdAt,
-        user: { name: match.userName, nik: match.userNik },
-        letterNumber: match.letterNumber,
-        pdfUrl: match.status === 'COMPLETED' ? `${protocol}://${host}/api/operator/pdf/${match.id}` : null,
-        revisionNotes:
-          match.status === 'COMPLETED'
-            ? 'Surat resmi telah disetujui & ditandatangani Kepala Desa Jombe.'
-            : match.status === 'NEED_REVISION'
-            ? match.detailValue || 'Memerlukan perbaikan dokumen lampiran.'
-            : 'Permohonan sedang dalam antrean pemeriksaan oleh Operator Kantor Desa Jombe.',
-      });
+      if (!resultMap.has(match.id)) {
+        resultMap.set(match.id, {
+          id: match.id,
+          applicationNumber: match.applicationNumber,
+          status: match.status,
+          serviceName: match.serviceName || 'Surat Keterangan',
+          createdAt: match.createdAt,
+          user: { name: match.userName, nik: match.userNik },
+          applicantName: match.userName || 'Warga Desa',
+          applicantNik: match.userNik || '-',
+          applicantAddress: match.userDusun ? `${match.userDusun}, Desa Jombe` : 'Desa Jombe',
+          letterNumber: match.letterNumber,
+          pdfUrl: (match.status === 'COMPLETED' || match.status === 'APPROVED') ? `${protocol}://${host}/api/operator/pdf/${match.id}` : null,
+          revisionNotes:
+            match.status === 'COMPLETED' || match.status === 'APPROVED'
+              ? 'Surat resmi telah disetujui & ditandatangani Kepala Desa Jombe.'
+              : match.status === 'NEED_REVISION'
+              ? match.detailValue || 'Memerlukan perbaikan dokumen lampiran.'
+              : match.status === 'REJECTED'
+              ? 'Permohonan ditolak oleh operator.'
+              : 'Permohonan sedang dalam antrean pemeriksaan oleh Operator Kantor Desa Jombe.',
+        });
+      }
     }
 
     const allResults = Array.from(resultMap.values()).sort(
@@ -330,8 +358,9 @@ export const trackApplication = async (req: any, res: Response) => {
     if (allResults.length > 0) {
       return res.status(200).json({
         status: 'success',
-        data: allResults[0],
+        data: allResults,
         allMatches: allResults,
+        result: allResults[0],
       });
     }
 
