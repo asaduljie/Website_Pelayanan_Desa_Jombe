@@ -39,6 +39,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import api from '@/lib/api';
+import NewsEditorModal from '@/components/editor/NewsEditorModal';
 
 export default function OperatorDashboardPage() {
   const router = useRouter();
@@ -908,93 +909,14 @@ export default function OperatorDashboardPage() {
       )}
 
       {/* ======================================================== */}
-      {/* MODAL: TULIS BERITA BARU                                 */}
+      {/* MODAL: TULIS BERITA BARU (ADVANCED EDITOR)               */}
       {/* ======================================================== */}
-      {showCreateNewsModal && (
-        <div className="fixed inset-0 z-50 bg-black/60 backdrop-blur-xs flex items-center justify-center p-4">
-          <div className="bg-white rounded-3xl max-w-2xl w-full p-6 sm:p-8 space-y-5 shadow-2xl border border-slate-200 animate-in zoom-in-95 duration-150">
-            <div className="flex justify-between items-center border-b border-slate-100 pb-3">
-              <h3 className="text-base font-extrabold text-slate-900 flex items-center gap-2">
-                <Newspaper className="w-5 h-5 text-emerald-800" /> Tulis Publikasi Berita Desa
-              </h3>
-              <button onClick={() => setShowCreateNewsModal(false)} className="p-1 rounded-lg text-slate-400 hover:text-slate-800">
-                <X className="w-5 h-5" />
-              </button>
-            </div>
-
-            <form onSubmit={handleCreateNews} className="space-y-4 text-xs">
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Judul Berita</label>
-                <input
-                  type="text"
-                  value={newsTitle}
-                  onChange={(e) => setNewsTitle(e.target.value)}
-                  placeholder="Contoh: Penyaluran Bantuan Pertanian Desa Jombe 2026..."
-                  required
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-semibold"
-                />
-              </div>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Kategori Berita</label>
-                  <select
-                    value={newsCategory}
-                    onChange={(e) => setNewsCategory(e.target.value)}
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 font-semibold"
-                  >
-                    <option value="Pemerintahan">Pemerintahan</option>
-                    <option value="Pembangunan">Pembangunan</option>
-                    <option value="UMKM & Ekonomi">UMKM & Ekonomi</option>
-                    <option value="Sosial & Budaya">Sosial & Budaya</option>
-                    <option value="Kesehatan">Kesehatan</option>
-                  </select>
-                </div>
-
-                <div className="space-y-1">
-                  <label className="font-bold text-slate-700">Ringkasan Singkat (Excerpt)</label>
-                  <input
-                    type="text"
-                    value={newsExcerpt}
-                    onChange={(e) => setNewsExcerpt(e.target.value)}
-                    placeholder="Ringkasan singkat berita untuk kartu beranda..."
-                    className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-1">
-                <label className="font-bold text-slate-700">Isi Berita Lengkap</label>
-                <textarea
-                  rows={6}
-                  value={newsContent}
-                  onChange={(e) => setNewsContent(e.target.value)}
-                  placeholder="Tuliskan isi berita dan informasi desa secara lengkap di sini..."
-                  required
-                  className="w-full px-3.5 py-2.5 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 bg-slate-50 text-slate-900 leading-relaxed font-sans"
-                />
-              </div>
-
-              <div className="flex justify-end gap-2 pt-3 border-t border-slate-100">
-                <button
-                  type="button"
-                  onClick={() => setShowCreateNewsModal(false)}
-                  className="px-4 py-2.5 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold rounded-xl"
-                >
-                  Batal
-                </button>
-                <button
-                  type="submit"
-                  disabled={newsSaving}
-                  className="px-6 py-2.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold rounded-xl shadow-md flex items-center gap-1.5 transition-all"
-                >
-                  <Send className="w-4 h-4" /> {newsSaving ? 'Menerbitkan...' : 'Terbitkan Berita'}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <NewsEditorModal
+        isOpen={showCreateNewsModal}
+        onClose={() => setShowCreateNewsModal(false)}
+        onNewsCreated={fetchNewsAndAnnouncements}
+        initialAuthorName={operator?.name || 'Humas Pemdes Jombe'}
+      />
 
       {/* ======================================================== */}
       {/* MODAL: BUAT PENGUMUMAN BARU                              */}
