@@ -17,10 +17,8 @@ import {
   Landmark,
   ShieldCheck,
   Stethoscope,
-  Baby,
   Briefcase,
   Compass,
-  CheckCircle2,
   Search,
   ChevronRight,
   Eye,
@@ -36,10 +34,7 @@ import {
   Home,
   Flame,
   Radio,
-  Truck,
-  Music,
-  ShieldAlert,
-  GraduationCap
+  Truck
 } from 'lucide-react';
 
 interface AparatDetail {
@@ -60,7 +55,7 @@ export default function ProfilDesaPage() {
   const [selectedAparat, setSelectedAparat] = useState<AparatDetail | null>(null);
 
   // Interactive Statistics Sub-tab
-  const [statTab, setStatTab] = useState<'demografi' | 'pekerjaan' | 'kelahiran' | 'perumahan'>('demografi');
+  const [statTab, setStatTab] = useState<'demografi' | 'pekerjaan' | 'kelahiran'>('demografi');
 
   // 5 Dusun Resmi Desa Jombe beserta Kepala Dusun
   const daftarDusun = [
@@ -303,16 +298,16 @@ export default function ProfilDesaPage() {
             </h1>
 
             <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed max-w-2xl font-medium">
-              Data resmi bersumber langsung dari publikasi resmi <strong>Badan Pusat Statistik (BPS) &quot;Kecamatan Turatea Dalam Angka 2025&quot;</strong> dan dokumen administrasi Pemerintah Desa Jombe, Sulawesi Selatan.
+              Data resmi profil kewilayahan, kependudukan, tata guna lahan, dan sarana prasarana Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Sulawesi Selatan.
             </p>
 
-            {/* Official Metadata Badges (BPS 2025) */}
+            {/* Official Metadata Badges */}
             <div className="flex flex-wrap gap-2 pt-2 text-xs font-semibold text-emerald-100">
               <span className="flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-700/50">
                 <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Luas Wilayah: <strong>3,76 km² (7,00% Kec. Turatea)</strong>
               </span>
               <span className="flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-700/50">
-                <Users className="w-3.5 h-3.5 text-emerald-400" /> Penduduk: <strong>2.670 Jiwa (BPS 2025)</strong>
+                <Users className="w-3.5 h-3.5 text-emerald-400" /> Penduduk: <strong>2.670 Jiwa</strong>
               </span>
               <span className="flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-700/50">
                 <Trophy className="w-3.5 h-3.5 text-amber-400" /> Status: <strong>Swasembada · Cepat Berkembang</strong>
@@ -321,15 +316,22 @@ export default function ProfilDesaPage() {
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Kepala Desa: <strong>JUSMAEDY, S.Pd</strong>
               </span>
             </div>
+
+            {/* Single Source Badge */}
+            <div className="pt-2">
+              <span className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-300 bg-emerald-900/60 px-3 py-1 rounded-lg border border-emerald-700/40">
+                Sumber : BPS Kecamatan Turatea 2025
+              </span>
+            </div>
           </div>
         </div>
       </div>
 
-      {/* ═════════════════════ QUICK STATS CARDS (BPS 2025) ═════════════════════ */}
+      {/* ═════════════════════ QUICK STATS CARDS ═════════════════════ */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
           {[
-            { val: '2.670', unit: 'Jiwa', label: 'Total Penduduk', sub: '1.336 L / 1.334 P (BPS 2025)', icon: <Users className="w-4 h-4 text-emerald-700" />, tabTarget: 'statistik' },
+            { val: '2.670', unit: 'Jiwa', label: 'Total Penduduk', sub: '1.336 L / 1.334 P', icon: <Users className="w-4 h-4 text-emerald-700" />, tabTarget: 'statistik' },
             { val: '3,76', unit: 'km²', label: 'Luas Wilayah', sub: '7,00% Luas Kec. Turatea', icon: <Compass className="w-4 h-4 text-teal-700" />, tabTarget: 'tentang' },
             { val: '710,11', unit: 'jiwa/km²', label: 'Kepadatan Penduduk', sub: 'Rasio Gender: 100,15', icon: <TrendingUp className="w-4 h-4 text-slate-700" />, tabTarget: 'statistik' },
             { val: '10', unit: 'RW', label: 'Rukun Warga (RW)', sub: 'Tersebar di 5 Dusun Resmi', icon: <Layers className="w-4 h-4 text-indigo-700" />, tabTarget: 'dusun' },
@@ -380,38 +382,33 @@ export default function ProfilDesaPage() {
         </div>
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 1: TENTANG DESA & STATUS PEMERINTAHAN (BPS)
+            TAB 1: TENTANG DESA & STATUS PEMERINTAHAN
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'tentang' && (
           <div className="space-y-6">
-            {/* Tabel Informasi Dasar & Geografis BPS */}
+            {/* Informasi Dasar & Geografis */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
-                <div>
-                  <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                    <Landmark className="w-5 h-5 text-emerald-800" />
-                    Informasi Dasar & Geografis (Tabel 1.1.1 – 1.1.4 BPS)
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Data resmi wilayah Desa Jombe dari publikasi BPS Kabupaten Jeneponto.
-                  </p>
-                </div>
-                <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                  BPS 2025
-                </span>
+              <div className="border-b border-slate-100 pb-4">
+                <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <Landmark className="w-5 h-5 text-emerald-800" />
+                  Informasi Dasar & Geografis
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Data pokok wilayah dan letak geografis Desa Jombe.
+                </p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
                 {[
-                  { label: 'Luas Wilayah Desa', val: '3,76 km²', note: 'Tabel 1.1.1 BPS' },
+                  { label: 'Luas Wilayah Desa', val: '3,76 km²', note: 'Total luas wilayah daratan' },
                   { label: 'Persentase Luas Kecamatan', val: '7,00%', note: 'Dari total luas Kecamatan Turatea (53,76 km²)' },
-                  { label: 'Jarak ke Ibu Kota Kecamatan', val: '17,00 km', note: 'Desa paling jauh dari ibukota Kec. Turatea (Tabel 1.1.2)' },
+                  { label: 'Jarak ke Ibu Kota Kecamatan', val: '17,00 km', note: 'Desa paling jauh dari ibukota Kec. Turatea' },
                   { label: 'Jarak ke Ibu Kota Kabupaten', val: '8,70 km', note: 'Jarak menuju ibukota Kabupaten Jeneponto' },
-                  { label: 'Status Wilayah', val: 'Bukan Daerah Pantai', note: 'Topografi dataran/perbukitan (Tabel 1.1.4)' },
-                  { label: 'Ketinggian Wilayah', val: 'Kategori 1000+ m dpl', note: 'Tabel 1.1.4 BPS' },
-                  { label: 'Status Perkembangan Desa', val: 'Swasembada', note: 'Tabel 2.1.2 BPS' },
-                  { label: 'Tingkat Perkembangan', val: 'Cepat Berkembang', note: 'Tabel 2.2.10 BPS' },
-                  { label: 'Jumlah Rukun Warga (RW)', val: '10 RW', note: 'Tabel 2.1.1 BPS' },
+                  { label: 'Status Wilayah', val: 'Bukan Daerah Pantai', note: 'Topografi dataran dan perbukitan' },
+                  { label: 'Ketinggian Wilayah', val: '1000+ m dpl', note: 'Ketinggian di atas permukaan laut' },
+                  { label: 'Status Perkembangan Desa', val: 'Swasembada', note: 'Klasifikasi desa mandiri' },
+                  { label: 'Tingkat Perkembangan', val: 'Cepat Berkembang', note: 'Kategori laju pembangunan desa' },
+                  { label: 'Jumlah Rukun Warga (RW)', val: '10 RW', note: 'Terbagi di 5 wilayah dusun' },
                 ].map((item, idx) => (
                   <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                     <span className="text-[11px] font-semibold text-slate-500 block">{item.label}</span>
@@ -422,29 +419,28 @@ export default function ProfilDesaPage() {
               </div>
             </div>
 
-            {/* Kelembagaan Desa & Keamanan (Tabel 2.2.4 - 2.2.9 BPS) */}
+            {/* Kelembagaan Desa & Keamanan */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
               <div className="border-b border-slate-100 pb-3">
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <Building2 className="w-5 h-5 text-emerald-800" />
-                  Kelembagaan & Prasarana Desa (Tabel 2.2.4 – 2.2.9 BPS)
+                  Kelembagaan & Prasarana Desa
                 </h2>
-                <p className="text-xs text-slate-500">Organisasi dan fasilitas kemasyarakatan yang tercatat resmi dalam BPS.</p>
+                <p className="text-xs text-slate-500">Organisasi dan fasilitas kemasyarakatan di Desa Jombe.</p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 text-xs">
                 {[
-                  { label: 'Badan Permusyawaratan Desa (BPD)', val: '1 Unit', sub: 'Tabel 2.2.4' },
-                  { label: 'P3A (Perkumpulan Petani Air)', val: '1 Unit', sub: 'Tabel 2.2.4' },
-                  { label: 'Karang Taruna Desa', val: '1 Unit', sub: 'Tabel 2.2.4' },
-                  { label: 'Tim Penggerak PKK', val: '1 Unit', sub: 'Tabel 2.2.5' },
-                  { label: 'Kelompok Wanita Tani (KWT)', val: '1 Unit', sub: 'Tabel 2.2.5' },
-                  { label: 'Kantor & Balai Pertemuan Desa', val: '1 Kantor / 1 Balai', sub: 'Tabel 2.2.8' },
-                  { label: 'Pos Kamling Lingkungan', val: '5 Unit', sub: 'Tabel 2.2.9' },
-                  { label: 'Personil Hansip / Wanra', val: '10 Personil', sub: 'Tabel 2.2.9' },
+                  { label: 'Badan Permusyawaratan Desa (BPD)', val: '1 Unit' },
+                  { label: 'P3A (Perkumpulan Petani Air)', val: '1 Unit' },
+                  { label: 'Karang Taruna Desa', val: '1 Unit' },
+                  { label: 'Tim Penggerak PKK', val: '1 Unit' },
+                  { label: 'Kelompok Wanita Tani (KWT)', val: '1 Unit' },
+                  { label: 'Kantor & Balai Pertemuan Desa', val: '1 Kantor / 1 Balai' },
+                  { label: 'Pos Kamling Lingkungan', val: '5 Unit' },
+                  { label: 'Personil Hansip / Wanra', val: '10 Personil' },
                 ].map((k, idx) => (
                   <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{k.sub}</span>
                     <span className="text-base font-black text-slate-900 block">{k.val}</span>
                     <span className="text-[11px] text-slate-600 font-medium block">{k.label}</span>
                   </div>
@@ -452,13 +448,13 @@ export default function ProfilDesaPage() {
               </div>
             </div>
 
-            {/* Batas Wilayah Administrasi (Tabel 1.1.3 BPS) */}
+            {/* Batas Wilayah Administrasi */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <Compass className="w-5 h-5 text-emerald-800" />
                 <div>
-                  <h2 className="text-base font-black text-slate-900">Batas Wilayah Administrasi (Tabel 1.1.3 BPS)</h2>
-                  <p className="text-xs text-slate-500">Batas wilayah hukum dan administrasi Desa Jombe dengan wilayah sekitar.</p>
+                  <h2 className="text-base font-black text-slate-900">Batas Wilayah Administrasi</h2>
+                  <p className="text-xs text-slate-500">Batas wilayah hukum dan administrasi Desa Jombe dengan desa sekitar.</p>
                 </div>
               </div>
 
@@ -480,7 +476,7 @@ export default function ProfilDesaPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 2: STATISTIK & KEPENDUDUKAN (BPS 2025)
+            TAB 2: STATISTIK & KEPENDUDUKAN
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'statistik' && (
           <div className="space-y-6">
@@ -489,10 +485,10 @@ export default function ProfilDesaPage() {
                 <div>
                   <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-emerald-800" />
-                    Statistik Kependudukan (Tabel 3.1 & 3.4 BPS)
+                    Statistik Kependudukan
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Data kependudukan bersumber dari Dinas Kependudukan dan Pencatatan Sipil / BPS 2025.
+                    Data kependudukan, jenis kelamin, dan mata pencaharian warga.
                   </p>
                 </div>
 
@@ -518,12 +514,12 @@ export default function ProfilDesaPage() {
                 </div>
               </div>
 
-              {/* STAT SUB-TAB 1: DEMOGRAFI BPS */}
+              {/* STAT SUB-TAB 1: DEMOGRAFI */}
               {statTab === 'demografi' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 text-center">
                     {[
-                      { label: 'Total Penduduk', val: '2.670', sub: 'Jiwa (Tabel 3.1 BPS)', color: 'bg-emerald-50 border-emerald-200 text-emerald-900' },
+                      { label: 'Total Penduduk', val: '2.670', sub: 'Jiwa Terdaftar', color: 'bg-emerald-50 border-emerald-200 text-emerald-900' },
                       { label: 'Laki-Laki', val: '1.336', sub: 'Jiwa (50,04%)', color: 'bg-sky-50 border-sky-200 text-sky-900' },
                       { label: 'Perempuan', val: '1.334', sub: 'Jiwa (49,96%)', color: 'bg-teal-50 border-teal-200 text-teal-900' },
                       { label: 'Kepadatan Penduduk', val: '710,11', sub: 'Jiwa / km²', color: 'bg-slate-50 border-slate-200 text-slate-900' },
@@ -540,7 +536,7 @@ export default function ProfilDesaPage() {
                   <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        Komposisi Jenis Kelamin Penduduk (Tabel 3.1 BPS)
+                        Komposisi Jenis Kelamin Penduduk
                       </h4>
                       <span className="text-xs font-bold text-slate-500">Rasio Jenis Kelamin: 100,15 (Persentase Kecamatan: 7,33%)</span>
                     </div>
@@ -558,14 +554,14 @@ export default function ProfilDesaPage() {
                       <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center justify-between">
                         <span className="font-semibold text-slate-700 flex items-center gap-2">
                           <span className="w-3 h-3 rounded-full bg-sky-700" />
-                          Laki-Laki (BPS 2025)
+                          Laki-Laki
                         </span>
                         <span className="font-black text-slate-900">1.336 Jiwa</span>
                       </div>
                       <div className="bg-white p-3.5 rounded-xl border border-slate-200 flex items-center justify-between">
                         <span className="font-semibold text-slate-700 flex items-center gap-2">
                           <span className="w-3 h-3 rounded-full bg-teal-600" />
-                          Perempuan (BPS 2025)
+                          Perempuan
                         </span>
                         <span className="font-black text-slate-900">1.334 Jiwa</span>
                       </div>
@@ -574,19 +570,19 @@ export default function ProfilDesaPage() {
                 </div>
               )}
 
-              {/* STAT SUB-TAB 2: MATA PENCAHARIAN BPS (TABEL 3.4) */}
+              {/* STAT SUB-TAB 2: MATA PENCAHARIAN */}
               {statTab === 'pekerjaan' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
                     {[
-                      { icon: <Wheat className="w-5 h-5 text-emerald-800" />, label: 'Petani Tanaman Pangan', val: '485 orang', sub: 'Sektor Utama (Tabel 3.4)' },
-                      { icon: <TreePine className="w-5 h-5 text-teal-800" />, label: 'Peternak', val: '220 orang', sub: 'Ternak Kambing/Kuda/Sapi' },
-                      { icon: <Truck className="w-5 h-5 text-indigo-800" />, label: 'Sektor Angkutan / Transport', val: '123 orang', sub: 'Tabel 3.4 Lanjutan' },
-                      { icon: <Briefcase className="w-5 h-5 text-slate-800" />, label: 'PNS / ABRI', val: '75 orang', sub: 'Pegawai Pemerintah/TNI' },
+                      { icon: <Wheat className="w-5 h-5 text-emerald-800" />, label: 'Petani Tanaman Pangan', val: '485 orang', sub: 'Sektor Utama Pertanian' },
+                      { icon: <TreePine className="w-5 h-5 text-teal-800" />, label: 'Peternak', val: '220 orang', sub: 'Ternak Kambing, Kuda & Sapi' },
+                      { icon: <Truck className="w-5 h-5 text-indigo-800" />, label: 'Sektor Angkutan / Transport', val: '123 orang', sub: 'Sopir & Pengemudi Angkutan' },
+                      { icon: <Briefcase className="w-5 h-5 text-slate-800" />, label: 'PNS / ABRI', val: '75 orang', sub: 'Pegawai Pemerintah / TNI / Polri' },
                       { icon: <Building className="w-5 h-5 text-amber-800" />, label: 'Pedagang', val: '62 orang', sub: 'Perniagaan & Toko' },
-                      { icon: <Activity className="w-5 h-5 text-cyan-800" />, label: 'Sektor Industri', val: '39 orang', sub: 'Industri Pengolahan/Kerajinan' },
+                      { icon: <Activity className="w-5 h-5 text-cyan-800" />, label: 'Sektor Industri', val: '39 orang', sub: 'Industri Kerajinan & Pengolahan' },
                       { icon: <Users className="w-5 h-5 text-rose-800" />, label: 'Sektor Jasa', val: '19 orang', sub: 'Pelayanan & Jasa Lain' },
-                      { icon: <Trophy className="w-5 h-5 text-emerald-700" />, label: 'Nelayan & Tambak', val: '0 orang', sub: 'Bukan Daerah Pantai' },
+                      { icon: <Trophy className="w-5 h-5 text-emerald-700" />, label: 'Nelayan & Tambak', val: '0 orang', sub: 'Bukan Wilayah Pantai' },
                     ].map((item, idx) => (
                       <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-2">
                         <div className="w-9 h-9 rounded-xl bg-white flex items-center justify-center border border-slate-200 shadow-2xs">
@@ -603,24 +599,24 @@ export default function ProfilDesaPage() {
                 </div>
               )}
 
-              {/* STAT SUB-TAB 3: DATA KELAHIRAN (TABEL 3.3) */}
+              {/* STAT SUB-TAB 3: DATA KELAHIRAN */}
               {statTab === 'kelahiran' && (
                 <div className="space-y-4">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
                     <div className="p-5 rounded-2xl bg-sky-50 border border-sky-200 space-y-1">
                       <span className="text-2xl font-black text-sky-900 block">21 Bayi</span>
                       <span className="text-xs font-bold text-slate-800 block">Kelahiran Laki-Laki</span>
-                      <span className="text-[10px] text-slate-500 block">Tahun 2024 (Puskesmas)</span>
+                      <span className="text-[10px] text-slate-500 block">Pencatatan Puskesmas</span>
                     </div>
                     <div className="p-5 rounded-2xl bg-teal-50 border border-teal-200 space-y-1">
                       <span className="text-2xl font-black text-teal-900 block">22 Bayi</span>
                       <span className="text-xs font-bold text-slate-800 block">Kelahiran Perempuan</span>
-                      <span className="text-[10px] text-slate-500 block">Tahun 2024 (Puskesmas)</span>
+                      <span className="text-[10px] text-slate-500 block">Pencatatan Puskesmas</span>
                     </div>
                     <div className="p-5 rounded-2xl bg-emerald-50 border border-emerald-200 space-y-1">
                       <span className="text-2xl font-black text-emerald-900 block">43 Bayi</span>
-                      <span className="text-xs font-bold text-slate-800 block">Total Kelahiran (2024)</span>
-                      <span className="text-[10px] text-slate-500 block">Tabel 3.3 BPS</span>
+                      <span className="text-xs font-bold text-slate-800 block">Total Kelahiran</span>
+                      <span className="text-[10px] text-slate-500 block">Total Tahun Terakhir</span>
                     </div>
                   </div>
                 </div>
@@ -630,18 +626,18 @@ export default function ProfilDesaPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 3: PERTANIAN, LAHAN & TERNAK (BPS)
+            TAB 3: PERTANIAN, LAHAN & TERNAK
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'pertanian' && (
           <div className="space-y-6">
-            {/* Tata Guna Lahan (Tabel 5.8 & 5.9 BPS) */}
+            {/* Tata Guna Lahan */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
               <div className="border-b border-slate-100 pb-3">
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <Wheat className="w-5 h-5 text-emerald-800" />
-                  Luas Lahan & Penggunaannya (Tabel 5.8 & 5.9 BPS)
+                  Luas Lahan & Penggunaannya
                 </h2>
-                <p className="text-xs text-slate-500">Distribusi tata guna lahan produktif di Desa Jombe dari Dinas Pertanian Kabupaten Jeneponto.</p>
+                <p className="text-xs text-slate-500">Distribusi tata guna lahan produktif di Desa Jombe.</p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
@@ -649,7 +645,7 @@ export default function ProfilDesaPage() {
                   { label: 'Lahan Sawah Total', val: '192,00 ha', sub: '110 ha Teknis + 82 ha Tadah Hujan', color: 'bg-emerald-50 border-emerald-200 text-emerald-900' },
                   { label: 'Tegalan / Lahan Kering', val: '212,00 ha', sub: 'Lahan Kering Produktif', color: 'bg-teal-50 border-teal-200 text-teal-900' },
                   { label: 'Pekarangan & Bangunan', val: '21,00 ha', sub: 'Kawasan Permukiman Warga', color: 'bg-slate-50 border-slate-200 text-slate-900' },
-                  { label: 'Penggunaan Lainnya', val: '3,65 ha', sub: 'Saluran, Jalan, & Lain-lain', color: 'bg-amber-50 border-amber-200 text-amber-900' },
+                  { label: 'Penggunaan Lainnya', val: '3,65 ha', sub: 'Saluran, Jalan & Lain-lain', color: 'bg-amber-50 border-amber-200 text-amber-900' },
                 ].map((item, idx) => (
                   <div key={idx} className={`rounded-2xl border p-4 text-center space-y-1 ${item.color}`}>
                     <span className="text-xl sm:text-2xl font-black block">{item.val}</span>
@@ -661,28 +657,28 @@ export default function ProfilDesaPage() {
 
               {/* Rincian Sawah Teknis & Tadah Hujan */}
               <div className="bg-slate-50 p-4 rounded-2xl border border-slate-200 text-xs space-y-2">
-                <span className="font-bold text-slate-900 block">Rincian Pengairan Sawah (Tabel 5.9 BPS):</span>
+                <span className="font-bold text-slate-900 block">Rincian Pengairan Sawah:</span>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-slate-700">
                   <div className="bg-white p-3 rounded-xl border border-slate-200 flex justify-between">
                     <span>Sawah Pengairan Teknis:</span>
                     <strong className="text-emerald-900">110,00 Ha</strong>
                   </div>
                   <div className="bg-white p-3 rounded-xl border border-slate-200 flex justify-between">
-                    <span>Sawah Tadah Hujan / Pasang Surut:</span>
+                    <span>Sawah Tadah Hujan:</span>
                     <strong className="text-emerald-900">82,00 Ha</strong>
                   </div>
                 </div>
               </div>
             </div>
 
-            {/* Populasi Hewan Ternak (Tabel 5.12 BPS) */}
+            {/* Populasi Hewan Ternak */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
               <div className="border-b border-slate-100 pb-3">
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <TreePine className="w-5 h-5 text-emerald-800" />
-                  Populasi Hewan Ternak Besar (Tabel 5.12 BPS)
+                  Populasi Hewan Ternak Besar
                 </h2>
-                <p className="text-xs text-slate-500">Populasi ternak masyarakat Desa Jombe dari Dinas Pertanian Bidang Peternakan.</p>
+                <p className="text-xs text-slate-500">Populasi ternak masyarakat Desa Jombe.</p>
               </div>
 
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 text-center">
@@ -704,7 +700,7 @@ export default function ProfilDesaPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 4: SOSIAL, KESEHATAN, AGAMA & OLAHRAGA (BPS)
+            TAB 4: SOSIAL, KESEHATAN, AGAMA & OLAHRAGA
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'sosial' && (
           <div className="space-y-6">
@@ -712,28 +708,28 @@ export default function ProfilDesaPage() {
               <div className="border-b border-slate-100 pb-4">
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <Heart className="w-5 h-5 text-emerald-800" />
-                  Kesehatan, Agama & Keolahragaan (Bab 4 BPS)
+                  Kesehatan, Agama & Keolahragaan
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
-                  Fasilitas pelayanan kesehatan, keagamaan, dan fasilitas olahraga yang terdata resmi di Desa Jombe.
+                  Fasilitas pelayanan kesehatan, keagamaan, dan sarana olahraga di Desa Jombe.
                 </p>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                {/* Fasilitas Kesehatan (Tabel 4.2.3 & 4.2.4) */}
+                {/* Fasilitas Kesehatan */}
                 <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
                   <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
                     <Stethoscope className="w-4 h-4" />
-                    Kesehatan & Tenaga Medis (BPS)
+                    Kesehatan & Tenaga Medis
                   </div>
                   <div className="space-y-2 text-xs">
                     {[
-                      ['Pustu (Puskesmas Pembantu)', '1 Unit (Tabel 4.2.3)'],
-                      ['Posyandu Balita & Lansia', '5 Unit (Tabel 4.2.3)'],
-                      ['Bidan Desa', '3 Orang (Tabel 4.2.4)'],
-                      ['Dukun Bayi Terbina', '2 Orang (Tabel 4.2.4)'],
-                      ['Peserta KB Aktif', '191 Akseptor (Tabel 4.2.5)'],
-                      ['Pasangan Usia Subur (PUS)', '433 Pasangan (Tabel 4.2.5)'],
+                      ['Puskesmas Pembantu (Pustu)', '1 Unit'],
+                      ['Posyandu Balita & Lansia', '5 Unit'],
+                      ['Bidan Desa', '3 Orang'],
+                      ['Dukun Bayi Terbina', '2 Orang'],
+                      ['Peserta KB Aktif', '191 Akseptor'],
+                      ['Pasangan Usia Subur (PUS)', '433 Pasangan'],
                     ].map(([label, val], idx) => (
                       <div key={idx} className="flex justify-between items-center py-1.5 border-b border-slate-200/60 last:border-0">
                         <span className="text-slate-600">{label}</span>
@@ -743,21 +739,21 @@ export default function ProfilDesaPage() {
                   </div>
                 </div>
 
-                {/* Tempat Ibadah & Keagamaan (Tabel 4.4.1 & 2.2.7) */}
+                {/* Tempat Ibadah & Keagamaan */}
                 <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
                   <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
                     <Landmark className="w-4 h-4" />
-                    Tempat Ibadah & Agama (BPS)
+                    Tempat Ibadah & Keagamaan
                   </div>
                   <div className="space-y-2 text-xs">
                     {[
-                      ['Masjid Jami', '5 Unit (Tabel 4.4.1)'],
-                      ['Mushola', '1 Unit (Tabel 4.4.1)'],
-                      ['Gereja / Pura / Vihara', '0 Unit (Tabel 4.4.1)'],
-                      ['Kelompok Remaja Masjid', '5 Kelompok (Tabel 2.2.7)'],
-                      ['Pondok Pengajian', '5 Pondok (Tabel 2.2.7)'],
-                      ['Majelis Ta\'lim', '1 Kelompok (Tabel 2.2.7)'],
-                      ['Pencatatan Nikah (2024)', '13 Peristiwa (Tabel 4.4.8)'],
+                      ['Masjid Jami', '5 Unit'],
+                      ['Mushola', '1 Unit'],
+                      ['Gereja / Pura / Vihara', '0 Unit'],
+                      ['Kelompok Remaja Masjid', '5 Kelompok'],
+                      ['Pondok Pengajian', '5 Pondok'],
+                      ['Majelis Ta\'lim', '1 Kelompok'],
+                      ['Pencatatan Nikah', '13 Peristiwa'],
                     ].map(([label, val], idx) => (
                       <div key={idx} className="flex justify-between items-center py-1.5 border-b border-slate-200/60 last:border-0">
                         <span className="text-slate-600">{label}</span>
@@ -767,21 +763,21 @@ export default function ProfilDesaPage() {
                   </div>
                 </div>
 
-                {/* Fasilitas Olahraga & Kesenian (Tabel 4.4.6 & 4.4.9) */}
+                {/* Fasilitas Olahraga & Kesenian */}
                 <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
                   <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
                     <Activity className="w-4 h-4" />
-                    Olahraga & Seni (BPS)
+                    Olahraga & Seni Budaya
                   </div>
                   <div className="space-y-2 text-xs">
                     {[
-                      ['Lapangan Sepak Bola', '1 Lokasi (Tabel 4.4.6)'],
-                      ['Lapangan Bola Voli', '1 Lokasi (Tabel 4.4.6)'],
-                      ['Lapangan Bulu Tangkis', '1 Lokasi (Tabel 4.4.6)'],
-                      ['Tenis Meja', '3 Meja (Tabel 4.4.6)'],
-                      ['Lapangan Sepak Takraw', '4 Lokasi (Tabel 4.4.6)'],
-                      ['Grup Seni Qasidah', '2 Grup (Tabel 4.4.9)'],
-                      ['Grup Musik Elekton', '3 Grup (Tabel 4.4.9)'],
+                      ['Lapangan Sepak Bola', '1 Lokasi'],
+                      ['Lapangan Bola Voli', '1 Lokasi'],
+                      ['Lapangan Bulu Tangkis', '1 Lokasi'],
+                      ['Tenis Meja', '3 Meja'],
+                      ['Lapangan Sepak Takraw', '4 Lokasi'],
+                      ['Grup Seni Qasidah', '2 Grup'],
+                      ['Grup Musik Elekton', '3 Grup'],
                     ].map(([label, val], idx) => (
                       <div key={idx} className="flex justify-between items-center py-1.5 border-b border-slate-200/60 last:border-0">
                         <span className="text-slate-600">{label}</span>
@@ -792,11 +788,11 @@ export default function ProfilDesaPage() {
                 </div>
               </div>
 
-              {/* Status Keamanan & Bencana Alam (Tabel 4.4.2 & 4.4.7 BPS) */}
+              {/* Status Keamanan & Kebencanaan */}
               <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs">
                 <div className="space-y-0.5">
-                  <strong className="text-slate-900 block font-black">Status Keamanan & Kebencanaan Desa Jombe (BPS):</strong>
-                  <span className="text-slate-700">0 Bencana Alam (Bebas Banjir, Gempa, Longsor) · 1 Kasus Pencurian tercatat Polsek (Tabel 4.4.7)</span>
+                  <strong className="text-slate-900 block font-black">Status Keamanan & Kebencanaan:</strong>
+                  <span className="text-slate-700">0 Kejadian Bencana Alam (Bebas Banjir, Gempa, Longsor) · Kondisi Kamtibmas Terjaga Aman</span>
                 </div>
                 <span className="px-3 py-1 rounded-full bg-emerald-800 text-white font-bold text-[11px] shrink-0">
                   Wilayah Aman & Kondusif
@@ -807,7 +803,7 @@ export default function ProfilDesaPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 5: INFRASTRUKTUR, PERUMAHAN & KOMUNIKASI (BPS)
+            TAB 5: INFRASTRUKTUR, PERUMAHAN & KOMUNIKASI
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'infrastruktur' && (
           <div className="space-y-6">
@@ -815,7 +811,7 @@ export default function ProfilDesaPage() {
               <div className="border-b border-slate-100 pb-4">
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <Home className="w-5 h-5 text-emerald-800" />
-                  Perumahan, Sanitasi, Energi & Komunikasi (Bab 4 & 6 BPS)
+                  Perumahan, Sanitasi, Energi & Komunikasi
                 </h2>
                 <p className="text-xs text-slate-500 mt-0.5">
                   Profil perumahan, kelistrikan, sanitasi, dan akses telekomunikasi warga Desa Jombe.
@@ -829,7 +825,7 @@ export default function ProfilDesaPage() {
                     <Zap className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Tabel 4.3.2</span>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Kelistrikan</span>
                     <p className="text-lg font-black text-slate-900">850 Keluarga</p>
                     <p className="text-slate-700 font-bold mt-0.5">100% Pengguna Listrik PLN</p>
                     <span className="text-[10px] text-slate-500 block">Penerangan Jalan: Listrik Pemda</span>
@@ -842,7 +838,7 @@ export default function ProfilDesaPage() {
                     <Droplets className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Tabel 4.3.1 & 4.3.4</span>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Air & Sanitasi</span>
                     <p className="text-lg font-black text-slate-900">Sumur Bor / Pompa</p>
                     <p className="text-slate-700 font-bold mt-0.5">Jamban Sendiri (100%)</p>
                     <span className="text-[10px] text-slate-500 block">Sanitasi Mandiri Keluarga</span>
@@ -855,7 +851,7 @@ export default function ProfilDesaPage() {
                     <Flame className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Tabel 4.3.5</span>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Bahan Bakar</span>
                     <p className="text-lg font-black text-slate-900">Gas Elpiji 3 kg</p>
                     <p className="text-slate-700 font-bold mt-0.5">Bahan Bakar Utama</p>
                     <span className="text-[10px] text-slate-500 block">Digunakan Mayoritas Warga</span>
@@ -868,7 +864,7 @@ export default function ProfilDesaPage() {
                     <Radio className="w-4 h-4" />
                   </div>
                   <div>
-                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Tabel 6.3.2 & 6.3.3</span>
+                    <span className="text-[10px] text-slate-400 uppercase font-bold block">Telekomunikasi</span>
                     <p className="text-lg font-black text-slate-900">4 Operator Seluler</p>
                     <p className="text-slate-700 font-bold mt-0.5">Sinyal Kuat 4G / LTE</p>
                     <span className="text-[10px] text-slate-500 block">Akses Internet Lancar</span>
@@ -876,10 +872,10 @@ export default function ProfilDesaPage() {
                 </div>
               </div>
 
-              {/* Data Fisik Rumah Tinggal (Tabel 4.4.10 & 4.4.11) */}
+              {/* Data Fisik Rumah Tinggal */}
               <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-3">
                 <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                  Klasifikasi Bangunan Tempat Tinggal Warga (Tabel 4.4.10 & 4.4.11 BPS)
+                  Klasifikasi Bangunan Tempat Tinggal Warga
                 </h4>
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 text-xs">
                   <div className="bg-white p-3.5 rounded-xl border border-slate-200 text-center">
@@ -905,9 +901,9 @@ export default function ProfilDesaPage() {
                 </div>
               </div>
 
-              {/* Akses Jalan & Transportasi (Tabel 6.2.1 BPS) */}
+              {/* Akses Jalan & Transportasi */}
               <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200 text-xs text-slate-800 space-y-1">
-                <span className="font-bold text-slate-900 block">Prasarana Jalan & Transportasi (Tabel 6.2.1 BPS):</span>
+                <span className="font-bold text-slate-900 block">Prasarana Jalan & Transportasi:</span>
                 <p className="leading-relaxed">
                   Jenis permukaan jalan darat terluas di Desa Jombe adalah <strong>Aspal / Beton</strong>, dan <strong>dapat dilalui kendaraan bermotor roda 4 atau lebih sepanjang tahun</strong>. Fasilitas angkutan umum darat tersedia dengan trayek tetap.
                 </p>
@@ -917,7 +913,7 @@ export default function ProfilDesaPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 6: APARATUR PEMERINTAHAN DESA (SK RIL DARI DESA)
+            TAB 6: APARATUR PEMERINTAHAN DESA
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'aparat' && (
           <div className="space-y-6">
@@ -1095,7 +1091,7 @@ export default function ProfilDesaPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 8: GEOGRAFIS & PETA (BPS)
+            TAB 8: GEOGRAFIS & PETA
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'peta' && (
           <div className="space-y-6">
@@ -1103,21 +1099,21 @@ export default function ProfilDesaPage() {
               <div className="border-b border-slate-100 pb-4">
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <Navigation className="w-5 h-5 text-emerald-800" />
-                  Jarak & Aksesibilitas (Tabel 1.1.2 BPS)
+                  Jarak & Aksesibilitas
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5">Jarak resmi antar-ibukota sesuai tabel BPS Kabupaten Jeneponto.</p>
+                <p className="text-xs text-slate-500 mt-0.5">Jarak resmi antar-ibukota wilayah.</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
                 <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                   <span className="text-slate-500 font-medium block">Jarak ke Ibu Kota Kecamatan Turatea</span>
                   <span className="text-2xl font-black text-emerald-900 block">17,00 km</span>
-                  <span className="text-[11px] text-amber-800 font-semibold block">Desa paling jauh dari ibu kota Kecamatan Turatea (Tabel 1.1.2)</span>
+                  <span className="text-[11px] text-amber-800 font-semibold block">Desa paling jauh dari ibu kota Kecamatan Turatea</span>
                 </div>
                 <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                   <span className="text-slate-500 font-medium block">Jarak ke Ibu Kota Kabupaten Jeneponto</span>
                   <span className="text-2xl font-black text-emerald-900 block">8,70 km</span>
-                  <span className="text-[11px] text-slate-600 font-semibold block">Akses ke pusat pemerintahan Kabupaten Jeneponto (Tabel 1.1.2)</span>
+                  <span className="text-[11px] text-slate-600 font-semibold block">Akses ke pusat pemerintahan Kabupaten Jeneponto</span>
                 </div>
               </div>
             </div>
