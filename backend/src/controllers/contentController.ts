@@ -16,10 +16,10 @@ const defaultProfile = {
 
 const defaultStats = {
   id: 'default',
-  totalPopulation: 2581,
-  totalFamily: 680,
-  malePopulation: 1269,
-  femalePopulation: 1312,
+  totalPopulation: 2670,
+  totalFamily: 850,
+  malePopulation: 1336,
+  femalePopulation: 1334,
   totalDusun: 5,
   totalRw: 10,
   totalRt: 20,
@@ -44,8 +44,10 @@ export const getVillageProfile = async (req: Request, res: Response) => {
         profile: profile || defaultProfile,
         stats: {
           ...(stats || defaultStats),
-          totalPopulation: stats?.totalPopulation || 2581,
-          totalDusun: stats?.totalDusun || 5,
+          totalPopulation: (stats?.totalPopulation && stats.totalPopulation !== 3850) ? stats.totalPopulation : 2670,
+          totalDusun: (stats?.totalDusun && stats.totalDusun !== 4) ? stats.totalDusun : 5,
+          malePopulation: (stats?.malePopulation && stats.malePopulation !== 1920) ? stats.malePopulation : 1336,
+          femalePopulation: (stats?.femalePopulation && stats.femalePopulation !== 1930) ? stats.femalePopulation : 1334,
           availableServices: 9,
         },
       },

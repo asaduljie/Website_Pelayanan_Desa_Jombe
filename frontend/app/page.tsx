@@ -35,7 +35,9 @@ export default function HomePage() {
   const [trackingError, setTrackingError] = useState('');
 
   const [realStats, setRealStats] = useState<any>({
-    totalPopulation: 2581,
+    totalPopulation: 2670,
+    malePopulation: 1336,
+    femalePopulation: 1334,
     totalDusun: 5,
     availableServices: 9,
   });
@@ -50,8 +52,10 @@ export default function HomePage() {
       if (res.data.status === 'success') {
         const s = res.data.data.stats || {};
         setRealStats({
-          totalPopulation: s.totalPopulation || 2581,
-          totalDusun: s.totalDusun || 5,
+          totalPopulation: (s.totalPopulation && s.totalPopulation !== 3850) ? s.totalPopulation : 2670,
+          malePopulation: (s.malePopulation && s.malePopulation !== 1920) ? s.malePopulation : 1336,
+          femalePopulation: (s.femalePopulation && s.femalePopulation !== 1930) ? s.femalePopulation : 1334,
+          totalDusun: (s.totalDusun && s.totalDusun !== 4) ? s.totalDusun : 5,
           availableServices: s.availableServices || 9,
         });
       }
@@ -289,10 +293,12 @@ export default function HomePage() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-8 text-center divide-y sm:divide-y-0 sm:divide-x divide-emerald-800/60">
             <div className="space-y-1.5 pt-4 sm:pt-0 sm:px-4">
               <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block tracking-tight">
-                {realStats.totalPopulation ? realStats.totalPopulation.toLocaleString('id-ID') : '2.581'}
+                {realStats.totalPopulation ? realStats.totalPopulation.toLocaleString('id-ID') : '2.670'}
               </span>
               <span className="text-xs text-emerald-100/90 font-bold uppercase tracking-wider block">Jumlah Penduduk (Jiwa)</span>
-              <span className="text-[11px] text-emerald-300/80 block">1.269 Laki-laki • 1.312 Perempuan</span>
+              <span className="text-[11px] text-emerald-300/80 block">
+                {realStats.malePopulation ? realStats.malePopulation.toLocaleString('id-ID') : '1.336'} Laki-laki • {realStats.femalePopulation ? realStats.femalePopulation.toLocaleString('id-ID') : '1.334'} Perempuan
+              </span>
             </div>
             <div className="space-y-1.5 pt-4 sm:pt-0 sm:px-4">
               <span className="text-3xl sm:text-4xl font-extrabold text-emerald-300 block tracking-tight">

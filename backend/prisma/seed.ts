@@ -196,13 +196,13 @@ async function main() {
     update: {},
     create: {
       id: 'default',
-      totalPopulation: 3850,
-      malePopulation: 1920,
-      femalePopulation: 1930,
-      totalDusun: 4,
-      totalRt: 18,
-      totalRw: 6,
-      totalFamily: 1120,
+      totalPopulation: 2670,
+      malePopulation: 1336,
+      femalePopulation: 1334,
+      totalDusun: 5,
+      totalRt: 20,
+      totalRw: 10,
+      totalFamily: 850,
     },
   });
 
