@@ -5,43 +5,25 @@ import Link from 'next/link';
 import {
   MapPin,
   Users,
-  Home,
   Layers,
-  Shield,
   ArrowRight,
   TreePine,
   Building,
-  Building2,
-  Heart,
-  Trophy,
   Wheat,
-  Star,
   Activity,
   Landmark,
   ShieldCheck,
   Stethoscope,
-  Baby,
   Briefcase,
   Compass,
   CheckCircle2,
   Search,
-  Info,
-  Calendar,
-  Phone,
-  Mail,
   ChevronRight,
   Eye,
-  FileText,
-  PieChart,
   BarChart3,
   Navigation,
-  Sparkles,
   TrendingUp,
   X,
-  Clock,
-  Car,
-  Bike,
-  HelpCircle,
   ExternalLink,
   Award,
   Check
@@ -54,126 +36,48 @@ interface AparatDetail {
   avatarColor: string;
   tugas: string;
   tupoksi: string[];
-  ruangKerja: string;
-  layanan: string;
-  skPengangkatan?: string;
-}
-
-interface DusunDetail {
-  id: string;
-  nama: string;
-  kepalaDusun: string;
-  kontak: string;
-  avatarColor: string;
-  luas: string;
-  persentaseLuas: string;
-  pendudukEst: string;
-  rtRw: string;
-  karakteristik: string;
-  komoditas: string[];
-  fasilitasWilayah: string[];
-  programPrioritas: string;
 }
 
 export default function ProfilDesaPage() {
-  const [activeTab, setActiveTab] = useState<'tentang' | 'dusun' | 'aparat' | 'statistik' | 'fasilitas' | 'peta'>('tentang');
+  const [activeTab, setActiveTab] = useState<'tentang' | 'statistik' | 'aparat' | 'dusun' | 'fasilitas' | 'peta'>('tentang');
   
-  // Interactive Dusun Explorer State
-  const [selectedDusunId, setSelectedDusunId] = useState<string>('jombe-utara');
+  // Interactive Dusun Selector
+  const [selectedDusun, setSelectedDusun] = useState<string>('Jombe Utara');
 
-  // Interactive Aparat Filter & Modal State
+  // Interactive Aparat Filter & Modal
   const [aparatFilter, setAparatFilter] = useState<'semua' | 'pimpinan' | 'sekretariat' | 'teknis' | 'dusun'>('semua');
   const [aparatSearch, setAparatSearch] = useState('');
   const [selectedAparat, setSelectedAparat] = useState<AparatDetail | null>(null);
 
-  // Interactive Statistics Sub-tab State
+  // Interactive Statistics Sub-tab
   const [statTab, setStatTab] = useState<'demografi' | 'pekerjaan' | 'lahan' | 'ternak'>('demografi');
 
-  // Interactive Strategic Priority Accordion State
-  const [activeMisiIndex, setActiveMisiIndex] = useState<number | null>(0);
-
-  // Interactive Route Planner State
-  const [selectedRouteIndex, setSelectedRouteIndex] = useState<number>(0);
-
-  // Facility Filter State
-  const [facilityCategory, setFacilityCategory] = useState<'semua' | 'kesehatan' | 'ibadah' | 'olahraga'>('semua');
-
-  // Data 5 Dusun Resmi Desa Jombe
-  const dataDusun: DusunDetail[] = [
+  // 5 Dusun Resmi Desa Jombe beserta Kepala Dusun
+  const daftarDusun = [
     {
-      id: 'jombe-utara',
       nama: 'Dusun Jombe Utara',
       kepalaDusun: 'MUHAJRIN JUMARANG',
-      kontak: 'Kantor Pelayanan Dusun Jombe Utara',
       avatarColor: 'from-emerald-800 to-teal-950',
-      luas: '0,82 km²',
-      persentaseLuas: '21,8%',
-      pendudukEst: '540 Jiwa (142 KK)',
-      rtRw: '2 RW / 4 RT',
-      karakteristik: 'Kawasan agraris persawahan teknis dengan tingkat ketertiban dan swadaya masyarakat yang dinamis.',
-      komoditas: ['Padi Sawah', 'Jagung Kuning', 'Kacang Hijau', 'Sayuran Hortikultura'],
-      fasilitasWilayah: ['Posyandu Melati 1', 'Masjid Nurul Huda', 'Lapangan Takraw Dusun', 'Saluran Irigasi Teknis'],
-      programPrioritas: 'Peningkatan drainase persawahan dan penerangan jalan lingkungan dusun.'
     },
     {
-      id: 'jombe-tengah',
       nama: 'Dusun Jombe Tengah',
       kepalaDusun: 'BASO',
-      kontak: 'Kantor Pelayanan Dusun Jombe Tengah',
       avatarColor: 'from-teal-800 to-slate-900',
-      luas: '0,74 km²',
-      persentaseLuas: '19,7%',
-      pendudukEst: '585 Jiwa (155 KK)',
-      rtRw: '2 RW / 4 RT',
-      karakteristik: 'Pusat administratif dan denyut ekonomi desa, lokasi Kantor Desa, Pustu, dan sentra perniagaan lokal.',
-      komoditas: ['Padi & Palawija', 'Usaha Pertokoan & Jasa', 'Ternak Kambing'],
-      fasilitasWilayah: ['Kantor Desa Jombe', 'Puskesmas Pembantu (Pustu)', 'Masjid Besar Jombe', 'Fasilitas Bulutangkis'],
-      programPrioritas: 'Pengembangan kawasan pelayanan terpadu dan revitalisasi tata ruang permukiman warga.'
     },
     {
-      id: 'jombe-selatan',
       nama: 'Dusun Jombe Selatan',
       kepalaDusun: 'SAPARUDDIN',
-      kontak: 'Kantor Pelayanan Dusun Jombe Selatan',
       avatarColor: 'from-emerald-900 to-slate-900',
-      luas: '0,78 km²',
-      persentaseLuas: '20,7%',
-      pendudukEst: '512 Jiwa (136 KK)',
-      rtRw: '2 RW / 4 RT',
-      karakteristik: 'Wilayah perbukitan landai dengan tegalan produktif, sentra jagung hibrida dan perkebunan rakyat.',
-      komoditas: ['Jagung Pipil Hibrida', 'Ubi Kayu', 'Ternak Kuda & Sapi'],
-      fasilitasWilayah: ['Posyandu Mawar', 'Masjid Al-Ikhlas', 'Lapangan Bola Voli', 'Kelompok Tani Harapan'],
-      programPrioritas: 'Penyediaan sumur bor pertanian dan bantuan bibit jagung unggul berdaya tahan tinggi.'
     },
     {
-      id: 'tompo-balang',
       nama: 'Dusun Tompo Balang',
       kepalaDusun: 'NURLELA KAMARUDDIN',
-      kontak: 'Kantor Pelayanan Dusun Tompo Balang',
       avatarColor: 'from-teal-900 to-emerald-950',
-      luas: '0,72 km²',
-      persentaseLuas: '19,1%',
-      pendudukEst: '488 Jiwa (128 KK)',
-      rtRw: '2 RW / 4 RT',
-      karakteristik: 'Kawasan lumbung pangan dengan jaringan irigasi persawahan yang luas dan hamparan hijau yang subur.',
-      komoditas: ['Padi Varietas Unggul', 'Kacang Tanah', 'Ternak Kambing'],
-      fasilitasWilayah: ['Posyandu Teratai', 'Masjid Baiturrahman', 'Lapangan Takraw', 'Bendungan Irigasi Mikro'],
-      programPrioritas: 'Normalisasi saluran tersier dan penguatan kelompok tani wanita pembuat olahan pangan.'
     },
     {
-      id: 'muncu-muncu',
       nama: 'Dusun Muncu-muncu',
       kepalaDusun: 'ICAL RAHMAN',
-      kontak: 'Kantor Pelayanan Dusun Muncu-muncu',
       avatarColor: 'from-slate-800 to-teal-950',
-      luas: '0,70 km²',
-      persentaseLuas: '18,7%',
-      pendudukEst: '456 Jiwa (120 KK)',
-      rtRw: '2 RW / 4 RT',
-      karakteristik: 'Wilayah perbatasan barat dengan potensi peternakan terintegrasi dan perkebunan pakan ternak berkualitas.',
-      komoditas: ['Peternakan Kambing & Kuda', 'Rumput Gajah / Pakan', 'Jagung'],
-      fasilitasWilayah: ['Posyandu Kenanga', 'Masjid Babussalam', 'Lapangan Takraw', 'Pos Keamanan Lingkungan'],
-      programPrioritas: 'Pembangunan jalan usaha tani (JUT) untuk akses pengangkutan komoditas dan hasil ternak.'
     }
   ];
 
@@ -184,258 +88,156 @@ export default function ProfilDesaPage() {
       nama: 'JUSMAEDY, S.Pd',
       kategori: 'pimpinan',
       avatarColor: 'from-emerald-900 via-emerald-800 to-teal-950',
-      tugas: 'Memimpin penyelenggaraan pemerintahan desa, pembinaan kemasyarakatan, dan pemberdayaan masyarakat Desa Jombe.',
+      tugas: 'Memimpin penyelenggaraan pemerintahan desa, pelaksanaan pembangunan, pembinaan kemasyarakatan, dan pemberdayaan masyarakat Desa Jombe.',
       tupoksi: [
         'Memegang kekuasaan pengelolaan Keuangan dan Aset Desa.',
-        'Menetapkan Peraturan Desa (Perdes) bersama BPD.',
-        'Mengoordinasikan pembangunan desa secara partisipatif dan transparan.',
+        'Menetapkan Peraturan Desa bersama BPD.',
         'Mewakili desa di dalam dan di luar pengadilan sesuai ketentuan hukum.'
-      ],
-      ruangKerja: 'Ruang Kerja Kepala Desa - Kantor Desa Jombe',
-      layanan: 'Konsultasi Kebijakan Umum, Pengaduan Warga, dan Penandatanganan Dokumen Strategis.',
-      skPengangkatan: 'SK Bupati Jeneponto No. 73/KD/2021'
+      ]
     },
     {
       jabatan: 'Sekretaris Desa',
       nama: 'SYAMSUL RISWAN',
       kategori: 'sekretariat',
       avatarColor: 'from-emerald-800 to-slate-900',
-      tugas: 'Mengkoordinasikan administrasi pemerintahan, keuangan, perumusan kebijakan desa, dan pengarsipan kepegawaian.',
+      tugas: 'Mengkoordinasikan administrasi pemerintahan, ketatausahaan, keuangan, dan pelayanan umum desa.',
       tupoksi: [
-        'Mengoordinasikan penyusunan rancangan Peraturan Desa dan RKPDes/APBDes.',
-        'Memverifikasi berkas permohonan surat sebelum ditandatangani Kepala Desa.',
-        'Mengelola tata naskah dinas, kearsipan resmi, dan pelaporan berkala ke Kecamatan.'
-      ],
-      ruangKerja: 'Ruang Sekretariat Utama - Lantai 1',
-      layanan: 'Verifikasi Administrasi, Legalisasi Dokumen, Informasi Publik Desa.'
+        'Mengoordinasikan penyusunan rancangan peraturan desa dan APBDes.',
+        'Memverifikasi kelengkapan berkas administrasi dan surat menyurat.',
+        'Mengelola tata naskah dinas dan kearsipan pemerintah desa.'
+      ]
     },
     {
       jabatan: 'Kasi Pemerintahan',
       nama: 'ZAINAL MUTTAQIN AHMAD',
       kategori: 'teknis',
       avatarColor: 'from-teal-800 to-slate-900',
-      tugas: 'Mengelola tata kelola kependudukan, pertanahan, ketertiban umum, dan penyusunan profil wilayah desa.',
+      tugas: 'Melaksanakan tugas di bidang administrasi kependudukan, pertanahan, ketertiban umum, dan perlindungan masyarakat.',
       tupoksi: [
-        'Mengelola administrasi kependudukan (KK, KTP, Surat Pindah, Domisili).',
-        'Fasilitasi administrasi pertanahan, sporadik, dan batas kepemilikan tanah warga.',
-        'Pembinaan ketentraman, ketertiban umum (Trantib), dan Linmas Desa.'
-      ],
-      ruangKerja: 'Seksi Pemerintahan & Pertanahan',
-      layanan: 'Surat Keterangan Domisili, Surat Pindah, Sporadik Tanah, Pengantar KTP/KK.'
+        'Mengelola administrasi kependudukan dan registrasi warga.',
+        'Fasilitasi administrasi pertanahan dan batas kepemilikan tanah.',
+        'Pembinaan ketentraman dan ketertiban umum.'
+      ]
     },
     {
       jabatan: 'Kasi Pelayanan Umum',
       nama: 'SARDI',
       kategori: 'teknis',
       avatarColor: 'from-emerald-700 to-cyan-900',
-      tugas: 'Melaksanakan pelayanan administrasi kependudukan dan penerbitan surat keterangan untuk masyarakat.',
+      tugas: 'Melaksanakan pelayanan administrasi surat keterangan kependudukan dan fasilitasi layanan permohonan warga.',
       tupoksi: [
-        'Melayani verifikasi permohonan surat izin usaha (SKU), tidak mampu (SKTM), dan surat keterangan lainnya.',
-        'Mengoperasikan sistem pelayanan mandiri digital Desa Jombe.',
-        'Membantu warga dalam proses pembuatan surat secara cepat dan ramah.'
-      ],
-      ruangKerja: 'Front Office Pelayanan Terpadu Satu Pintu (PTSP)',
-      layanan: 'Surat Keterangan Usaha (SKU), SKTM, Surat Kematian, Surat Kelahiran, SKCK.'
+        'Verifikasi dan pemrosesan surat keterangan usaha, domisili, dan pengantar resmi.',
+        'Fasilitasi layanan administrasi mandiri masyarakat.',
+        'Pencatatan buku registrasi penerbitan surat desa.'
+      ]
     },
     {
       jabatan: 'Kasi Kesra',
       nama: 'SUKARDI',
       kategori: 'teknis',
       avatarColor: 'from-teal-700 to-emerald-900',
-      tugas: 'Mengelola program kesejahteraan rakyat, kesehatan, bantuan sosial, dan pemberdayaan masyarakat desa.',
+      tugas: 'Melaksanakan program kesejahteraan rakyat, kesehatan masyarakat, keagamaan, dan pemberdayaan sosial.',
       tupoksi: [
-        'Pendataan dan verifikasi penerima bantuan sosial (PKH, BLT-DD, BPNT).',
-        'Koordinasi posyandu balita & lansia, pencegahan stunting, dan sanitasi desa.',
-        'Pembinaan kegiatan keagamaan, olahraga, seni budaya, dan kepemudaan (Karang Taruna).'
-      ],
-      ruangKerja: 'Seksi Kesejahteraan Rakyat',
-      layanan: 'Rekomendasi Bantuan Sosial, Pengantar BPJS PBI, Pengantar Beasiswa Desa.'
+        'Koordinasi kegiatan posyandu dan pemantauan kesehatan masyarakat.',
+        'Verifikasi pendataan program bantuan sosial dan kesejahteraan.',
+        'Pembinaan kegiatan keagamaan dan keolahragaan desa.'
+      ]
     },
     {
       jabatan: 'Kaur Perencanaan',
       nama: 'SYARIF AL-QADRI',
       kategori: 'sekretariat',
       avatarColor: 'from-slate-700 to-emerald-950',
-      tugas: 'Menyusun RKPDes, RPJMDes, inventaris aset kekayaan desa, dan perencanaan pembangunan desa.',
+      tugas: 'Menyusun rencana kerja pembangunan desa (RKPDes), inventarisasi aset desa, dan evaluasi pembangunan.',
       tupoksi: [
-        'Menyusun dokumen perencanaan desa (RPJMDes, RKPDes, dan Daftar Usulan RKPDes).',
-        'Menginventarisasi aset dan sarana prasarana milik Pemerintah Desa Jombe.',
-        'Monitoring dan evaluasi pelaksanaan kegiatan pembangunan fisik desa.'
-      ],
-      ruangKerja: 'Ruang Urusan Perencanaan & Pembangunan',
-      layanan: 'Informasi RKPDes, Usulan Musrenbangdus, Data Inventaris Aset Desa.'
+        'Menyusun dokumen perencanaan desa (RPJMDes dan RKPDes).',
+        'Menginventarisasi aset dan barang milik desa.',
+        'Monitoring dan evaluasi pelaksanaan kegiatan pembangunan fisik.'
+      ]
     },
     {
       jabatan: 'Kaur Keuangan',
       nama: 'ARIANTO',
       kategori: 'sekretariat',
       avatarColor: 'from-emerald-800 to-slate-800',
-      tugas: 'Menatausahakan APBDes, penerimaan pendapatan asli desa, transfer dana desa (ADD/DD), serta laporan keuangan.',
+      tugas: 'Melaksanakan penatausahaan keuangan desa, penerimaan pendapatan asli desa, dan pelaporan APBDes.',
       tupoksi: [
-        'Menyiapkan Dokumen Pelaksanaan Anggaran (DPA) dan Surat Permintaan Pembayaran (SPP).',
-        'Mencatat pembukuan keuangan desa secara akuntabel pada Siskeudes.',
-        'Menyusun Laporan Pertanggungjawaban Realisasi APBDes berkala.'
-      ],
-      ruangKerja: 'Ruang Urusan Keuangan & Perbendaharaan',
-      layanan: 'Transparansi APBDes, Pembayaran Pajak Bumi & Bangunan (PBB-P2).'
+        'Menyiapkan dokumen penatausahaan keuangan desa.',
+        'Mencatat pembukuan penerimaan dan pengeluaran kas desa.',
+        'Menyusun laporan pertanggungjawaban realisasi APBDes.'
+      ]
     },
     {
       jabatan: 'Kaur Administrasi dan T.U',
       nama: 'KASMAWATI',
       kategori: 'sekretariat',
       avatarColor: 'from-teal-800 to-slate-800',
-      tugas: 'Mengelola administrasi umum perkantoran desa, tata usaha, dan pengarsipan surat masuk dan keluar.',
+      tugas: 'Melaksanakan urusan tata usaha kantor, surat menyurat resmi, ekspedisi, dan kearsipan desa.',
       tupoksi: [
         'Pencatatan agenda surat masuk dan ekspedisi surat keluar.',
-        'Pengelolaan perlengkapan kantor, logistik, dan administrasi kepegawaian desa.',
-        'Penyusunan notula rapat musyawarah desa dan arsip resmi.'
-      ],
-      ruangKerja: 'Ruang Tata Usaha & Kearsipan',
-      layanan: 'Penerimaan Surat Masuk, Permohonan Informasi, Pengarsipan Dokumen.'
+        'Pengelolaan perlengkapan kantor dan tata usaha dinas.',
+        'Penyusunan notula rapat musyawarah desa.'
+      ]
     },
     {
       jabatan: 'Kepala Dusun Jombe Utara',
       nama: 'MUHAJRIN JUMARANG',
       kategori: 'dusun',
       avatarColor: 'from-emerald-900 to-teal-800',
-      tugas: 'Pembinaan ketertiban, pelayanan warga, dan penggerak gotong royong di wilayah Dusun Jombe Utara.',
+      tugas: 'Pelayanan kewilayahan, pembinaan ketertiban lingkungan, dan koordinasi warga di Dusun Jombe Utara.',
       tupoksi: [
-        'Melayani pengantar surat pengantar RT/RW untuk warga Dusun Jombe Utara.',
-        'Menjaga ketentraman, keamanan lingkungan, dan kerukunan warga.',
-        'Mengoordinasikan kegiatan swadaya gotong royong dan poskamling.'
-      ],
-      ruangKerja: 'Pos Pelayanan Kewilayahan Dusun Jombe Utara',
-      layanan: 'Pengantar Surat Tingkat Dusun, Mediasi Warga, Pendataan Kependudukan.'
+        'Pelayanan pengantar surat dan administrasi di tingkat Dusun Jombe Utara.',
+        'Pembinaan ketertiban dan kerukunan warga dusun.',
+        'Mengoordinasikan kegiatan gotong royong masyarakat.'
+      ]
     },
     {
       jabatan: 'Kepala Dusun Jombe Tengah',
       nama: 'BASO',
       kategori: 'dusun',
       avatarColor: 'from-slate-800 to-teal-900',
-      tugas: 'Koordinator kewilayahan, penyalur aspirasi warga, dan penggerak swadaya Dusun Jombe Tengah.',
+      tugas: 'Pelayanan kewilayahan, pembinaan ketertiban lingkungan, dan koordinasi warga di Dusun Jombe Tengah.',
       tupoksi: [
-        'Melayani pengantar surat pengantar RT/RW untuk warga Dusun Jombe Tengah.',
-        'Menjaga ketertiban kawasan pusat perekonomian dan perkantoran desa.',
-        'Mengoordinasikan partisipasi warga dalam musrenbang tingkat dusun.'
-      ],
-      ruangKerja: 'Pos Pelayanan Kewilayahan Dusun Jombe Tengah',
-      layanan: 'Pengantar Surat Tingkat Dusun, Mediasi Warga, Penataan Lingkungan.'
+        'Pelayanan pengantar surat dan administrasi di tingkat Dusun Jombe Tengah.',
+        'Pembinaan ketertiban lingkungan pusat desa.',
+        'Mengoordinasikan kegiatan kemasyarakatan.'
+      ]
     },
     {
       jabatan: 'Kepala Dusun Jombe Selatan',
       nama: 'SAPARUDDIN',
       kategori: 'dusun',
       avatarColor: 'from-teal-800 to-emerald-900',
-      tugas: 'Pembinaan ketertiban dan pelayanan warga masyarakat di wilayah Dusun Jombe Selatan.',
+      tugas: 'Pelayanan kewilayahan, pembinaan ketertiban lingkungan, dan koordinasi warga di Dusun Jombe Selatan.',
       tupoksi: [
-        'Melayani pengantar surat pengantar RT/RW untuk warga Dusun Jombe Selatan.',
-        'Mengoordinasikan kelompok tani dan peternak di wilayah selatan.',
-        'Penyaluran informasi program bantuan desa ke tingkat RT.'
-      ],
-      ruangKerja: 'Pos Pelayanan Kewilayahan Dusun Jombe Selatan',
-      layanan: 'Pengantar Surat Tingkat Dusun, Rekomendasi Kelompok Tani, Pendataan Bansos.'
+        'Pelayanan pengantar surat dan administrasi di tingkat Dusun Jombe Selatan.',
+        'Pembinaan ketertiban dan ketentraman lingkungan dusun.',
+        'Mengoordinasikan gotong royong masyarakat.'
+      ]
     },
     {
       jabatan: 'Kepala Dusun Tompo Balang',
       nama: 'NURLELA KAMARUDDIN',
       kategori: 'dusun',
       avatarColor: 'from-emerald-800 to-cyan-900',
-      tugas: 'Koordinator pelayanan administrasi dan pembinaan kemasyarakatan di wilayah Dusun Tompo Balang.',
+      tugas: 'Pelayanan kewilayahan, pembinaan ketertiban lingkungan, dan koordinasi warga di Dusun Tompo Balang.',
       tupoksi: [
-        'Melayani pengantar surat pengantar RT/RW untuk warga Dusun Tompo Balang.',
-        'Mendorong partisipasi perempuan dalam posyandu dan kelompok usaha bersama.',
-        'Monitoring pemeliharaan infrastruktur irigasi persawahan dusun.'
-      ],
-      ruangKerja: 'Pos Pelayanan Kewilayahan Dusun Tompo Balang',
-      layanan: 'Pengantar Surat Tingkat Dusun, Pembinaan Posyandu, Pengaduan Warga.'
+        'Pelayanan pengantar surat dan administrasi di tingkat Dusun Tompo Balang.',
+        'Pembinaan kemasyarakatan dan pelayanan posyandu.',
+        'Mengoordinasikan kegiatan swadaya warga.'
+      ]
     },
     {
       jabatan: 'Kepala Dusun Muncu-muncu',
       nama: 'ICAL RAHMAN',
       kategori: 'dusun',
       avatarColor: 'from-indigo-900 to-slate-900',
-      tugas: 'Koordinator pelayanan administrasi dan pembinaan kemasyarakatan di wilayah Dusun Muncu-muncu.',
+      tugas: 'Pelayanan kewilayahan, pembinaan ketertiban lingkungan, dan koordinasi warga di Dusun Muncu-muncu.',
       tupoksi: [
-        'Melayani pengantar surat pengantar RT/RW untuk warga Dusun Muncu-muncu.',
-        'Mengoordinasikan pemeliharaan jalan usaha tani dan keamanan lingkungan.',
-        'Pendataan hewan ternak dan pengawasan kesehatan ternak bersama mantri.'
-      ],
-      ruangKerja: 'Pos Pelayanan Kewilayahan Dusun Muncu-muncu',
-      layanan: 'Pengantar Surat Tingkat Dusun, Surat Keterangan Ternak, Pendataan Warga.'
-    }
-  ];
-
-  // 5 Pilar Agenda Strategis
-  const agendaStrategis = [
-    {
-      no: '01',
-      judul: 'Transformasi Pelayanan Publik Digital',
-      ringkasan: 'Mewujudkan birokrasi desa yang bebas pungli, cepat, dan dapat diakses 24 jam secara transparan.',
-      target: ['Layanan Surat Online Real-Time', 'Pelacakan Status Berkas Mandiri', 'Arsip Digital Terintegrasi', 'Transparansi APBDes Terbuka']
-    },
-    {
-      no: '02',
-      judul: 'Ketahanan Pangan & Optimalisasi Pertanian',
-      ringkasan: 'Meningkatkan produktivitas 192 Ha sawah teknis dan 212 Ha tegalan produktif melalui modernisasi sarana tani.',
-      target: ['Perbaikan Saluran Irigasi Tersier', 'Bantuan Bibit Jagung & Padi Unggul', 'Penguatan 12 Kelompok Tani', 'Kemudahan Akses Pupuk']
-    },
-    {
-      no: '03',
-      judul: 'Infrastruktur Dusun Merata & Terkoneksi',
-      ringkasan: 'Pembangunan jalan lingkungan, jalan usaha tani (JUT), dan penerangan jalan di 5 dusun tanpa diskriminasi.',
-      target: ['Pavingisasi Jalan Lingkungan Dusun', 'Pembangunan JUT Muncu-muncu & Tompo Balang', 'Drainase Permukiman Bebas Genangan', 'PJU Hemat Energi']
-    },
-    {
-      no: '04',
-      judul: 'Kesehatan Prima & Nol Stunting',
-      ringkasan: 'Pelayanan kesehatan preventif melalui 5 Posyandu terpadu di tiap dusun dan penguatan peran Puskesmas Pembantu.',
-      target: ['Pemberian Makanan Tambahan (PMT) Balita', 'Pemeriksaan Lansia Rutin Bulanan', 'Sanitasi Air Bersih Layak Konsumsi', 'Peningkatan Honor Kader Posyandu']
-    },
-    {
-      no: '05',
-      judul: 'Pemberdayaan Ekonomi & UMKM Kerakyatan',
-      ringkasan: 'Pengembangan kapasitas wirausaha muda, peternakan rakyat kambing/kuda, dan fasilitasi legalitas usaha mikro.',
-      target: ['Pelatihan Pengolahan Hasil Panen', 'Bantuan Modal Bergulir BUMDes', 'Fasilitasi Surat Izin Usaha Gratis', 'Bursa Pasar Hewan Ternak']
-    }
-  ];
-
-  // Interactive Route Guide
-  const routes = [
-    {
-      tujuan: 'Ibukota Kecamatan Turatea (Kantor Camat)',
-      jarak: '17,0 km',
-      waktuTempuh: '± 28 Menit',
-      moda: 'Sepeda Motor / Mobil',
-      kondisiJalan: 'Aspal Hotmix & Sebagian Beton',
-      catatan: 'Desa Jombe merupakan desa dengan jarak terjauh ke ibukota kecamatan di wilayah Turatea.',
-      jalur: 'Jalan Poros Desa Jombe → Simpang Kayuloe → Jl. Poros Turatea'
-    },
-    {
-      tujuan: 'Ibukota Kabupaten Jeneponto (Kantor Bupati)',
-      jarak: '8,70 km',
-      waktuTempuh: '± 16 Menit',
-      moda: 'Sepeda Motor / Mobil / Angkutan',
-      kondisiJalan: 'Aspal Kabupaten Halus',
-      catatan: 'Akses sangat dekat menuju pusat pemerintahan, perkantoran dinas, dan perbankan kabupaten.',
-      jalur: 'Jalan Poros Jombe → Jl. Poros Jeneponto-Binamu → Kompleks Pemkab Jeneponto'
-    },
-    {
-      tujuan: 'RSUD Lanto Dg. Pasewang Jeneponto',
-      jarak: '9,20 km',
-      waktuTempuh: '± 18 Menit',
-      moda: 'Ambulans / Kendaraan Roda 4',
-      kondisiJalan: 'Aspal Halus (Akses Darurat 24 Jam)',
-      catatan: 'Rujukan fasilitas kesehatan tingkat lanjut dari Puskesmas Pembantu Desa Jombe.',
-      jalur: 'Jalan Poros Jombe → Jl. Ishak Iskandar → Jl. Melati (RSUD)'
-    },
-    {
-      tujuan: 'Pasar Induk Karisa Jeneponto',
-      jarak: '8,40 km',
-      waktuTempuh: '± 15 Menit',
-      moda: 'Mobil Angkutan / Pick Up / Motor',
-      kondisiJalan: 'Aspal Ramai Lancar',
-      catatan: 'Pusat perdagangan utama tempat warga Desa Jombe menjual hasil panen jagung, gabah, dan ternak.',
-      jalur: 'Jalan Poros Jombe → Jl. Pahlawan → Kawasan Niaga Pasar Karisa'
+        'Pelayanan pengantar surat dan administrasi di tingkat Dusun Muncu-muncu.',
+        'Pembinaan ketertiban lingkungan perbatasan dusun.',
+        'Mengoordinasikan kegiatan gotong royong masyarakat.'
+      ]
     }
   ];
 
@@ -451,24 +253,19 @@ export default function ProfilDesaPage() {
     });
   }, [aparatFilter, aparatSearch]);
 
-  const selectedDusun = useMemo(() => {
-    return dataDusun.find((d) => d.id === selectedDusunId) || dataDusun[0];
-  }, [selectedDusunId]);
-
   const tabs = [
-    { id: 'tentang', label: 'Tentang Desa & Visi', icon: <Star className="w-4 h-4" /> },
-    { id: 'dusun', label: '5 Wilayah Dusun', icon: <Layers className="w-4 h-4" /> },
-    { id: 'statistik', label: 'Data & Statistik', icon: <BarChart3 className="w-4 h-4" /> },
-    { id: 'aparat', label: 'Aparatur Pemerintahan', icon: <Users className="w-4 h-4" /> },
-    { id: 'fasilitas', label: 'Sarana & Fasilitas', icon: <Building className="w-4 h-4" /> },
-    { id: 'peta', label: 'Peta & Akses Wilayah', icon: <Compass className="w-4 h-4" /> },
+    { id: 'tentang', label: 'Tentang Desa', icon: <Landmark className="w-4 h-4" /> },
+    { id: 'statistik', label: 'Data BPS & Statistik', icon: <BarChart3 className="w-4 h-4" /> },
+    { id: 'aparat', label: 'Perangkat Desa', icon: <Users className="w-4 h-4" /> },
+    { id: 'dusun', label: 'Wilayah Dusun', icon: <Layers className="w-4 h-4" /> },
+    { id: 'fasilitas', label: 'Fasilitas & Sarana', icon: <Building className="w-4 h-4" /> },
+    { id: 'peta', label: 'Geografis & Peta', icon: <Compass className="w-4 h-4" /> },
   ] as const;
 
   return (
     <div className="min-h-screen bg-slate-50 text-slate-900 selection:bg-emerald-800 selection:text-white pb-16">
       {/* ═════════════════════ HERO BANNER RESMI ═════════════════════ */}
       <div className="relative overflow-hidden bg-gradient-to-br from-emerald-950 via-emerald-900 to-teal-950 text-white border-b border-emerald-800/40">
-        {/* Subtle geometric grid background */}
         <div 
           className="absolute inset-0 opacity-10 pointer-events-none"
           style={{
@@ -481,41 +278,41 @@ export default function ProfilDesaPage() {
           <div className="max-w-4xl space-y-4">
             <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-emerald-800/70 border border-emerald-500/30 text-xs font-bold uppercase tracking-wider text-emerald-200 backdrop-blur-sm">
               <Landmark className="w-3.5 h-3.5 text-emerald-400" />
-              Pemerintah Desa Jombe · Kabupaten Jeneponto
+              Pemerintah Desa Jombe · Kecamatan Turatea · Kabupaten Jeneponto
             </div>
 
-            <h1 className="text-3xl sm:text-5xl lg:text-6xl font-black tracking-tight text-white leading-tight">
+            <h1 className="text-3xl sm:text-5xl font-black tracking-tight text-white leading-tight">
               Profil Resmi <span className="text-emerald-400">Desa Jombe</span>
             </h1>
 
             <p className="text-sm sm:text-base text-emerald-100/90 leading-relaxed max-w-2xl font-medium">
-              Kecamatan Turatea, Kabupaten Jeneponto, Sulawesi Selatan. Kawasan agraris swasembada yang berintegritas, bertransformasi menuju tata kelola pemerintahan digital yang akuntabel, transparan, dan berorientasi melayani masyarakat.
+              Data resmi bersumber langsung dari publikasi Badan Pusat Statistik (BPS) dan dokumen administrasi Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Sulawesi Selatan.
             </p>
 
-            {/* Official Metadata Badges */}
+            {/* Official Metadata Badges (BPS) */}
             <div className="flex flex-wrap gap-2 pt-2 text-xs font-semibold text-emerald-100">
               <span className="flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-700/50">
-                <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Kode Wilayah Kemendagri: <strong>7304082009</strong>
+                <MapPin className="w-3.5 h-3.5 text-emerald-400" /> Luas Wilayah: <strong>3,76 km² (7,00% Kec. Turatea)</strong>
+              </span>
+              <span className="flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-700/50">
+                <Users className="w-3.5 h-3.5 text-emerald-400" /> Penduduk: <strong>2.581 Jiwa (BPS 2023)</strong>
               </span>
               <span className="flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-700/50">
                 <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" /> Kepala Desa: <strong>JUSMAEDY, S.Pd</strong>
-              </span>
-              <span className="flex items-center gap-1.5 bg-emerald-950/80 px-3 py-1.5 rounded-xl border border-emerald-700/50">
-                <Trophy className="w-3.5 h-3.5 text-amber-400" /> Status: <strong>Swasembada (Cepat Berkembang)</strong>
               </span>
             </div>
           </div>
         </div>
       </div>
 
-      {/* ═════════════════════ QUICK STATS CARDS ═════════════════════ */}
+      {/* ═════════════════════ QUICK STATS CARDS (BPS DATA) ═════════════════════ */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 -mt-6 relative z-20">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-3.5">
           {[
-            { val: '2.581', label: 'Total Penduduk', sub: '1.269 L / 1.312 P', icon: <Users className="w-4 h-4 text-emerald-700" />, tabTarget: 'statistik' },
-            { val: '3,76', label: 'Luas Wilayah', sub: 'km² (7% Kec. Turatea)', icon: <Compass className="w-4 h-4 text-teal-700" />, tabTarget: 'statistik' },
-            { val: '5', label: 'Wilayah Dusun', sub: '10 RW / 20 RT', icon: <Layers className="w-4 h-4 text-indigo-700" />, tabTarget: 'dusun' },
-            { val: '686,44', label: 'Kepadatan Penduduk', sub: 'Jiwa / km² (BPS)', icon: <TrendingUp className="w-4 h-4 text-slate-700" />, tabTarget: 'statistik' },
+            { val: '2.581', unit: 'Jiwa', label: 'Total Penduduk', sub: '1.269 L / 1.312 P (BPS)', icon: <Users className="w-4 h-4 text-emerald-700" />, tabTarget: 'statistik' },
+            { val: '3,76', unit: 'km²', label: 'Luas Wilayah', sub: '7,00% Luas Kec. Turatea', icon: <Compass className="w-4 h-4 text-teal-700" />, tabTarget: 'statistik' },
+            { val: '686,44', unit: 'jiwa/km²', label: 'Kepadatan Penduduk', sub: 'Data Resmi BPS', icon: <TrendingUp className="w-4 h-4 text-slate-700" />, tabTarget: 'statistik' },
+            { val: '5', unit: 'Dusun', label: 'Wilayah Dusun', sub: 'Pemerintahan Desa', icon: <Layers className="w-4 h-4 text-indigo-700" />, tabTarget: 'dusun' },
           ].map((item, idx) => (
             <button
               key={idx}
@@ -527,11 +324,13 @@ export default function ProfilDesaPage() {
                   {item.icon}
                 </span>
                 <span className="text-[10px] font-bold text-slate-400 group-hover:text-emerald-700 flex items-center gap-0.5">
-                  Buka Detail <ChevronRight className="w-3 h-3" />
+                  Detail <ChevronRight className="w-3 h-3" />
                 </span>
               </div>
               <div>
-                <span className="text-2xl sm:text-3xl font-black text-slate-900 block tracking-tight">{item.val}</span>
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 block tracking-tight">
+                  {item.val} <span className="text-xs font-bold text-slate-500">{item.unit}</span>
+                </span>
                 <span className="text-xs font-bold text-slate-700 block">{item.label}</span>
                 <span className="text-[11px] text-slate-500 block mt-0.5">{item.sub}</span>
               </div>
@@ -561,128 +360,65 @@ export default function ProfilDesaPage() {
         </div>
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 1: TENTANG DESA, VISI & MISI, AGENDA STRATEGIS
+            TAB 1: TENTANG DESA (INFORMASI DASAR & GEOGRAFIS BPS)
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'tentang' && (
           <div className="space-y-6">
-            {/* Visi Banner */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-4">
-              <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider">
-                <Star className="w-4 h-4 text-emerald-700 fill-emerald-700" />
-                Visi Pembangunan Desa Jombe
-              </div>
-              <blockquote className="text-lg sm:text-2xl font-black text-slate-900 leading-snug border-l-4 border-emerald-800 pl-4 py-1">
-                &ldquo;Terwujudnya Desa Jombe yang Mandiri, Sejahtera, Transparan, dan Berkelanjutan Berbasis Pelayanan Publik Digital.&rdquo;
-              </blockquote>
-              <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Visi ini menjadi landasan strategis Pemerintah Desa Jombe dalam mengoptimalkan potensi sumber daya agraris, meningkatkan kualitas SDM aparatur dan warga, serta menghadirkan birokrasi pemerintahan desa yang bersih, cepat, dan mudah diakses oleh seluruh lapisan masyarakat.
-              </p>
-            </div>
-
-            {/* Interactive 5 Pilar Agenda Strategis */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
+            {/* Tabel Informasi Dasar Resmi BPS */}
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
                   <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                    <CheckCircle2 className="w-5 h-5 text-emerald-800" />
-                    5 Pilar Kebijakan & Agenda Strategis Desa
+                    <Landmark className="w-5 h-5 text-emerald-800" />
+                    Informasi Dasar & Geografis (Data BPS)
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Klik pilar untuk melihat rincian program kerja dan indikator capaian pembangunan desa.
+                    Data pokok wilayah Desa Jombe tercatat resmi dalam publikasi BPS Kabupaten Jeneponto.
                   </p>
                 </div>
-                <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200 self-start sm:self-auto">
-                  RPJMDes 2021-2027
+                <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                  Data BPS
                 </span>
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-5 gap-2">
-                {agendaStrategis.map((item, idx) => {
-                  const isSelected = activeMisiIndex === idx;
-                  return (
-                    <button
-                      key={idx}
-                      onClick={() => setActiveMisiIndex(idx)}
-                      className={`p-4 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-emerald-900 text-white border-emerald-950 shadow-md ring-2 ring-emerald-600/30'
-                          : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
-                      }`}
-                    >
-                      <div className="flex items-center justify-between mb-3">
-                        <span className={`text-xs font-black px-2 py-0.5 rounded-lg ${
-                          isSelected ? 'bg-emerald-800 text-emerald-200' : 'bg-white text-slate-600 border border-slate-200'
-                        }`}>
-                          Pilar {item.no}
-                        </span>
-                        {isSelected && <Sparkles className="w-3.5 h-3.5 text-emerald-300" />}
-                      </div>
-                      <h4 className={`text-xs font-bold leading-snug line-clamp-2 ${isSelected ? 'text-white' : 'text-slate-900'}`}>
-                        {item.judul}
-                      </h4>
-                    </button>
-                  );
-                })}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5">
+                {[
+                  { label: 'Luas Wilayah', val: '3,76 km²', note: 'Tercantum langsung dalam tabel BPS' },
+                  { label: 'Persentase Luas Kecamatan', val: '7,00%', note: 'Dari total luas Kecamatan Turatea' },
+                  { label: 'Jarak ke Ibu Kota Kecamatan', val: '17 km', note: 'Desa paling jauh dari ibukota Kec. Turatea' },
+                  { label: 'Jarak ke Ibu Kota Kabupaten', val: '8,70 km', note: 'Jarak ke pusat Kab. Jeneponto' },
+                  { label: 'Status Wilayah', val: 'Bukan Daerah Pantai', note: 'Wilayah daratan / agraris' },
+                  { label: 'Persentase Penduduk Kecamatan', val: '7,17%', note: 'Kontribusi terhadap penduduk Turatea' },
+                ].map((item, idx) => (
+                  <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                    <span className="text-[11px] font-semibold text-slate-500 block">{item.label}</span>
+                    <span className="text-lg sm:text-xl font-black text-slate-900 block">{item.val}</span>
+                    <span className="text-[10px] text-emerald-800 font-medium block">{item.note}</span>
+                  </div>
+                ))}
               </div>
-
-              {/* Active Agenda Detail Card */}
-              {activeMisiIndex !== null && (
-                <div className="bg-emerald-50/70 border border-emerald-200/80 rounded-2xl p-5 sm:p-6 space-y-4">
-                  <div className="flex items-start justify-between gap-4">
-                    <div>
-                      <span className="text-[10px] font-black uppercase text-emerald-800 tracking-wider">
-                        Rincian Program Prioritas · Pilar {agendaStrategis[activeMisiIndex].no}
-                      </span>
-                      <h3 className="text-base sm:text-lg font-black text-slate-900 mt-0.5">
-                        {agendaStrategis[activeMisiIndex].judul}
-                      </h3>
-                    </div>
-                  </div>
-
-                  <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium">
-                    {agendaStrategis[activeMisiIndex].ringkasan}
-                  </p>
-
-                  <div className="pt-2 border-t border-emerald-200/60">
-                    <span className="text-xs font-bold text-slate-900 block mb-2.5">
-                      Indikator Sasaran & Target Pelaksanaan:
-                    </span>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      {agendaStrategis[activeMisiIndex].target.map((tgt, tIdx) => (
-                        <div key={tIdx} className="bg-white px-3.5 py-2.5 rounded-xl border border-emerald-100 shadow-2xs flex items-center gap-2.5 text-xs text-slate-800 font-medium">
-                          <span className="w-5 h-5 rounded-lg bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold text-[10px] shrink-0">
-                            {tIdx + 1}
-                          </span>
-                          <span>{tgt}</span>
-                        </div>
-                      ))}
-                    </div>
-                  </div>
-                </div>
-              )}
             </div>
 
-            {/* Geografis & Batas Wilayah */}
+            {/* Batas Wilayah Administrasi */}
             <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
               <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                 <Compass className="w-5 h-5 text-emerald-800" />
                 <div>
-                  <h2 className="text-base font-black text-slate-900">Letak Geografis & Batas Administrasi</h2>
-                  <p className="text-xs text-slate-500">Batas wilayah hukum dan administrasi Desa Jombe dengan desa sekitar.</p>
+                  <h2 className="text-base font-black text-slate-900">Batas Wilayah Administrasi</h2>
+                  <p className="text-xs text-slate-500">Batas wilayah hukum dan administrasi Desa Jombe.</p>
                 </div>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 text-xs">
                 {[
-                  { arah: 'Sebelah Utara', batas: 'Desa Turatea Timur', desc: 'Batas persawahan dan jalan poros antar-desa' },
-                  { arah: 'Sebelah Selatan', batas: 'Kecamatan Binamu', desc: 'Batas langsung dengan wilayah ibukota kabupaten' },
-                  { arah: 'Sebelah Timur', batas: 'Desa Mangepong', desc: 'Batas saluran irigasi dan lahan pertanian' },
-                  { arah: 'Sebelah Barat', batas: 'Desa Kayuloe Barat', desc: 'Batas perkebunan tegalan dan permukiman' },
+                  { arah: 'Sebelah Utara', batas: 'Desa Turatea Timur' },
+                  { arah: 'Sebelah Selatan', batas: 'Kecamatan Binamu' },
+                  { arah: 'Sebelah Timur', batas: 'Desa Mangepong' },
+                  { arah: 'Sebelah Barat', batas: 'Desa Kayuloe Barat' },
                 ].map((b, idx) => (
-                  <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200/90 space-y-1 hover:bg-emerald-50/50 hover:border-emerald-200 transition-colors">
+                  <div key={idx} className="p-4 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
                     <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">{b.arah}</span>
                     <span className="text-sm font-black text-slate-900 block">{b.batas}</span>
-                    <span className="text-[11px] text-slate-500 block leading-snug">{b.desc}</span>
                   </div>
                 ))}
               </div>
@@ -691,173 +427,27 @@ export default function ProfilDesaPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 2: 5 WILAYAH DUSUN EXPLORER (INTERACTIVE)
-           ════════════════════════════════════════════════════════════════════ */}
-        {activeTab === 'dusun' && (
-          <div className="space-y-6">
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-4">
-                <div>
-                  <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                    <Layers className="w-5 h-5 text-emerald-800" />
-                    Penjelajah Interaktif 5 Wilayah Dusun
-                  </h2>
-                  <p className="text-xs text-slate-500 mt-0.5">
-                    Pilih salah satu dusun di bawah untuk melihat rincian kewilayahan, kepala dusun, dan potensi unggulan.
-                  </p>
-                </div>
-                <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200 self-start sm:self-auto">
-                  Total 5 Dusun · 10 RW · 20 RT
-                </span>
-              </div>
-
-              {/* Dusun Selector Tabs */}
-              <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2.5">
-                {dataDusun.map((dusun) => {
-                  const isSelected = selectedDusunId === dusun.id;
-                  return (
-                    <button
-                      key={dusun.id}
-                      onClick={() => setSelectedDusunId(dusun.id)}
-                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-emerald-900 text-white border-emerald-950 shadow-md ring-2 ring-emerald-600/30'
-                          : 'bg-white hover:bg-slate-50 border-slate-200 text-slate-800'
-                      }`}
-                    >
-                      <div>
-                        <span className={`text-[10px] font-bold uppercase block mb-1 ${isSelected ? 'text-emerald-300' : 'text-slate-400'}`}>
-                          Dusun
-                        </span>
-                        <h4 className="text-xs font-black leading-tight">{dusun.nama.replace('Dusun ', '')}</h4>
-                      </div>
-                      <div className="mt-3 pt-2 border-t border-slate-100/20 text-[10px]">
-                        <span className={`block font-medium truncate ${isSelected ? 'text-emerald-200' : 'text-slate-500'}`}>
-                          Kadus: {dusun.kepalaDusun.split(' ')[0]}
-                        </span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Selected Dusun Detailed Dashboard */}
-              <div className="bg-slate-50 border border-slate-200 rounded-3xl p-6 sm:p-8 space-y-6">
-                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-200 pb-5">
-                  <div className="flex items-center gap-4">
-                    <div className={`w-14 h-14 rounded-2xl bg-gradient-to-br ${selectedDusun.avatarColor} flex items-center justify-center text-white font-black text-base shadow-sm shrink-0`}>
-                      {selectedDusun.nama.split(' ').map(n => n[0]).slice(1).join('')}
-                    </div>
-                    <div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-800 bg-emerald-50 px-2.5 py-0.5 rounded-md border border-emerald-200">
-                        Profil Wilayah Dusun
-                      </span>
-                      <h3 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
-                        {selectedDusun.nama}
-                      </h3>
-                      <p className="text-xs text-slate-600 font-medium">
-                        Kepala Dusun: <strong className="text-slate-900">{selectedDusun.kepalaDusun}</strong>
-                      </p>
-                    </div>
-                  </div>
-
-                  <div className="flex flex-wrap gap-2">
-                    <span className="text-xs bg-white border border-slate-200 px-3 py-1.5 rounded-xl font-bold text-slate-800 shadow-2xs">
-                      Luas: {selectedDusun.luas} ({selectedDusun.persentaseLuas})
-                    </span>
-                    <span className="text-xs bg-white border border-slate-200 px-3 py-1.5 rounded-xl font-bold text-slate-800 shadow-2xs">
-                      Estimasi: {selectedDusun.pendudukEst}
-                    </span>
-                  </div>
-                </div>
-
-                {/* Dusun Description & Characteristics */}
-                <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-                  {/* Left 2 Cols: Info & Potensi */}
-                  <div className="lg:col-span-2 space-y-5">
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                        Karakteristik & Kondisi Wilayah
-                      </h4>
-                      <p className="text-xs sm:text-sm text-slate-700 leading-relaxed font-medium bg-white p-4 rounded-2xl border border-slate-200/90">
-                        {selectedDusun.karakteristik}
-                      </p>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
-                        Komoditas & Produk Unggulan
-                      </h4>
-                      <div className="flex flex-wrap gap-2">
-                        {selectedDusun.komoditas.map((k, kIdx) => (
-                          <span key={kIdx} className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-white border border-slate-200 text-xs font-bold text-slate-800 shadow-2xs">
-                            <Wheat className="w-3.5 h-3.5 text-emerald-700" />
-                            {k}
-                          </span>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div>
-                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-1.5">
-                        Program Prioritas Wilayah
-                      </h4>
-                      <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 text-xs font-medium text-slate-800 flex items-start gap-2.5">
-                        <CheckCircle2 className="w-4 h-4 text-emerald-800 shrink-0 mt-0.5" />
-                        <span>{selectedDusun.programPrioritas}</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  {/* Right Col: Fasilitas di Dusun */}
-                  <div className="bg-white rounded-2xl p-5 border border-slate-200/90 shadow-2xs space-y-4">
-                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider border-b border-slate-100 pb-2 flex items-center gap-2">
-                      <Building2 className="w-4 h-4 text-emerald-800" />
-                      Sarana di {selectedDusun.nama.replace('Dusun ', '')}
-                    </h4>
-                    <ul className="space-y-2 text-xs">
-                      {selectedDusun.fasilitasWilayah.map((f, fIdx) => (
-                        <li key={fIdx} className="flex items-center gap-2 text-slate-700 font-medium">
-                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-700" />
-                          <span>{f}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    <div className="pt-3 border-t border-slate-100">
-                      <span className="text-[10px] text-slate-400 uppercase font-bold block mb-1">Struktur RT/RW</span>
-                      <span className="text-xs font-black text-slate-800">{selectedDusun.rtRw} Terdaftar Resmi</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* ════════════════════════════════════════════════════════════════════
-            TAB 3: DATA & STATISTIK (INTERACTIVE VISUALIZER)
+            TAB 2: DATA BPS & STATISTIK (INTERACTIVE)
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'statistik' && (
           <div className="space-y-6">
-            {/* Sub-tabs for Statistics */}
             <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
                 <div>
                   <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                     <BarChart3 className="w-5 h-5 text-emerald-800" />
-                    Statistik & Data Resmi Desa Jombe
+                    Statistik & Data Resmi (BPS)
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Sumber data: Badan Pusat Statistik (BPS) & Rekapitulasi Data Desa 2024/2025.
+                    Data tercantum langsung dalam publikasi resmi Badan Pusat Statistik (BPS).
                   </p>
                 </div>
 
                 {/* Sub Tab Switcher */}
                 <div className="flex gap-1.5 bg-slate-100 p-1 rounded-xl self-start sm:self-auto overflow-x-auto">
                   {[
-                    { id: 'demografi', label: 'Demografi' },
-                    { id: 'pekerjaan', label: 'Pekerjaan' },
+                    { id: 'demografi', label: 'Kependudukan' },
+                    { id: 'pekerjaan', label: 'Mata Pencaharian' },
                     { id: 'lahan', label: 'Tata Guna Lahan' },
                     { id: 'ternak', label: 'Populasi Ternak' },
                   ].map((st) => (
@@ -876,15 +466,15 @@ export default function ProfilDesaPage() {
                 </div>
               </div>
 
-              {/* STAT SUB-TAB 1: DEMOGRAFI */}
+              {/* STAT SUB-TAB 1: DEMOGRAFI BPS */}
               {statTab === 'demografi' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 text-center">
                     {[
-                      { label: 'Total Penduduk', val: '2.581', sub: 'Jiwa (Data BPS)', color: 'bg-emerald-50 border-emerald-200 text-emerald-900' },
+                      { label: 'Total Penduduk', val: '2.581', sub: 'Jiwa (Data BPS 2023)', color: 'bg-emerald-50 border-emerald-200 text-emerald-900' },
                       { label: 'Laki-Laki', val: '1.269', sub: 'Jiwa (49,17%)', color: 'bg-sky-50 border-sky-200 text-sky-900' },
                       { label: 'Perempuan', val: '1.312', sub: 'Jiwa (50,83%)', color: 'bg-teal-50 border-teal-200 text-teal-900' },
-                      { label: 'Rasio Gender', val: '96,72', sub: 'Laki-laki per 100 Perempuan', color: 'bg-slate-50 border-slate-200 text-slate-900' },
+                      { label: 'Kepadatan Penduduk', val: '686,44', sub: 'Jiwa / km²', color: 'bg-slate-50 border-slate-200 text-slate-900' },
                     ].map((s, idx) => (
                       <div key={idx} className={`p-4 rounded-2xl border ${s.color} space-y-1`}>
                         <span className="text-2xl font-black block tracking-tight">{s.val}</span>
@@ -894,22 +484,21 @@ export default function ProfilDesaPage() {
                     ))}
                   </div>
 
-                  {/* Interactive Visual Distribution Bar */}
+                  {/* Gender Split Visualizer */}
                   <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-4">
                     <div className="flex items-center justify-between">
                       <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                        Komposisi Jenis Kelamin Penduduk
+                        Komposisi Jenis Kelamin Penduduk (BPS)
                       </h4>
-                      <span className="text-xs font-bold text-slate-500">Total: 2.581 Jiwa</span>
+                      <span className="text-xs font-bold text-slate-500">Rasio Jenis Kelamin: 96,72</span>
                     </div>
 
-                    {/* Proportional Split Bar */}
                     <div className="h-5 w-full bg-slate-200 rounded-full overflow-hidden flex shadow-inner">
                       <div className="h-full bg-sky-700 flex items-center justify-center text-[10px] font-black text-white" style={{ width: '49.17%' }}>
-                        Laki-laki 49,17%
+                        Laki-laki 1.269 (49,17%)
                       </div>
                       <div className="h-full bg-teal-600 flex items-center justify-center text-[10px] font-black text-white" style={{ width: '50.83%' }}>
-                        Perempuan 50,83%
+                        Perempuan 1.312 (50,83%)
                       </div>
                     </div>
 
@@ -933,89 +522,66 @@ export default function ProfilDesaPage() {
                 </div>
               )}
 
-              {/* STAT SUB-TAB 2: PEKERJAAN */}
+              {/* STAT SUB-TAB 2: MATA PENCAHARIAN BPS */}
               {statTab === 'pekerjaan' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                     {[
-                      { icon: <Wheat className="w-6 h-6 text-emerald-800" />, label: 'Petani & Tanaman Pangan', val: '479', sub: 'Orang (Sektor Dominan)', pct: '62,5%' },
-                      { icon: <TreePine className="w-6 h-6 text-teal-800" />, label: 'Peternak Rakyat', val: '215', sub: 'Orang (Kambing/Kuda/Sapi)', pct: '28,1%' },
-                      { icon: <Briefcase className="w-6 h-6 text-slate-800" />, label: 'PNS / TNI / POLRI & Lainnya', val: '72', sub: 'Orang (Aparatur & Pegawai)', pct: '9,4%' },
+                      { icon: <Wheat className="w-6 h-6 text-emerald-800" />, label: 'Petani', val: '479 orang', sub: 'Tabel Mata Pencaharian BPS 2023' },
+                      { icon: <TreePine className="w-6 h-6 text-teal-800" />, label: 'Peternak', val: '215 orang', sub: 'Tabel Mata Pencaharian BPS 2023' },
+                      { icon: <Briefcase className="w-6 h-6 text-slate-800" />, label: 'PNS / ABRI', val: '72 orang', sub: 'Tabel Mata Pencaharian BPS 2023' },
                     ].map((item, idx) => (
                       <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-200 shadow-2xs">
-                            {item.icon}
-                          </div>
-                          <span className="text-xs font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-900">
-                            {item.pct}
-                          </span>
+                        <div className="w-10 h-10 rounded-xl bg-white flex items-center justify-center border border-slate-200 shadow-2xs">
+                          {item.icon}
                         </div>
                         <div>
-                          <p className="text-2xl font-black text-slate-900">{item.val} <span className="text-xs font-medium text-slate-500">orang</span></p>
+                          <p className="text-2xl font-black text-slate-900">{item.val}</p>
                           <p className="text-xs text-slate-800 font-bold mt-0.5">{item.label}</p>
                           <p className="text-[11px] text-slate-500">{item.sub}</p>
                         </div>
                       </div>
                     ))}
                   </div>
-
-                  <div className="p-4 rounded-2xl bg-emerald-50/70 border border-emerald-200 text-xs text-slate-800 leading-relaxed font-medium">
-                    <Info className="w-4 h-4 text-emerald-800 inline mr-1.5 -mt-0.5" />
-                    Mayoritas aktivitas mata pencaharian warga Desa Jombe bertumpu pada sektor agraris (pertanian tanaman pangan seperti padi sawah dan jagung) serta peternakan kambing dan kuda yang memiliki nilai ekonomi tinggi di pasar Jeneponto.
-                  </div>
                 </div>
               )}
 
-              {/* STAT SUB-TAB 3: TATA GUNA LAHAN */}
+              {/* STAT SUB-TAB 3: TATA GUNA LAHAN BPS */}
               {statTab === 'lahan' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5">
                     {[
-                      { label: 'Sawah Teknis & Tadah Hujan', val: '192,00 ha', pct: '51,0%', color: 'bg-emerald-50 border-emerald-200 text-emerald-900' },
-                      { label: 'Tegalan / Lahan Kering', val: '212,00 ha', pct: '56,3%', color: 'bg-teal-50 border-teal-200 text-teal-900' },
-                      { label: 'Pekarangan & Permukiman', val: '21,00 ha', pct: '5,5%', color: 'bg-slate-50 border-slate-200 text-slate-900' },
-                      { label: 'Penggunaan Lainnya', val: '3,65 ha', pct: '1,0%', color: 'bg-amber-50 border-amber-200 text-amber-900' },
+                      { label: 'Sawah', val: '192 ha', color: 'bg-emerald-50 border-emerald-200 text-emerald-900' },
+                      { label: 'Tegalan / Lahan Kering', val: '212 ha', color: 'bg-teal-50 border-teal-200 text-teal-900' },
+                      { label: 'Pekarangan / Bangunan', val: '21 ha', color: 'bg-slate-50 border-slate-200 text-slate-900' },
+                      { label: 'Penggunaan Lainnya', val: '3,65 ha', color: 'bg-amber-50 border-amber-200 text-amber-900' },
                     ].map((item, idx) => (
                       <div key={idx} className={`rounded-2xl border p-4 text-center space-y-1 ${item.color}`}>
                         <span className="text-xl sm:text-2xl font-black block">{item.val}</span>
                         <span className="text-xs font-bold block">{item.label}</span>
-                        <span className="text-[10px] opacity-75 block">Proporsi: {item.pct}</span>
+                        <span className="text-[10px] opacity-75 block">Data BPS</span>
                       </div>
                     ))}
-                  </div>
-
-                  <div className="bg-slate-50 p-5 rounded-2xl border border-slate-200 space-y-2">
-                    <h4 className="text-xs font-black text-slate-900 uppercase tracking-wider">
-                      Distribusi Tata Ruang Wilayah Total 3,76 km²
-                    </h4>
-                    <p className="text-xs text-slate-600 leading-relaxed">
-                      Lahan pertanian pangan dan perkebunan tegalan menempati lebih dari 90% total luas wilayah Desa Jombe. Pemerintah Desa berkomitmen melindungi Lahan Pertanian Pangan Berkelanjutan (LP2B) untuk memastikan ketahanan pangan desa.
-                    </p>
                   </div>
                 </div>
               )}
 
-              {/* STAT SUB-TAB 4: POPULASI TERNAK */}
+              {/* STAT SUB-TAB 4: POPULASI TERNAK BPS */}
               {statTab === 'ternak' && (
                 <div className="space-y-6">
                   <div className="grid grid-cols-2 sm:grid-cols-4 gap-3.5 text-center">
                     {[
-                      { label: 'Kambing', val: '288', unit: 'Ekor', desc: 'Populasi terbanyak di 5 dusun', color: 'text-emerald-900' },
-                      { label: 'Kuda', val: '96', unit: 'Ekor', desc: 'Ternak khas budaya Jeneponto', color: 'text-teal-900' },
-                      { label: 'Sapi Potong', val: '43', unit: 'Ekor', desc: 'Ternak ruminansia besar', color: 'text-indigo-900' },
-                      { label: 'Kerbau', val: '0', unit: 'Ekor', desc: 'Tidak tercatat dalam populasi', color: 'text-slate-600' },
+                      { label: 'Kambing', val: '288', unit: 'Ekor', color: 'text-emerald-900' },
+                      { label: 'Kuda', val: '96', unit: 'Ekor', color: 'text-teal-900' },
+                      { label: 'Sapi', val: '43', unit: 'Ekor', color: 'text-indigo-900' },
+                      { label: 'Kerbau', val: '0', unit: 'Ekor', color: 'text-slate-600' },
                     ].map((item, idx) => (
                       <div key={idx} className="bg-slate-50 border border-slate-200 rounded-2xl p-4 space-y-1">
                         <p className={`text-2xl sm:text-3xl font-black ${item.color}`}>{item.val} <span className="text-xs font-medium text-slate-500">{item.unit}</span></p>
                         <p className="text-xs font-bold text-slate-800">{item.label}</p>
-                        <p className="text-[10px] text-slate-500">{item.desc}</p>
+                        <p className="text-[10px] text-slate-500">Data BPS</p>
                       </div>
                     ))}
-                  </div>
-
-                  <div className="bg-emerald-50/70 border border-emerald-200 rounded-2xl p-4 text-xs text-slate-800 font-medium">
-                    Populasi ternak kuda dan kambing merupakan aset strategis warga desa. Pemeriksaan berkala dan vaksinasi ternak dikoordinasikan secara teratur bersama Dinas Pertanian dan Peternakan Kabupaten Jeneponto.
                   </div>
                 </div>
               )}
@@ -1024,7 +590,7 @@ export default function ProfilDesaPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 4: APARATUR PEMERINTAHAN DESA (INTERACTIVE + MODAL)
+            TAB 3: APARATUR PEMERINTAHAN DESA (SK RIL DARI DESA)
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'aparat' && (
           <div className="space-y-6">
@@ -1036,11 +602,11 @@ export default function ProfilDesaPage() {
               <div className="space-y-2 text-center md:text-left flex-1">
                 <div className="inline-flex items-center gap-1.5 text-xs bg-emerald-800/80 text-emerald-200 font-bold uppercase px-3 py-1 rounded-full border border-emerald-600/40">
                   <Award className="w-3.5 h-3.5" />
-                  Kepala Desa Jombe Periode Aktif
+                  Kepala Desa Jombe
                 </div>
                 <h3 className="text-2xl sm:text-3xl font-black tracking-tight">JUSMAEDY, S.Pd</h3>
                 <p className="text-xs sm:text-sm text-emerald-100/90 leading-relaxed max-w-2xl font-medium">
-                  Memimpin tata kelola pemerintahan, pelaksanaan pembangunan infrastruktur, pembinaan ketentraman masyarakat, dan percepatan pelayanan digital di Desa Jombe.
+                  Memimpin penyelenggaraan pemerintahan desa, pelaksanaan pembangunan, pembinaan kemasyarakatan, dan pemberdayaan masyarakat Desa Jombe.
                 </p>
               </div>
               <button
@@ -1048,7 +614,7 @@ export default function ProfilDesaPage() {
                 className="px-4 py-2.5 bg-white text-emerald-950 font-bold rounded-xl text-xs hover:bg-emerald-50 transition-all shrink-0 cursor-pointer shadow-sm flex items-center gap-1.5"
               >
                 <Eye className="w-4 h-4" />
-                <span>Lihat Profil & Tupoksi</span>
+                <span>Lihat Tupoksi</span>
               </button>
             </div>
 
@@ -1058,8 +624,8 @@ export default function ProfilDesaPage() {
                 {/* Category Filters */}
                 <div className="flex flex-wrap gap-1.5 w-full sm:w-auto">
                   {[
-                    { id: 'semua', label: 'Semua Aparat' },
-                    { id: 'pimpinan', label: 'Pimpinan' },
+                    { id: 'semua', label: 'Semua Aparat (13)' },
+                    { id: 'pimpinan', label: 'Kepala Desa' },
                     { id: 'sekretariat', label: 'Sekretariat & Kaur' },
                     { id: 'teknis', label: 'Kepala Seksi' },
                     { id: 'dusun', label: 'Kepala Dusun (5)' },
@@ -1126,7 +692,7 @@ export default function ProfilDesaPage() {
                         onClick={() => setSelectedAparat(item)}
                         className="text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1 cursor-pointer"
                       >
-                        Detail <ChevronRight className="w-3.5 h-3.5" />
+                        Tupoksi <ChevronRight className="w-3.5 h-3.5" />
                       </button>
                     </div>
                   </div>
@@ -1144,270 +710,165 @@ export default function ProfilDesaPage() {
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 5: SARANA & FASILITAS DESA (FILTERABLE)
+            TAB 4: 5 WILAYAH DUSUN RESMI
            ════════════════════════════════════════════════════════════════════ */}
-        {activeTab === 'fasilitas' && (
+        {activeTab === 'dusun' && (
           <div className="space-y-6">
-            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+              <div className="flex items-center justify-between border-b border-slate-100 pb-4">
                 <div>
                   <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
-                    <Building className="w-5 h-5 text-emerald-800" />
-                    Direktori Sarana & Prasarana Publik
+                    <Layers className="w-5 h-5 text-emerald-800" />
+                    5 Wilayah Dusun Resmi Desa Jombe
                   </h2>
                   <p className="text-xs text-slate-500 mt-0.5">
-                    Fasilitas kesehatan, peribadatan, sarana olahraga, dan fasilitas umum di wilayah Desa Jombe.
+                    Pemerintah Desa Jombe terbagi atas 5 wilayah dusun administratif.
                   </p>
                 </div>
-
-                <div className="flex gap-1.5 bg-slate-100 p-1 rounded-xl self-start sm:self-auto overflow-x-auto">
-                  {[
-                    { id: 'semua', label: 'Semua Fasilitas' },
-                    { id: 'kesehatan', label: 'Kesehatan' },
-                    { id: 'ibadah', label: 'Tempat Ibadah' },
-                    { id: 'olahraga', label: 'Olahraga & Pemuda' },
-                  ].map((cat) => (
-                    <button
-                      key={cat.id}
-                      onClick={() => setFacilityCategory(cat.id as any)}
-                      className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                        facilityCategory === cat.id
-                          ? 'bg-white text-emerald-900 shadow-2xs'
-                          : 'text-slate-600 hover:text-slate-900'
-                      }`}
-                    >
-                      {cat.label}
-                    </button>
-                  ))}
-                </div>
+                <span className="text-[11px] font-bold px-3 py-1 rounded-full bg-slate-100 text-slate-700 border border-slate-200">
+                  5 Dusun
+                </span>
               </div>
 
-              {/* Facility Cards Grid */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {/* Fasilitas Kesehatan */}
-                {(facilityCategory === 'semua' || facilityCategory === 'kesehatan') && (
-                  <>
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold">
-                          <Stethoscope className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-emerald-800 block">Kesehatan</span>
-                          <h4 className="text-xs font-black text-slate-900">Puskesmas Pembantu (Pustu)</h4>
-                        </div>
+              {/* Dusun Selector & Display */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                {daftarDusun.map((dusun, idx) => (
+                  <div
+                    key={idx}
+                    className="p-5 rounded-2xl border border-slate-200 bg-slate-50 space-y-3"
+                  >
+                    <div className="flex items-center gap-3">
+                      <div className={`w-11 h-11 rounded-2xl bg-gradient-to-br ${dusun.avatarColor} flex items-center justify-center text-white font-black text-xs shadow-2xs shrink-0`}>
+                        {dusun.nama.split(' ').map(n => n[0]).slice(1).join('')}
                       </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        1 Unit Pustu terpusat di Dusun Jombe Tengah, melayani pemeriksaan dasar, rujukan, dan penanganan awal.
-                      </p>
+                      <div>
+                        <span className="text-[10px] font-bold uppercase text-emerald-800 tracking-wider block">
+                          Wilayah Dusun
+                        </span>
+                        <h4 className="text-sm font-black text-slate-900">
+                          {dusun.nama}
+                        </h4>
+                      </div>
                     </div>
 
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-teal-100 text-teal-900 flex items-center justify-center font-bold">
-                          <Baby className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-teal-800 block">Kesehatan Balita & Lansia</span>
-                          <h4 className="text-xs font-black text-slate-900">5 Posyandu Terpadu</h4>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        Tersedia 1 posyandu aktif di masing-masing 5 dusun (Melati, Mawar, Teratai, Kenanga, Posyandu Dusun Tengah).
-                      </p>
+                    <div className="pt-2 border-t border-slate-200 text-xs">
+                      <span className="text-slate-500 block">Kepala Dusun:</span>
+                      <strong className="text-slate-900 text-sm">{dusun.kepalaDusun}</strong>
                     </div>
-
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-sky-100 text-sky-900 flex items-center justify-center font-bold">
-                          <Heart className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-sky-800 block">Tenaga Medis</span>
-                          <h4 className="text-xs font-black text-slate-900">3 Bidan & 3 Paramedis</h4>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        Tenaga kesehatan desa standby untuk pendampingan persalinan ibu hamil dan kesehatan balita.
-                      </p>
-                    </div>
-                  </>
-                )}
-
-                {/* Tempat Ibadah */}
-                {(facilityCategory === 'semua' || facilityCategory === 'ibadah') && (
-                  <>
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold">
-                          <Landmark className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-emerald-800 block">Peribadatan</span>
-                          <h4 className="text-xs font-black text-slate-900">5 Masjid Jami Dusun</h4>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        5 unit masjid permanen tersebar di tiap wilayah dusun untuk shalat berjamaah dan pengajian warga.
-                      </p>
-                    </div>
-
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-slate-200 text-slate-800 flex items-center justify-center font-bold">
-                          <Building className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-slate-700 block">Peribadatan</span>
-                          <h4 className="text-xs font-black text-slate-900">1 Unit Mushola</h4>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        Mushola lingkungan untuk kegiatan majelis taklim dan taman pendidikan Al-Qur&apos;an (TPA).
-                      </p>
-                    </div>
-                  </>
-                )}
-
-                {/* Sarana Olahraga */}
-                {(facilityCategory === 'semua' || facilityCategory === 'olahraga') && (
-                  <>
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-indigo-100 text-indigo-900 flex items-center justify-center font-bold">
-                          <Activity className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-indigo-800 block">Olahraga</span>
-                          <h4 className="text-xs font-black text-slate-900">1 Lapangan Sepak Bola</h4>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        Lapangan utama untuk kegiatan turnamen pemuda desa, peringatan HUT RI, dan upacara adat.
-                      </p>
-                    </div>
-
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-emerald-100 text-emerald-900 flex items-center justify-center font-bold">
-                          <Activity className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-emerald-800 block">Olahraga</span>
-                          <h4 className="text-xs font-black text-slate-900">4 Lapangan Sepak Takraw</h4>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        Sarana olahraga takraw di 4 dusun sebagai cabang olahraga favorit pemuda desa.
-                      </p>
-                    </div>
-
-                    <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-3">
-                      <div className="flex items-center gap-2.5">
-                        <div className="w-9 h-9 rounded-xl bg-amber-100 text-amber-900 flex items-center justify-center font-bold">
-                          <Activity className="w-4 h-4" />
-                        </div>
-                        <div>
-                          <span className="text-[10px] font-bold uppercase text-amber-800 block">Olahraga</span>
-                          <h4 className="text-xs font-black text-slate-900">1 Lapangan Voli & 4 Badminton</h4>
-                        </div>
-                      </div>
-                      <p className="text-xs text-slate-600 leading-relaxed">
-                        Fasilitas olahraga aktif untuk kebugaran masyarakat dan sarana interaksi sosial warga.
-                      </p>
-                    </div>
-                  </>
-                )}
+                  </div>
+                ))}
               </div>
             </div>
           </div>
         )}
 
         {/* ════════════════════════════════════════════════════════════════════
-            TAB 6: PETA & KONEKTIVITAS AKSES WILAYAH (INTERACTIVE)
+            TAB 5: FASILITAS & SARANA RESMI (DATA BPS)
+           ════════════════════════════════════════════════════════════════════ */}
+        {activeTab === 'fasilitas' && (
+          <div className="space-y-6">
+            <div className="bg-white p-6 sm:p-8 rounded-3xl border border-slate-200 shadow-sm space-y-6">
+              <div className="border-b border-slate-100 pb-4">
+                <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
+                  <Building className="w-5 h-5 text-emerald-800" />
+                  Fasilitas & Sarana Prasarana (Data BPS)
+                </h2>
+                <p className="text-xs text-slate-500 mt-0.5">
+                  Fasilitas kesehatan, tempat ibadah, dan sarana olahraga resmi tercatat dalam tabel BPS.
+                </p>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                {/* Fasilitas Kesehatan (BPS) */}
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
+                    <Stethoscope className="w-4 h-4" />
+                    Fasilitas & Tenaga Kesehatan
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    {[
+                      ['Pustu (Puskesmas Pembantu)', '1 Unit'],
+                      ['Posyandu', '5 Unit'],
+                      ['Bidan Desa', '3 Orang'],
+                      ['Paramedis / Perawat', '3 Orang'],
+                    ].map(([label, val], idx) => (
+                      <div key={idx} className="flex justify-between items-center py-1.5 border-b border-slate-200/60 last:border-0">
+                        <span className="text-slate-600">{label}</span>
+                        <span className="font-black text-slate-900">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Tempat Ibadah (BPS) */}
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
+                    <Landmark className="w-4 h-4" />
+                    Tempat Ibadah
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    {[
+                      ['Masjid', '5 Unit'],
+                      ['Mushola', '1 Unit'],
+                      ['Gereja', '0 Unit'],
+                    ].map(([label, val], idx) => (
+                      <div key={idx} className="flex justify-between items-center py-1.5 border-b border-slate-200/60 last:border-0">
+                        <span className="text-slate-600">{label}</span>
+                        <span className="font-black text-slate-900">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Fasilitas Olahraga (BPS) */}
+                <div className="bg-slate-50 rounded-2xl p-5 border border-slate-200 space-y-4">
+                  <div className="flex items-center gap-2 text-emerald-800 font-bold text-xs uppercase tracking-wider border-b border-slate-200 pb-2">
+                    <Activity className="w-4 h-4" />
+                    Fasilitas Olahraga
+                  </div>
+                  <div className="space-y-2 text-xs">
+                    {[
+                      ['Lapangan Sepak Bola', '1 Lokasi'],
+                      ['Lapangan Bola Voli', '1 Lokasi'],
+                      ['Lapangan Sepak Takraw', '4 Lokasi'],
+                      ['Bulu Tangkis / Tenis Meja', '4 Lokasi'],
+                    ].map(([label, val], idx) => (
+                      <div key={idx} className="flex justify-between items-center py-1.5 border-b border-slate-200/60 last:border-0">
+                        <span className="text-slate-600">{label}</span>
+                        <span className="font-black text-slate-900">{val}</span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ════════════════════════════════════════════════════════════════════
+            TAB 6: GEOGRAFIS & PETA
            ════════════════════════════════════════════════════════════════════ */}
         {activeTab === 'peta' && (
           <div className="space-y-6">
-            {/* Interactive Route Explorer */}
-            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-6">
+            <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
               <div className="border-b border-slate-100 pb-4">
                 <h2 className="text-base font-black text-slate-900 flex items-center gap-2">
                   <Navigation className="w-5 h-5 text-emerald-800" />
-                  Konektivitas & Panduan Aksesibilitas Wilayah
+                  Jarak & Aksesibilitas (Data BPS)
                 </h2>
-                <p className="text-xs text-slate-500 mt-0.5">
-                  Pilih destinasi di bawah untuk melihat rincian jarak, estimasi waktu tempuh, kondisi jalan, dan rute akses.
-                </p>
               </div>
 
-              {/* Route Tabs */}
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                {routes.map((r, rIdx) => {
-                  const isSelected = selectedRouteIndex === rIdx;
-                  return (
-                    <button
-                      key={rIdx}
-                      onClick={() => setSelectedRouteIndex(rIdx)}
-                      className={`p-3.5 rounded-2xl border text-left transition-all cursor-pointer flex flex-col justify-between ${
-                        isSelected
-                          ? 'bg-emerald-900 text-white border-emerald-950 shadow-md ring-2 ring-emerald-600/30'
-                          : 'bg-slate-50 hover:bg-slate-100 border-slate-200 text-slate-800'
-                      }`}
-                    >
-                      <div>
-                        <span className={`text-[10px] font-bold uppercase block mb-1 ${isSelected ? 'text-emerald-300' : 'text-slate-400'}`}>
-                          Destinasi {rIdx + 1}
-                        </span>
-                        <h4 className="text-xs font-black leading-snug line-clamp-2">{r.tujuan}</h4>
-                      </div>
-                      <div className="mt-3 pt-2 border-t border-slate-100/20 text-xs font-black">
-                        <span className={isSelected ? 'text-emerald-200' : 'text-emerald-800'}>{r.jarak}</span>
-                      </div>
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* Selected Route Detail Box */}
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 sm:p-6 space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-200 pb-3">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase text-emerald-800">
-                      Rincian Jalur Transportasi
-                    </span>
-                    <h3 className="text-base font-black text-slate-900 mt-0.5">
-                      Desa Jombe ↔ {routes[selectedRouteIndex].tujuan}
-                    </h3>
-                  </div>
-                  <div className="flex gap-2">
-                    <span className="px-3 py-1 bg-white border border-slate-200 rounded-xl text-xs font-bold text-slate-800 shadow-2xs">
-                      Jarak: {routes[selectedRouteIndex].jarak}
-                    </span>
-                    <span className="px-3 py-1 bg-emerald-100 text-emerald-900 rounded-xl text-xs font-bold">
-                      Waktu: {routes[selectedRouteIndex].waktuTempuh}
-                    </span>
-                  </div>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-slate-500 font-medium block">Jarak ke Ibu Kota Kecamatan Turatea</span>
+                  <span className="text-2xl font-black text-emerald-900 block">17 km</span>
+                  <span className="text-[11px] text-amber-800 font-semibold block">Desa paling jauh dari ibu kota Kecamatan Turatea</span>
                 </div>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
-                  <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1">
-                    <span className="text-slate-400 font-bold uppercase text-[10px]">Kondisi Jalan</span>
-                    <p className="font-bold text-slate-800">{routes[selectedRouteIndex].kondisiJalan}</p>
-                  </div>
-                  <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1">
-                    <span className="text-slate-400 font-bold uppercase text-[10px]">Moda Transportasi</span>
-                    <p className="font-bold text-slate-800">{routes[selectedRouteIndex].moda}</p>
-                  </div>
-                  <div className="bg-white p-3.5 rounded-xl border border-slate-200 space-y-1">
-                    <span className="text-slate-400 font-bold uppercase text-[10px]">Rute Akses</span>
-                    <p className="font-bold text-slate-800 leading-snug">{routes[selectedRouteIndex].jalur}</p>
-                  </div>
+                <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 space-y-1">
+                  <span className="text-slate-500 font-medium block">Jarak ke Ibu Kota Kabupaten Jeneponto</span>
+                  <span className="text-2xl font-black text-emerald-900 block">8,70 km</span>
+                  <span className="text-[11px] text-slate-600 font-semibold block">Akses ke pusat pemerintahan Kabupaten Jeneponto</span>
                 </div>
-
-                <p className="text-xs text-slate-600 font-medium bg-emerald-50/60 p-3 rounded-xl border border-emerald-100">
-                  <Info className="w-3.5 h-3.5 text-emerald-800 inline mr-1 -mt-0.5" />
-                  {routes[selectedRouteIndex].catatan}
-                </p>
               </div>
             </div>
 
@@ -1416,7 +877,7 @@ export default function ProfilDesaPage() {
               <div className="flex items-center justify-between px-2 pt-1">
                 <span className="text-xs font-black text-slate-900 flex items-center gap-1.5">
                   <MapPin className="w-4 h-4 text-emerald-800" />
-                  Peta Spasial Desa Jombe (Google Maps)
+                  Peta Spasial Desa Jombe
                 </span>
                 <a
                   href="https://maps.google.com/maps?q=Desa+Jombe+Turatea+Jeneponto"
@@ -1424,7 +885,7 @@ export default function ProfilDesaPage() {
                   rel="noopener noreferrer"
                   className="text-xs font-bold text-emerald-800 hover:text-emerald-950 flex items-center gap-1"
                 >
-                  Buka di Maps Penuh <ExternalLink className="w-3 h-3" />
+                  Buka di Maps <ExternalLink className="w-3 h-3" />
                 </a>
               </div>
               <div className="w-full h-[420px] rounded-2xl overflow-hidden border border-slate-200">
@@ -1449,13 +910,13 @@ export default function ProfilDesaPage() {
         <div className="p-6 sm:p-8 rounded-3xl bg-gradient-to-r from-emerald-950 via-emerald-900 to-teal-950 text-white shadow-sm flex flex-col md:flex-row justify-between items-center gap-6 border border-emerald-800/50">
           <div className="space-y-1 text-center md:text-left">
             <span className="text-[10px] uppercase font-bold tracking-wider text-emerald-300 bg-emerald-800/80 px-2.5 py-0.5 rounded-full border border-emerald-600/40">
-              Layanan Mandiri Warga
+              Layanan Administrasi
             </span>
             <h3 className="text-lg sm:text-xl font-black text-white mt-1">
-              Butuh Surat Administrasi dari Pemerintah Desa?
+              Pelayanan Administrasi Warga Desa Jombe
             </h3>
             <p className="text-xs text-emerald-100/80 max-w-xl font-medium">
-              Ajukan permohonan surat keterangan secara online tanpa antre dan lacak status berkas langsung dari smartphone Anda.
+              Ajukan permohonan surat keterangan dan pantau progres berkas secara mandiri melalui website resmi desa.
             </p>
           </div>
           <div className="flex flex-wrap gap-2.5 shrink-0">
@@ -1463,7 +924,7 @@ export default function ProfilDesaPage() {
               href="/layanan"
               className="px-5 py-3 bg-emerald-700 hover:bg-emerald-600 text-white font-bold rounded-xl text-xs shadow-sm transition-all flex items-center gap-2"
             >
-              <span>Ajukan Surat Sekarang</span>
+              <span>Ajukan Permohonan Surat</span>
               <ArrowRight className="w-4 h-4" />
             </Link>
             <Link
@@ -1503,7 +964,7 @@ export default function ProfilDesaPage() {
                     {selectedAparat.nama}
                   </h3>
                   <span className="text-[11px] text-emerald-200/80 font-medium block mt-0.5">
-                    Pemerintah Desa Jombe · Periode Aktif
+                    Pemerintah Desa Jombe
                   </span>
                 </div>
               </div>
@@ -1533,23 +994,6 @@ export default function ProfilDesaPage() {
                       </div>
                     ))}
                   </div>
-                </div>
-              )}
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-2 border-t border-slate-100">
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-0.5">
-                  <span className="text-slate-400 font-bold uppercase text-[9px] block">Ruang Kerja</span>
-                  <span className="font-bold text-slate-800 text-[11px] block">{selectedAparat.ruangKerja}</span>
-                </div>
-                <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 space-y-0.5">
-                  <span className="text-slate-400 font-bold uppercase text-[9px] block">Layanan Terkait</span>
-                  <span className="font-bold text-slate-800 text-[11px] block">{selectedAparat.layanan}</span>
-                </div>
-              </div>
-
-              {selectedAparat.skPengangkatan && (
-                <div className="text-[11px] text-slate-500 font-medium bg-emerald-50/70 p-2.5 rounded-xl border border-emerald-200 text-center">
-                  Dasar Hukum: {selectedAparat.skPengangkatan}
                 </div>
               )}
             </div>
