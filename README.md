@@ -2,7 +2,7 @@
 
 > "Pelayanan Desa Jombe dalam Genggaman — Lebih Mudah, Cepat, dan Transparan."
 
-Platform pelayanan administrasi publik digital terpadu untuk **Desa Jombe, Kecamatan Jombang**. Memungkinkan warga mengajukan permohonan surat administrasi secara online, melacak status secara real-time, mengunggah dokumen persyaratan, mengunduh hasil surat PDF resmi, menyampaikan pengaduan masyarakat, serta memanfaatkan AI Assistant untuk panduan informasi desa.
+Platform pelayanan administrasi publik digital terpadu untuk **Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Sulawesi Selatan**. Memungkinkan warga mengajukan permohonan surat administrasi secara online, melacak status secara real-time, mengunggah dokumen persyaratan, mengunduh hasil surat PDF resmi, menyampaikan pengaduan masyarakat, serta memanfaatkan AI Assistant untuk panduan informasi desa.
 
 ---
 
@@ -105,4 +105,4 @@ Backend bot tetap harus berupa Web Service Node.js yang aktif; frontend boleh di
 | **Admin / Kades** | `3512345678900000` | `password123` | `/operator` / `/admin` |
 
 ---
-© {new Date().getFullYear()} Pemerintah Desa Jombe, Kecamatan Jombang.
+© {new Date().getFullYear()} Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto.
