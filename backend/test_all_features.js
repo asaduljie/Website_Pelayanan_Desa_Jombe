@@ -91,7 +91,7 @@ async function runAllTests() {
     if (!res.body.data?.token) throw new Error('Token tidak ditemukan');
     operatorToken = res.body.data.token;
   });
-
+  
   await testStep('4. Public Content - Profil & Real Database Stats', async () => {
     const res = await request('/content/profile');
     if (res.status !== 200) throw new Error(`Status ${res.status}`);

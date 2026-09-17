@@ -1,4 +1,5 @@
 import { Request, Response } from 'express';
+import jwt from 'jsonwebtoken';
 import prisma from '../config/db';
 import { AuthRequest } from '../middleware/auth';
 import { PersistentDatabase } from '../utils/persistentDb';
@@ -32,8 +33,25 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
       }
     }
 
+    // Ekstrak NIK dari Token jika ada header Authorization
+    let tokenNik = req.user?.nik;
+    if (!tokenNik && req.headers['authorization']) {
+      try {
+        const authHeader = req.headers['authorization'];
+        const token = authHeader.split(' ')[1];
+        if (token) {
+          const jwtSecret = process.env.JWT_SECRET || 'jombe_digital_secure_jwt_secret_key_2026_super_encrypted';
+          const decoded: any = jwt.verify(token, jwtSecret);
+          if (decoded && decoded.nik) {
+            tokenNik = decoded.nik;
+            if (!req.user) req.user = decoded;
+          }
+        }
+      } catch (e) {}
+    }
+
     // 2. Validasi NIK (Wajib 16 Digit)
-    const userNik = String(bodyNik || req.user?.nik || '').replace(/\D/g, '');
+    const userNik = String(bodyNik || tokenNik || req.user?.nik || '').replace(/\D/g, '');
     if (!userNik || userNik.length !== 16) {
       return res.status(400).json({
         status: 'error',

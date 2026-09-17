@@ -69,7 +69,7 @@ export const verifyTteDocument = async (req: Request, res: Response) => {
         userName: 'Siti Rahmawati',
         userNik: '3512345678900001',
         userPhone: '085712345678',
-        detailValue: 'Usaha Toko Sembako Berkah, Dusun Krajan RT 02 RW 01',
+        detailValue: 'Usaha Toko Sembako Berkah, Dusun Jombe Selatan',
         letterNumber: '503/470/812/DS-JMB/2026',
         status: 'COMPLETED',
         createdAt: new Date().toISOString(),
@@ -77,6 +77,7 @@ export const verifyTteDocument = async (req: Request, res: Response) => {
     }
 
     const docFileName = `08_${appData.serviceName.toUpperCase().replace(/[^A-Z0-9]/g, '_')}_${appData.userName.toUpperCase().replace(/\s+/g, '_')}_${appData.applicationNumber}.pdf`;
+    const apiBaseUrl = process.env.NEXT_PUBLIC_API_URL || process.env.API_BASE_URL || 'https://lentera-desa-backend.vercel.app/api';
 
     return res.status(200).json({
       status: 'success',
@@ -84,23 +85,24 @@ export const verifyTteDocument = async (req: Request, res: Response) => {
         isValid: true,
         documentName: docFileName,
         signTime: appData.createdAt,
-        signedBy: 'H. AHMAD FAUZI, S.Sos.',
+        signedBy: 'JUSMAEDY, S.Pd',
         signerTitle: 'Kepala Desa Jombe',
-        signerNip: '19780512 200501 1 004',
-        institution: 'Pemerintah Desa Jombe, Kecamatan Jombang, Kabupaten Jombang',
-        certificationAuthority: 'Balai Sertifikasi Elektronik (BSrE) - Badan Siber dan Sandi Negara (BSSN)',
-        integrityStatus: 'VALID & TIDAK BERUBAH (SHA-256 Valid)',
-        certificateStatus: 'Sertifikat Elektronik Aktif & Terverifikasi',
+        signerNip: '-',
+        institution: 'Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto',
+        certificationAuthority: 'Pemerintah Desa Jombe (Registrasi Arsip Mandiri)',
+        integrityStatus: 'TERCATAT RESMI DALAM BUKU AGENDA DESA JOMBE',
+        certificateStatus: 'Dokumen Fisik Sah Setelah Tanda Tangan Basah & Cap Stempel Resmi Kantor Desa',
+        legalNotice: 'Hasil cetak dokumen ini merupakan surat keterangan resmi yang sah setelah ditandatangani basah oleh Kepala Desa Jombe serta dibubuhi stempel resmi kantor desa.',
         applicationNumber: appData.applicationNumber,
         letterNumber: appData.letterNumber,
         serviceName: appData.serviceName,
         citizenName: appData.userName,
         citizenNik: appData.userNik,
         detailValue: appData.detailValue,
-        pdfDownloadUrl: `http://localhost:5000/api/operator/pdf/${appData.id || appData.applicationNumber}`,
+        pdfDownloadUrl: `${apiBaseUrl.replace(/\/$/, '')}/operator/pdf/${appData.id || appData.applicationNumber}`,
       },
     });
   } catch (error: any) {
-    return res.status(500).json({ status: 'error', message: 'Gagal memverifikasi dokumen TTE.' });
+    return res.status(500).json({ status: 'error', message: 'Gagal memverifikasi dokumen surat desa.' });
   }
 };

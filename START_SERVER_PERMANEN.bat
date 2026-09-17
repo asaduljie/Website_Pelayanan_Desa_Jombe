@@ -3,7 +3,7 @@ title PELAYANAN DIGITAL DESA JOMBE - SERVER PERMANEN ZERO DOWNTIME
 color 0A
 
 echo =====================================================================
-echo    SISTEM PELAYANAN DIGITAL DESA JOMBE - KABUPATEN JOMBANG
+echo    SISTEM PELAYANAN DIGITAL DESA JOMBE - KABUPATEN JENEPONTO
 echo          (MODE OPERASI PERMANEN & SELF-HEALING ZERO DOWNTIME)
 echo =====================================================================
 echo.

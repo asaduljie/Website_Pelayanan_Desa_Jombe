@@ -42,7 +42,7 @@
 ### B5. Latar Belakang Singkat Program
 Program ini diinisiasi untuk menjawab tantangan tata kelola administrasi kependudukan di Desa Jombe yang selama ini masih bersifat konvensional. Warga harus meluangkan waktu dan biaya perjalanan menuju kantor desa hanya untuk mencari informasi syarat surat, mengantre, ataupun memeriksa apakah surat sudah selesai ditandatangani. Di sisi lain, arsip permohonan surat masih bertumpu pada buku register manual yang berisiko tercecer atau rusak.
 
-Oleh karena itu, dikembangkan inovasi sistem terintegrasi **"LENTERA DESA"** (Website Pelayanan Mandiri dan Aplikasi Mobile Android) agar masyarakat Desa Jombe dapat mengajukan permohonan surat administrasi secara langsung secara mandiri, melacak status berkas secara transparan, serta mengunduh dokumen surat resmi berformat PDF yang dilengkapi tanda tangan elektronik (TTE) berbasis QR Code tanpa terkendala jarak dan waktu.
+Oleh karena itu, dikembangkan inovasi sistem terintegrasi **"LENTERA DESA"** (Website Pelayanan Mandiri dan Aplikasi Mobile Android) agar masyarakat Desa Jombe dapat mengajukan permohonan surat administrasi secara langsung secara mandiri, melacak status berkas secara transparan, serta mengunduh dokumen surat resmi berformat PDF standar yang siap dicetak (*print*) dan dibubuhi tanda tangan basah Kepala Desa serta cap stempel resmi kantor desa tanpa terkendala jarak dan antrean panjang.
 
 ---
 
@@ -51,8 +51,8 @@ Oleh karena itu, dikembangkan inovasi sistem terintegrasi **"LENTERA DESA"** (We
 ### B6. Tujuan Program Kerja
 1. **Mempermudah Warga Mengajukan Surat**: Menyediakan platform pelayanan administrasi publik digital yang memudahkan warga mengajukan surat keterangan mandiri (SKU, Domisili, SKTM, Pengantar SKCK, Kelahiran/Kematian) secara daring (*online*) 24 jam tanpa perlu antre fisik di kantor desa.
 2. **Transparansi & Pelacakan Berkas**: Meningkatkan akuntabilitas birokrasi desa melalui fitur pelacakan status berkas permohonan secara *real-time* (*Menunggu Verifikasi*, *Sedang Diproses*, *Perlu Revisi*, *Selesai*).
-3. **Modernisasi Tata Kelola Kantor Desa**: Menyediakan *Dashboard Operator Desa* bagi aparatur untuk verifikasi dokumen digital dan penerbitan surat resmi otomatis ber-kop surat Desa Jombe.
-4. **Keaslian Dokumen & Legalitas**: Menjamin keabsahan dokumen kependudukan melalui sistem verifikasi Tanda Tangan Elektronik (TTE) berbasis QR Code / Barcode yang dapat divalidasi secara publik.
+3. **Modernisasi Tata Kelola Kantor Desa**: Menyediakan *Dashboard Operator Desa* bagi aparatur untuk verifikasi berkas persyaratan dan penerbitan otomatis surat keterangan ber-kop resmi Pemerintah Desa Jombe.
+4. **Keabsahan Dokumen & Legalitas Fisik**: Menjamin keabsahan administrasi kependudukan melalui pencetakan surat PDF resmi ber-QR Code registrasi arsip desa yang ditandatangani basah oleh Kepala Desa Jombe serta dibubuhi cap stempel basah kantor desa.
 5. **Kanal Aspirasi & Data Otentik Desa**: Menyediakan saluran pengaduan aspirasi masyarakat serta portal profil desa terpadu berbasis data resmi BPS Kecamatan Turatea 2025.
 
 ### B7. Sasaran Program
@@ -90,8 +90,8 @@ Masyarakat Desa Jombe (lintas 5 dusun: Dusun Jombe Utara, Dusun Jombe Tengah, Du
 ### B12. Output Program yang Dihasilkan
 1. **Website Resmi Pelayanan Mandiri Desa Jombe** ([https://www.lenteradesajombe.biz.id](https://www.lenteradesajombe.biz.id)) yang aktif dan dapat diakses 24 jam.
 2. **Aplikasi Mobile Android (APK Flutter)** yang terhubung langsung dengan basis data pelayanan desa.
-3. **Dashboard Operator Desa** untuk mengelola, memverifikasi berkas persyaratan warga, dan menerbitkan surat keterangan berformat PDF resmi.
-4. **Modul Verifikasi Keaslian Tanda Tangan Elektronik (TTE)** berbasis QR Code untuk mencegah pemalsuan surat desa.
+3. **Dashboard Operator Desa** untuk mengelola, memverifikasi berkas persyaratan warga, dan menerbitkan surat keterangan berformat PDF resmi siap cetak.
+4. **Modul Validasi Registrasi Dokumen Resmi Desa** berbasis QR Code arsip untuk pencocokan keabsahan nomor surat dan data kependudukan sebelum pembubuhan tanda tangan basah dan cap stempel kantor desa.
 5. **Kanal Pengaduan Aspirasi Warga** dan **Portal Profil Interaktif Desa Jombe** berbasis data resmi BPS Kecamatan Turatea 2025.
 6. **Terlatihnya aparatur Pemerintah Desa Jombe** dalam mengoperasikan dan mengelola sistem pelayanan digital secara mandiri.
 
@@ -152,7 +152,7 @@ Implementasi transformasi digital di tingkat desa tidak hanya bertumpu pada keca
 * ☐ **Foto 1**: Pendemoan fitur Website Pelayanan Mandiri LENTERA DESA, alur pengajuan surat online, dan sistem lacak berkas saat Seminar Program Kerja KKN (20 Agustus 2026).
 * ☐ **Foto 2**: Proses pendampingan dan bimbingan teknis (Bimtek) operasional Dashboard Operator Desa bersama Sekretaris Desa dan staf kantor desa.
 * ☐ **Foto 3**: Pelaksanaan Sosialisasi LENTERA DESA yang dirangkaikan dengan Seminar Hasil KKN bersama Kepala Desa, Sekretaris Desa, seluruh Kepala Dusun, dan Kader Posyandu se-Desa Jombe (18 September 2026).
-* ☐ **Foto 4**: Contoh hasil cetak Surat Keterangan resmi Desa Jombe berformat PDF yang dilengkapi Tanda Tangan Elektronik (TTE) dan QR Code validasi keaslian dokumen.
+* ☐ **Foto 4**: Contoh hasil cetak fisik Surat Keterangan resmi Desa Jombe berformat PDF standar berkop Pemkab Jeneponto yang siap dan telah dibubuhi tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd) serta cap stempel basah kantor desa.
 
 ---
 

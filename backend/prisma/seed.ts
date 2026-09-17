@@ -138,13 +138,13 @@ async function main() {
       serviceId: skuService.id,
       title: 'Template Resmi SKU',
       codePrefix: '510',
-      headerText: 'PEMERINTAH KABUPATEN JOMBANG\nKECAMATAN JOMBANG\nPEMERINTAH DESA JOMBE',
+      headerText: 'PEMERINTAH KABUPATEN JENEPONTO\nKECAMATAN TURATEA\nPEMERINTAH DESA JOMBE',
       templateHtml: `
         <div style="font-family: Arial, sans-serif; padding: 20px; line-height: 1.6;">
           <h3 style="text-align: center; margin-bottom: 5px; text-decoration: underline;">SURAT KETERANGAN USAHA</h3>
           <p style="text-align: center; margin-top: 0;">Nomor: {{nomor_surat}}</p>
           <br/>
-          <p>Yang bertanda tangan di bawah ini Kepala Desa Jombe, Kecamatan Jombang, Kabupaten Jombang, menerangkan dengan sebenarnya bahwa:</p>
+          <p>Yang bertanda tangan di bawah ini Kepala Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, menerangkan dengan sebenarnya bahwa:</p>
           <table style="width: 100%; margin-left: 20px;">
             <tr><td style="width: 30%;">Nama</td><td>: {{nama}}</td></tr>
             <tr><td>NIK</td><td>: {{nik}}</td></tr>
@@ -160,11 +160,11 @@ async function main() {
           <br/>
           <p>Demikian Surat Keterangan Usaha ini dibuat untuk dipergunakan sebagaimana mestinya.</p>
           <br/><br/>
-          <div style="float: right; text-align: center; width: 200px;">
+          <div style="float: right; text-align: center; width: 220px;">
             <p>Jombe, {{tanggal_surat}}</p>
             <p>Kepala Desa Jombe</p>
             <br/><br/><br/>
-            <p style="font-weight: bold; text-decoration: underline;">( KEPALA DESA JOMBE )</p>
+            <p style="font-weight: bold; text-decoration: underline;">JUSMAEDY, S.Pd</p>
           </div>
         </div>
       `,
@@ -178,14 +178,14 @@ async function main() {
     create: {
       id: 'default',
       name: 'Desa Jombe',
-      district: 'Kecamatan Jombang',
-      regency: 'Kabupaten Jombang',
-      province: 'Jawa Timur',
+      district: 'Kecamatan Turatea',
+      regency: 'Kabupaten Jeneponto',
+      province: 'Sulawesi Selatan',
       vision: 'Terwujudnya Desa Jombe yang Mandiri, Sejahtera, Transparan, dan Berkelanjutan berbasis Pelayanan Digital.',
-      mission: '1. Meningkatkan kualitas pelayanan publik secara transparan & cepat.\n2. Mengembangkan sarana infrastruktur desa yang merata.\n3. Memajukan ekonomi masyarakat melalui UMKM digital desa.',
-      history: 'Desa Jombe merupakan salah satu desa bersejarah di Kecamatan Jombang yang terkenal dengan kekeluargaan dan gotong royong warga yang tinggi.',
-      address: 'Jl. Raya Desa Jombe No. 01, Jombang, Jawa Timur',
-      phone: '0321-888999',
+      mission: '1. Meningkatkan kualitas pelayanan publik secara transparan & cepat.\n2. Mengembangkan sarana infrastruktur desa yang merata.\n3. Memajukan ekonomi masyarakat melalui pertanian jagung dan UMKM digital desa.',
+      history: 'Desa Jombe merupakan salah satu desa di Kecamatan Turatea, Kabupaten Jeneponto yang terkenal dengan keramahan dan gotong royong warga yang tinggi.',
+      address: 'Jl. Poros Dusun Jombe Selatan, Desa Jombe, Kec. Turatea, Kab. Jeneponto',
+      phone: '081234567890',
       email: 'pelayanan@jombe.desa.id',
       whatsapp: '6281234567890',
     },

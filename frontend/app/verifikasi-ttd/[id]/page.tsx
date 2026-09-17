@@ -33,19 +33,19 @@ export default function VerifikasiTteDetailPage() {
           isValid: true,
           documentName: `08_SURAT_KETERANGAN_DESA_JOMBE_${idOrNumber}.pdf`,
           signTime: new Date().toISOString(),
-          signedBy: 'H. AHMAD FAUZI, S.Sos.',
+          signedBy: 'JUSMAEDY, S.Pd',
           signerTitle: 'Kepala Desa Jombe',
-          signerNip: '19780512 200501 1 004',
+          signerNip: '-',
           institution: 'Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto',
-          certificationAuthority: 'Balai Sertifikasi Elektronik (BSrE) - BSSN',
-          integrityStatus: 'VALID & TIDAK PERNAH DIMODIFIKASI',
-          certificateStatus: 'Sertifikat Elektronik Aktif & Terverifikasi',
+          certificationAuthority: 'Pemerintah Desa Jombe (Registrasi Arsip Mandiri)',
+          integrityStatus: 'TERCATAT RESMI DALAM BUKU AGENDA DESA JOMBE',
+          certificateStatus: 'Dokumen Fisik Sah Setelah Tanda Tangan Basah & Cap Stempel Resmi',
           applicationNumber: idOrNumber.startsWith('JMB-') ? idOrNumber : 'JMB-2026-00012',
           letterNumber: '503/470/812/DS-JMB/2026',
           serviceName: 'Surat Keterangan Usaha (SKU)',
-          citizenName: 'Asadul',
-          citizenNik: '7371131002040005',
-          detailValue: 'Usaha Toko Sembako dan Warung Kopi, Dusun Krajan RT 02 RW 01',
+          citizenName: 'Siti Rahmawati',
+          citizenNik: '3512345678900001',
+          detailValue: 'Usaha Toko Sembako Berkah, Dusun Jombe Selatan',
           pdfDownloadUrl: `${baseUrl}/operator/pdf/${idOrNumber}`,
         });
       } finally {
@@ -62,7 +62,7 @@ export default function VerifikasiTteDetailPage() {
         month: 'short',
         year: 'numeric',
       })
-    : '19/Agu/2026';
+    : '17/Sep/2026';
 
   const formattedTime = tteData?.signTime
     ? new Date(tteData.signTime).toLocaleTimeString('id-ID', {
@@ -70,42 +70,40 @@ export default function VerifikasiTteDetailPage() {
         minute: '2-digit',
         second: '2-digit',
       }) + ' WITA'
-    : '09:30:15 WITA';
+    : '10:30:00 WITA';
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col justify-between py-10 px-4 sm:px-6">
       <div className="max-w-2xl w-full mx-auto space-y-6">
-        {/* TTE Brand Header (Exact BSrE style) */}
+        {/* Brand Header */}
         <div className="flex flex-col items-start space-y-1">
-          <div className="flex items-center gap-2">
-            <div className="flex items-center">
-              <span className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 bg-clip-text text-transparent">
-                tte
-              </span>
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-emerald-800 text-white flex items-center justify-center font-black text-lg shadow-md">
+              <ShieldCheck className="w-6 h-6 text-emerald-300" />
             </div>
-            <div className="border-l border-slate-300 pl-2">
-              <span className="text-[10px] font-extrabold text-slate-800 tracking-wider uppercase block leading-tight">
-                TANDA TANGAN ELEKTRONIK
+            <div className="border-l border-slate-300 pl-3">
+              <span className="text-xs font-black text-slate-900 tracking-wider uppercase block leading-tight">
+                VALIDASI SURAT RESMI
               </span>
-              <span className="text-[9px] text-slate-500 font-medium block">
-                Pemerintah Kabupaten Jeneponto
+              <span className="text-[10px] text-slate-500 font-medium block">
+                Pemerintah Desa Jombe, Kec. Turatea, Kab. Jeneponto
               </span>
             </div>
           </div>
           <p className="text-[11px] text-slate-500 pt-1 font-medium">
-            Badan Pemeriksa & Balai Sertifikasi Elektronik (BSrE)
+            Sistem Pengecekan Keabsahan Registrasi Surat & Arsip Desa Jombe
           </p>
         </div>
 
         {/* Main Title */}
-        <h1 className="text-2xl sm:text-3xl font-normal text-slate-800 tracking-tight">
-          Informasi Tandatangan
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 tracking-tight">
+          Informasi Keabsahan Dokumen
         </h1>
 
         {loading ? (
           <div className="bg-white p-10 rounded-2xl border border-slate-200 text-center text-slate-500 text-sm space-y-3">
             <div className="w-8 h-8 border-3 border-emerald-700 border-t-transparent rounded-full animate-spin mx-auto" />
-            <p>Memverifikasi tanda tangan elektronik dari server sertifikasi...</p>
+            <p>Memverifikasi data registrasi surat dari database arsip desa...</p>
           </div>
         ) : error ? (
           <div className="bg-rose-50 p-6 rounded-2xl border border-rose-200 text-rose-800 text-sm space-y-2">
@@ -119,70 +117,69 @@ export default function VerifikasiTteDetailPage() {
               <ShieldCheck className="w-6 h-6 text-emerald-700 shrink-0 mt-0.5" />
               <div className="space-y-0.5 text-xs text-emerald-950">
                 <span className="font-bold block text-emerald-900">
-                  Tanda Tangan Elektronik Valid & Tersertifikasi Sah (BSrE)
+                  Surat Resmi Terdaftar dalam Buku Agenda Desa Jombe
                 </span>
                 <p className="text-[11px] text-emerald-800 leading-relaxed font-sans">
-                  Dokumen ini telah ditandatangani secara digital oleh pejabat yang berwenang menggunakan sertifikat elektronik resmi dan memiliki kekuatan hukum yang sah menurut UU ITE No. 11 Tahun 2008 & PP No. 71 Tahun 2019.
+                  Nomor registrasi dokumen ini terdata secara sah pada sistem Pemerintah Desa Jombe. Dokumen cetak fisik berlaku sah setelah ditandatangani basah oleh Kepala Desa Jombe (<strong>JUSMAEDY, S.Pd</strong>) serta dibubuhi stempel resmi kantor desa.
                 </p>
               </div>
             </div>
 
-            {/* Structured Table Info (Match User's Screenshot) */}
+            {/* Structured Table Info */}
             <div className="bg-white rounded-2xl border border-slate-200/80 shadow-xs divide-y divide-slate-100 overflow-hidden text-xs">
               {/* Row 1: Dokumen */}
               <div className="p-4 sm:p-5 flex items-start justify-between gap-4">
-                <div className="w-24 shrink-0 text-slate-400 font-medium flex items-center gap-2">
+                <div className="w-28 shrink-0 text-slate-400 font-medium flex items-center gap-2">
                   <span className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[9px] text-slate-400">📄</span>
-                  Dokumen
+                  Nama Dokumen
                 </div>
                 <div className="flex-1 font-mono text-slate-800 font-bold break-all text-right sm:text-left">
                   {tteData?.documentName || '08_SKET_DESA_JOMBE.pdf'}
                 </div>
               </div>
 
-              {/* Row 2: Waktu */}
+              {/* Row 2: Waktu Registrasi */}
               <div className="p-4 sm:p-5 flex items-start justify-between gap-4">
-                <div className="w-24 shrink-0 text-slate-400 font-medium flex items-center gap-2">
+                <div className="w-28 shrink-0 text-slate-400 font-medium flex items-center gap-2">
                   <span className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[9px] text-slate-400">🕒</span>
-                  Waktu
+                  Tanggal Terbit
                 </div>
                 <div className="flex-1 font-mono text-slate-800 font-medium text-right sm:text-left">
                   {formattedDate} {formattedTime}
                 </div>
               </div>
 
-              {/* Row 3: Oleh */}
+              {/* Row 3: Pejabat */}
               <div className="p-4 sm:p-5 flex items-start justify-between gap-4">
-                <div className="w-24 shrink-0 text-slate-400 font-medium flex items-center gap-2">
+                <div className="w-28 shrink-0 text-slate-400 font-medium flex items-center gap-2">
                   <span className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[9px] text-slate-400">👤</span>
-                  Oleh
+                  Pejabat Desa
                 </div>
                 <div className="flex-1 text-slate-900 text-right sm:text-left space-y-0.5">
-                  <span className="font-extrabold text-slate-950 block">{tteData?.signedBy || 'H. AHMAD FAUZI, S.Sos.'}</span>
+                  <span className="font-extrabold text-slate-950 block">{tteData?.signedBy || 'JUSMAEDY, S.Pd'}</span>
                   <span className="text-[11px] text-slate-600 block">{tteData?.signerTitle || 'Kepala Desa Jombe'}</span>
-                  <span className="text-[10px] font-mono text-slate-500 block">NIP. {tteData?.signerNip || '19780512 200501 1 004'}</span>
                 </div>
               </div>
 
               {/* Row 4: Instansi */}
               <div className="p-4 sm:p-5 flex items-start justify-between gap-4">
-                <div className="w-24 shrink-0 text-slate-400 font-medium flex items-center gap-2">
+                <div className="w-28 shrink-0 text-slate-400 font-medium flex items-center gap-2">
                   <span className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[9px] text-slate-400">🏛️</span>
                   Instansi
                 </div>
                 <div className="flex-1 text-slate-800 font-medium text-right sm:text-left">
-                  {tteData?.institution || 'Pemerintah Desa Jombe, Kabupaten Jombang'}
+                  {tteData?.institution || 'Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto'}
                 </div>
               </div>
 
-              {/* Row 5: Integritas Dokumen */}
+              {/* Row 5: Keabsahan Dokumen Fisik */}
               <div className="p-4 sm:p-5 flex items-start justify-between gap-4 bg-slate-50/50">
-                <div className="w-24 shrink-0 text-slate-400 font-medium flex items-center gap-2">
-                  <span className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[9px] text-slate-400">🔐</span>
-                  Integritas
+                <div className="w-28 shrink-0 text-slate-400 font-medium flex items-center gap-2">
+                  <span className="w-4 h-4 rounded border border-slate-300 flex items-center justify-center text-[9px] text-slate-400">✍️</span>
+                  Keabsahan
                 </div>
                 <div className="flex-1 text-emerald-800 font-bold text-right sm:text-left">
-                  ✓ {tteData?.integrityStatus || 'SHA-256 Valid - Dokumen Asli & Belum Pernah Dimodifikasi'}
+                  ✓ {tteData?.certificateStatus || 'Sah dengan Tanda Tangan Basah & Cap Stempel Resmi Kantor Desa'}
                 </div>
               </div>
             </div>
@@ -225,7 +222,7 @@ export default function VerifikasiTteDetailPage() {
                 rel="noreferrer"
                 className="w-full sm:w-auto px-6 py-3 bg-emerald-800 hover:bg-emerald-900 text-white font-bold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-colors"
               >
-                <Download className="w-4 h-4" /> Unduh Salinan Berkas Asli (PDF)
+                <Download className="w-4 h-4" /> Unduh Salinan Surat Resmi (PDF)
               </a>
 
               <Link
@@ -239,11 +236,11 @@ export default function VerifikasiTteDetailPage() {
         )}
       </div>
 
-      {/* Footer (Exact BSrE style) */}
+      {/* Footer */}
       <div className="max-w-2xl w-full mx-auto mt-12 pt-6 border-t border-slate-200 flex flex-col sm:flex-row justify-between items-center gap-2 text-[11px] text-slate-500">
         <div className="flex items-center gap-3">
-          <span className="font-extrabold text-slate-700 tracking-tight">tte</span>
-          <span>Kontak Kami</span>
+          <span className="font-extrabold text-slate-800 tracking-tight">Pemerintah Desa Jombe</span>
+          <span>Kec. Turatea, Kab. Jeneponto</span>
         </div>
         <div>
           (c) Pemerintah Desa Jombe 2026

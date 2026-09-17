@@ -4,7 +4,7 @@ color 0A
 
 echo ================================================================
 echo    INSTALASI & SETUP AWAL SISTEM JOMBE DIGITAL
-echo    Pemerintah Desa Jombe, Kec. Jombang, Kab. Jombang
+echo    Pemerintah Desa Jombe, Kec. Turatea, Kab. Jeneponto
 echo ================================================================
 echo.
 echo [1/3] Memeriksa Instalasi Dependensi Backend...

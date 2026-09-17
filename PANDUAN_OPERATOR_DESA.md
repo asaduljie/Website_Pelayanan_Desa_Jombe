@@ -1,38 +1,34 @@
 # BUKU PANDUAN PENGGUNAAN SISTEM "JOMBE DIGITAL"
 **Pelayanan Administrasi Desa Jombe dalam Genggaman**
-*Program Kerja Pengabdian Mahasiswa KKN - Pemerintah Desa Jombe, Kec. Jombang*
+*Program Kerja Pengabdian Mahasiswa KKN - Pemerintah Desa Jombe, Kec. Turatea, Kab. Jeneponto*
 
 ---
 
 ## 🔑 1. Akun Masuk Petugas Operator Desa
-* **Alamat Web:** `http://localhost:3000/login`
-* **Email Operator:** `operator@jombe.desa.id`
-* **Kata Sandi:** `operator123`
-* **Peran:** Petugas Operator Layanan Kantor Desa
+* **Alamat Web:** `https://www.lenteradesajombe.biz.id/login` (atau `http://localhost:3000/login`)
+* **NIK Operator:** `3512345678900009`
+* **Peran:** Petugas Operator Layanan Kantor Desa Jombe
 
 ---
 
-## 🚀 2. Cara Menyalakan Sistem Setiap Hari
+## 🚀 2. Cara Menyalakan Sistem di Komputer Kantor Desa
 1. Nyalakan Komputer Kantor Desa.
 2. Klik 2x pada file pintasan di Desktop: **`JALANKAN_SISTEM.bat`**.
 3. Sistem akan otomatis menyalakan server dan membuka layar kerja Operator di browser web.
 
 ---
 
-## 📝 3. Alur Kerja Pemeriksaan Permohonan Surat
-1. **Melihat Permohonan Baru:**
-   * Di tabel utama, permohonan yang masuk dari WhatsApp/Web warga berstatus **`PENDING`**.
-   * Klik tombol hijau **`Periksa Permohonan & Foto`**.
-2. **Memeriksa Keabsahan Dokumen & Foto (Tab 1):**
-   * Periksa rincian data NIK, Nama, dan Keperluan Surat.
-   * Klik foto e-KTP atau foto tempat usaha warga untuk **memperbesar (*Lightbox Zoom*)** dan mencocokkan keaslian data.
-3. **Penerbitan Surat Balasan Resmi (Tab 2):**
-   * Klik **Tab 2 ("Surat Balasan Keterangan Resmi")**.
-   * Periksa draf surat balasan (SKU/Domisili/SKTM) yang telah otomatis dibuat oleh sistem.
-   * (Opsional) Klik tombol **`Edit Surat`** jika ingin menambahkan kalimat khusus atau mengubah nomor surat manual.
-4. **Menyetujui & Mengirimkan ke WhatsApp Warga:**
-   * Klik tombol **`[ ✓ IYA (Setujui & Terbitkan Surat Balasan SKU ke WhatsApp Warga) ]`**.
-   * Sistem secara otomatis mengunci surat, mencetak format PDF resmi dengan kop desa, dan **mengirimkan notifikasi serta berkas PDF surat langsung ke nomor WhatsApp warga yang bersangkutan**.
+## 📝 3. Alur Kerja Pemeriksaan Permohonan Surat & Cetak Dokumen
+1. **Melihat Permohonan Masuk:**
+   * Di tabel utama, permohonan yang diajukan warga berstatus **`PENDING`** (Menunggu Verifikasi).
+   * Klik tombol **`Periksa Dokumen`**.
+2. **Memeriksa Keabsahan Dokumen & Lampiran:**
+   * Periksa rincian data NIK, Nama, Keperluan Surat, serta lampiran foto KTP/KK pemohon.
+   * Cocokkan keabsahan data kependudukan warga.
+3. **Penerbitan Surat Resmi (Cetak & Tanda Tangan Basah):**
+   * Klik **`Setujui & Generate Surat PDF`**.
+   * Surat PDF resmi dengan format standar berkop Pemkab Jeneponto siap diunduh dan dicetak (*print*).
+   * **Tanda Tangan & Cap Basah**: Lembar hasil cetakan fisik dibubuhi tanda tangan basah oleh Kepala Desa Jombe (**JUSMAEDY, S.Pd**) dan stempel cap basah resmi Kantor Desa Jombe sebelum diserahkan kepada warga pemohon.
 
 ---
 

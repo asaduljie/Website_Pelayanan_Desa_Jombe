@@ -50,7 +50,7 @@ export const handleAiQuery = async (req: Request, res: Response) => {
       answer = `Anda dapat memantau perkembangan permohonan surat secara langsung melalui menu Cek Status Permohonan di Halaman Utama dengan memasukkan Nomor Registrasi (contoh: JMB-2026-00012) atau melalui menu Permohonan Saya di Dashboard.`;
       actionButton = { label: 'Lihat Status Permohonan', url: '/dashboard' };
     } else if (lower.includes('kantor') || lower.includes('jam') || lower.includes('buka') || lower.includes('lokasi') || lower.includes('alamat')) {
-      answer = `Kantor Pemerintah Desa Jombe beralamat di Jalan Raya Desa Jombe No. 01, Kecamatan Jombang, Kabupaten Jombang.\n\nJam Pelayanan Kantor:\nSenin s.d. Jumat pukul 08.00 - 15.00 WIB.\nPelayanan digital online melalui website dan WhatsApp beroperasi 24 jam.`;
+      answer = `Kantor Pemerintah Desa Jombe beralamat di Jalan Poros Dusun Jombe Selatan, Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto, Sulawesi Selatan.\n\nJam Pelayanan Kantor Desa:\nSenin s.d. Jumat pukul 08.00 - 15.00 WITA.\nPelayanan mandiri online melalui website Lentera Desa beroperasi 24 jam.`;
     } else {
       answer = `Selamat datang di Pusat Informasi Pelayanan Pemerintah Desa Jombe. Layanan ini siap membantu Anda memberikan informasi mengenai persyaratan surat, tata cara pengajuan berkas, dan penelusuran status permohonan.\n\nContoh informasi yang dapat Anda tanyakan:\n- Apa persyaratan membuat Surat Keterangan Usaha (SKU)?\n- Bagaimana cara mengajukan Surat Domisili?\n- Berapa lama proses pembuatan SKTM?\n- Di mana alamat kantor desa dan jam pelayanannya?`;
     }

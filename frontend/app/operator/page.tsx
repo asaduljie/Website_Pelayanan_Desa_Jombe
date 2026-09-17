@@ -127,11 +127,26 @@ export default function OperatorDashboardPage() {
   useEffect(() => {
     const token = localStorage.getItem('jombe_token');
     if (!token) return;
-    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:5000/api').replace(/\/$/, '');
-    const stream = new EventSource(`${baseUrl}/operator/events?access_token=${encodeURIComponent(token)}`);
-    const refresh = () => fetchDashboardData();
-    stream.addEventListener('application.changed', refresh);
-    return () => stream.close();
+    const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://lentera-desa-backend.vercel.app/api').replace(/\/$/, '');
+    let stream: EventSource | null = null;
+    try {
+      stream = new EventSource(`${baseUrl}/operator/events?access_token=${encodeURIComponent(token)}`);
+      const refresh = () => fetchDashboardData();
+      stream.addEventListener('application.changed', refresh);
+      stream.onerror = () => {
+        // Suppress serverless timeout logs, handled smoothly by periodic polling below
+      };
+    } catch (e) {}
+
+    // Polling berkala setiap 30 detik untuk memastikan data selalu sinkron
+    const pollInterval = setInterval(() => {
+      fetchDashboardData();
+    }, 30000);
+
+    return () => {
+      if (stream) stream.close();
+      clearInterval(pollInterval);
+    };
   }, [statusFilter, search]);
 
   const fetchDashboardData = async () => {
@@ -1191,7 +1206,7 @@ export default function OperatorDashboardPage() {
                       </div>
                       <div className="grid grid-cols-3">
                         <span className="text-slate-500 font-medium">Alamat Domisili</span>
-                        <span className="col-span-2 font-medium text-slate-800">: {selectedApp.user?.address || 'Desa Jombe, Kec. Jombang'}</span>
+                        <span className="col-span-2 font-medium text-slate-800">: {selectedApp.user?.address || 'Desa Jombe, Kec. Turatea, Kab. Jeneponto'}</span>
                       </div>
                       <div className="grid grid-cols-3 pt-1 border-t border-slate-100">
                         <span className="text-slate-500 font-medium">Rincian Permohonan</span>
@@ -1263,7 +1278,7 @@ export default function OperatorDashboardPage() {
                               <div className="flex justify-between items-start">
                                 <div>
                                   <span className="text-[7px] tracking-widest font-extrabold block uppercase text-sky-200">REPUBLIK INDONESIA</span>
-                                  <span className="text-[8px] font-extrabold block uppercase">PROVINSI JAWA TIMUR - KAB. JOMBANG</span>
+                                  <span className="text-[8px] font-extrabold block uppercase">PROVINSI SULAWESI SELATAN - KAB. JENEPONTO</span>
                                 </div>
                                 <span className="text-[8px] bg-sky-600/80 px-1.5 py-0.5 rounded font-mono font-bold">e-KTP</span>
                               </div>
@@ -1523,7 +1538,7 @@ export default function OperatorDashboardPage() {
                 <div className="w-full max-w-md bg-gradient-to-tr from-sky-800 via-sky-700 to-sky-900 text-white rounded-2xl p-6 shadow-2xl border-2 border-sky-400 space-y-4">
                   <div className="text-center border-b border-sky-400/40 pb-2">
                     <h4 className="text-[10px] tracking-widest font-extrabold uppercase text-sky-200">REPUBLIK INDONESIA</h4>
-                    <h3 className="text-xs font-extrabold uppercase">PROVINSI JAWA TIMUR - KABUPATEN JOMBANG</h3>
+                    <h3 className="text-xs font-extrabold uppercase">PROVINSI SULAWESI SELATAN - KABUPATEN JENEPONTO</h3>
                   </div>
 
                   <div className="flex items-start gap-4">
@@ -1535,9 +1550,9 @@ export default function OperatorDashboardPage() {
                     <div className="flex-1 text-[11px] space-y-1 font-sans">
                       <p className="font-mono font-bold text-yellow-300 text-xs">NIK : {selectedApp?.user?.nik || '3512345678900001'}</p>
                       <p><strong>Nama</strong> : {selectedApp?.user?.name || 'SITI RAHMAWATI'}</p>
-                      <p><strong>Tempat/Tgl Lahir</strong> : JOMBANG, 15-08-1992</p>
+                      <p><strong>Tempat/Tgl Lahir</strong> : JENEPONTO, 15-08-1992</p>
                       <p><strong>Jenis Kelamin</strong> : PEREMPUAN</p>
-                      <p><strong>Alamat</strong> : DUSUN KRAJAN RT 02 / RW 01</p>
+                      <p><strong>Alamat</strong> : DUSUN JOMBE SELATAN RT 02 / RW 01</p>
                       <p><strong>Agama</strong> : ISLAM</p>
                       <p><strong>Status Perkawinan</strong> : KAWIN</p>
                       <p><strong>Pekerjaan</strong> : WIRASWASTA</p>
@@ -1546,7 +1561,7 @@ export default function OperatorDashboardPage() {
                   </div>
 
                   <div className="text-right text-[9px] text-sky-200 pt-2 border-t border-sky-400/40">
-                    KABUPATEN JOMBANG, BERLAKU SEUMUR HIDUP
+                    KABUPATEN JENEPONTO, BERLAKU SEUMUR HIDUP
                   </div>
                 </div>
               ) : previewDoc.type === 'KK' ? (
@@ -1558,7 +1573,7 @@ export default function OperatorDashboardPage() {
                   <div className="text-[11px] space-y-1.5">
                     <p><strong>Nama Kepala Keluarga:</strong> {selectedApp?.user?.name || 'SITI RAHMAWATI'}</p>
                     <p><strong>Alamat:</strong> {selectedApp?.user?.address || 'Desa Jombe RT 02 RW 01'}</p>
-                    <p><strong>Kecamatan:</strong> Jombang, Kab. Jombang</p>
+                    <p><strong>Kecamatan:</strong> Turatea, Kab. Jeneponto</p>
                   </div>
                   <div className="text-right text-[9px] text-slate-400 pt-2 border-t border-slate-700">
                     Diterbitkan oleh Dinas Kependudukan & Catatan Sipil

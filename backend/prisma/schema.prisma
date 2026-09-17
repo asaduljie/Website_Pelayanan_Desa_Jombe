@@ -186,7 +186,7 @@ model LetterTemplate {
   service       Service           @relation(fields: [serviceId], references: [id])
   title         String
   templateHtml  String            
-  headerText    String?           @default("PEMERINTAH KABUPATEN JOMBANG\nKECAMATAN JOMBANG\nPEMERINTAH DESA JOMBE")
+  headerText    String?           @default("PEMERINTAH KABUPATEN JENEPONTO\nKECAMATAN TURATEA\nPEMERINTAH DESA JOMBE")
   codePrefix    String            @default("470")
   createdAt     DateTime          @default(now())
   updatedAt     DateTime          @updatedAt
@@ -314,9 +314,9 @@ model Gallery {
 model VillageProfile {
   id          String   @id @default("default")
   name        String   @default("Desa Jombe")
-  district    String   @default("Kecamatan Jombang")
-  regency     String   @default("Kabupaten Jombang")
-  province    String   @default("Jawa Timur")
+  district    String   @default("Kecamatan Turatea")
+  regency     String   @default("Kabupaten Jeneponto")
+  province    String   @default("Sulawesi Selatan")
   vision      String
   mission     String
   history     String
