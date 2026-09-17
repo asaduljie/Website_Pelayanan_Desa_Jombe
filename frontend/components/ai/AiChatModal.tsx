@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import Image from 'next/image';
 import {
   MessageSquare,
   X,
@@ -16,8 +17,11 @@ import {
   CheckCircle2,
   Clock,
   ShieldCheck,
+  PlayCircle,
+  Video,
 } from 'lucide-react';
 import api from '@/lib/api';
+import InteractiveTutorialModal from './InteractiveTutorialModal';
 
 interface ActionButton {
   label: string;
@@ -29,6 +33,8 @@ interface Message {
   sender: 'user' | 'bot';
   text: string;
   actionButton?: ActionButton;
+  tutorialId?: string;
+  tutorialLabel?: string;
   timestamp: string;
 }
 
@@ -38,6 +44,8 @@ interface TopicKnowledge {
   keywords: string[];
   reply: string;
   actionButton?: ActionButton;
+  tutorialId?: string;
+  tutorialLabel?: string;
 }
 
 // Comprehensive offline-resilient Knowledge Base for ALL features of Lentera Desa Jombe
@@ -49,8 +57,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'sku', 'usaha', 'dagang', 'warung', 'toko', 'kios', 'jualan', 'kur',
       'modal', 'umkm', 'bisnis', 'izin usaha', 'kredit usaha', 'bank', 'pedagang'
     ],
-    reply: `Informasi Surat Keterangan Usaha (SKU):\n\nSurat Keterangan Usaha (SKU) digunakan sebagai bukti legalitas usaha di Desa Jombe untuk pengajuan modal/KUR di bank, pendaftaran izin usaha, maupun pendataan bantuan UMKM.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon asli\n• Foto Kartu Keluarga (KK)\n• Foto Tempat / Kegiatan Usaha di Desa Jombe\n\n⏱️ Estimasi Proses: 1 Hari Kerja.\n💰 Biaya: 100% GRATIS (Rp 0,-).\n\nSetelah diverifikasi operator, berkas dicetak fisik untuk dibubuhi Tanda Tangan Basah Kepala Desa (JUSMAEDY, S.Pd) & cap stempel kantor desa.`,
+    reply: `Informasi Surat Keterangan Usaha (SKU):\n\nSurat Keterangan Usaha (SKU) digunakan sebagai bukti legalitas usaha di Desa Jombe untuk pengajuan permodalan/KUR bank, izin usaha, maupun pendataan bantuan UMKM.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon asli\n• Foto Kartu Keluarga (KK)\n• Foto Tempat / Aktivitas Usaha di wilayah Desa Jombe\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol "Ajukan SKU Sekarang" di bawah ini.\n2️⃣ Masukkan 16 Digit NIK e-KTP dan data usaha Anda.\n3️⃣ Unggah foto KTP, KK, dan foto tempat usaha.\n4️⃣ Tekan tombol hijau "Kirim Permohonan" dan simpan No. Registrasi (JMB-XXXXX).\n5️⃣ Berkas diverifikasi operator, dicetak fisik, lalu dibubuhi tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd) & cap stempel kantor desa.\n6️⃣ Ambil surat fisik resmi di Kantor Desa Jombe (1 Hari Kerja, 100% GRATIS).\n\n💡 Ingin melihat simulasi visual? Tekan tombol "Tonton Video Tutorial" di bawah untuk panduan langsung oleh Maskot Daeng Jombe!`,
     actionButton: { label: 'Ajukan SKU Sekarang', url: '/layanan/surat-keterangan-usaha' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial SKU',
   },
   {
     id: 'sktm',
@@ -59,8 +69,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'sktm', 'tidak mampu', 'kurang mampu', 'miskin', 'beasiswa', 'kip', 'kuliah',
       'sekolah', 'bantuan', 'bansos', 'keringanan', 'rumah sakit', 'bpjs', 'kis', 'pengobatan', 'spp'
     ],
-    reply: `Informasi Surat Keterangan Kurang Mampu (SKTM):\n\nSKTM diterbitkan bagi warga Desa Jombe yang membutuhkan surat rekomendasi keringanan biaya pendidikan (KIP Kuliah/Sekolah), keringanan rumah sakit, maupun pengusulan program bantuan sosial (bansos).\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon / Kepala Keluarga\n• Foto Kartu Keluarga (KK)\n• Keterangan tujuan/keperluan pemohon\n\n⏱️ Estimasi Proses: 1 Hari Kerja.\n💰 Biaya: 100% GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Kurang Mampu (SKTM):\n\nSKTM diterbitkan bagi warga Desa Jombe yang membutuhkan rekomendasi beasiswa pendidikan (KIP Kuliah/Sekolah), keringanan rumah sakit, maupun bansos.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon / Kepala Keluarga\n• Foto Kartu Keluarga (KK)\n• Keterangan tujuan/keperluan pemohon\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol "Ajukan SKTM Sekarang".\n2️⃣ Masukkan 16 Digit NIK pemohon.\n3️⃣ Unggah foto e-KTP dan Kartu Keluarga.\n4️⃣ Tekan "Kirim Permohonan" dan catat No. Registrasi Anda.\n5️⃣ Surat resmi dicetak fisik dan ditandatangani basah oleh Kades JUSMAEDY, S.Pd + cap stempel kantor desa (1 Hari Kerja, GRATIS).\n6️⃣ Berkas fisik resmi siap diambil di kantor desa.`,
     actionButton: { label: 'Ajukan SKTM Sekarang', url: '/layanan/surat-keterangan-tidak-mampu' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'domisili',
@@ -69,8 +81,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'domisili', 'tempat tinggal', 'tinggal', 'alamat', 'pindah', 'surat domisili',
       'keterangan domisili', 'kost', 'kontrak', 'menetap', 'warga baru', 'rt', 'rw'
     ],
-    reply: `Informasi Surat Keterangan Domisili:\n\nSurat Keterangan Domisili menerangkan status tempat tinggal sah seorang warga di salah satu dusun di wilayah Desa Jombe, Kecamatan Turatea.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Alamat lengkap tempat tinggal di Desa Jombe\n\n⏱️ Estimasi Proses: 1 Hari Kerja.\n💰 Biaya: 100% GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Domisili:\n\nSurat Keterangan Domisili menerangkan status tempat tinggal sah di salah satu dusun di wilayah Desa Jombe, Kecamatan Turatea.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Alamat lengkap tempat tinggal di Desa Jombe\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol permohonan surat domisili.\n2️⃣ Masukkan 16 Digit NIK dan dusun tempat tinggal.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan".\n5️⃣ Ambil surat bertanda tangan basah Kades JUSMAEDY, S.Pd di kantor desa (1 Hari Kerja, GRATIS).`,
     actionButton: { label: 'Ajukan Surat Domisili', url: '/layanan/surat-keterangan-domisili' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'skkb',
@@ -79,8 +93,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'skkb', 'skck', 'kelakuan baik', 'polisi', 'polsek', 'polres', 'lamar kerja',
       'pekerjaan', 'bumn', 'cpns', 'swasta', 'pengantar skck', 'kriminal', 'pidana'
     ],
-    reply: `Informasi Surat Keterangan Kelakuan Baik (SKKB / SKCK):\n\nSKKB merupakan surat pengantar resmi desa untuk menerangkan bahwa pemohon bertingkah laku baik dan tidak tersangkut masalah hukum, digunakan untuk pengurusan SKCK di Polsek/Polres maupun syarat melamar pekerjaan.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Keterangan instansi tujuan pengajuan\n\n⏱️ Estimasi Proses: 1 Hari Kerja.\n💰 Biaya: 100% GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Kelakuan Baik (SKKB / SKCK):\n\nSKKB merupakan surat pengantar resmi desa untuk pengurusan SKCK di kepolisian maupun kelengkapan melamar pekerjaan.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Keterangan instansi tujuan pengajuan\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Buka formulir permohonan SKKB.\n2️⃣ Isi NIK dan instansi yang dituju.\n3️⃣ Unggah foto KTP & KK.\n4️⃣ Tekan "Kirim Permohonan" (Proses 1 Hari Kerja, 100% GRATIS).\n5️⃣ Berkas fisik resmi ber-TTD basah Kades JUSMAEDY, S.Pd dan berstempel siap Anda ambil.`,
     actionButton: { label: 'Ajukan SKKB / SKCK', url: '/layanan/surat-keterangan-kelakuan-baik' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'belum_menikah',
@@ -89,8 +105,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'belum menikah', 'belum kawin', 'lajang', 'single', 'bujang', 'gadis',
       'nikah', 'kua', 'pernikahan', 'tni', 'polri', 'ikatan dinas', 'kawin'
     ],
-    reply: `Informasi Surat Keterangan Belum Menikah:\n\nSurat ini menyatakan secara sah bahwa pemohon berstatus lajang dan belum pernah menikah, biasa digunakan untuk kelengkapan administrasi KUA, seleksi kedinasan (TNI/Polri), maupun persyaratan pekerjaan.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Pernyataan status belum menikah\n\n⏱️ Estimasi Proses: 1 Hari Kerja.\n💰 Biaya: 100% GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Belum Menikah:\n\nSurat ini menyatakan status belum pernah menikah, digunakan untuk kelengkapan berkas KUA, pendaftaran TNI/Polri, ikatan dinas, maupun kerja.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik ajukan surat belum menikah.\n2️⃣ Masukkan NIK e-KTP Anda.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan" dan tunggu proses operator (1 Hari Kerja, GRATIS).`,
     actionButton: { label: 'Ajukan Ket. Belum Menikah', url: '/layanan/surat-keterangan-belum-menikah' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'wali',
@@ -99,8 +117,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'wali', 'surat wali', 'perwalian', 'anak', 'sekolah', 'kuliah',
       'wali nikah', 'orang tua wali', 'asuh', 'wali murid', 'ijazah'
     ],
-    reply: `Informasi Surat Keterangan Wali:\n\nSurat Keterangan Wali menerangkan hubungan perwalian yang sah antara wali dengan anak untuk urusan pendaftaran sekolah/kampus, wali nikah, maupun keperluan administratif lainnya.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Wali Pemohon\n• Foto Kartu Keluarga (KK)\n• Akta Kelahiran atau identitas anak yang diwali\n\n⏱️ Estimasi Proses: 1 Hari Kerja.\n💰 Biaya: 100% GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Wali:\n\nSurat ini menerangkan hubungan perwalian yang sah untuk pendaftaran sekolah/kuliah, wali nikah, atau administrasi hukum.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Wali Pemohon\n• Foto Kartu Keluarga (KK)\n• Akta Kelahiran atau identitas anak yang diwali\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik ajukan surat wali.\n2️⃣ Isi NIK wali dan identitas anak.\n3️⃣ Unggah foto KTP wali & KK.\n4️⃣ Tekan "Kirim Permohonan" dan ambil berkas ber-TTD basah di kantor desa.`,
     actionButton: { label: 'Ajukan Surat Wali', url: '/layanan/surat-keterangan-wali' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'kendaraan',
@@ -109,8 +129,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'kendaraan', 'motor', 'mobil', 'stnk', 'bpkb', 'samsat', 'pajak',
       'jual beli motor', 'hilang stnk', 'kepemilikan kendaraan', 'sepeda motor', 'plat'
     ],
-    reply: `Informasi Surat Keterangan Kepemilikan Kendaraan Bermotor:\n\nSurat ini menerangkan kepemilikan sah atas kendaraan bermotor (roda 2 / roda 4) di Desa Jombe untuk keperluan Samsat, pengurusan pajak, maupun bukti kepemilikan saat kehilangan dokumen.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemilik Kendaraan\n• Foto Kartu Keluarga (KK)\n• Data Nomor Polisi (Plat), Nomor Rangka, dan Nomor Mesin\n\n⏱️ Estimasi Proses: 1 Hari Kerja.\n💰 Biaya: 100% GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Kepemilikan Kendaraan Bermotor:\n\nSurat ini menerangkan kepemilikan sah atas kendaraan bermotor (roda 2 / roda 4) di Desa Jombe untuk keperluan Samsat, pajak, atau bukti kehilangan STNK/BPKB.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemilik Kendaraan\n• Foto Kartu Keluarga (KK)\n• Data Nomor Polisi (Plat), Nomor Rangka, dan Nomor Mesin\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik ajukan surat kendaraan.\n2️⃣ Masukkan NIK dan nomor plat kendaraan.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan" (Proses 1 Hari Kerja, 100% GRATIS).`,
     actionButton: { label: 'Ajukan Ket. Kendaraan', url: '/layanan/surat-keterangan-kepemilikan-kendaraan-bermotor' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'kematian',
@@ -119,8 +141,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'kematian', 'meninggal', 'wafat', 'almarhum', 'almarhumah', 'meninggal dunia',
       'akta kematian', 'waris', 'taspen', 'pensiun', 'ahli waris', 'kubur'
     ],
-    reply: `Informasi Surat Keterangan Kematian:\n\nSurat Keterangan Kematian diterbitkan sebagai bukti sah meninggalnya warga Desa Jombe untuk penerbitan Akta Kematian di Disdukcapil, pengurusan hak waris, penutupan rekening, maupun klaim asuransi/pensiun.\n\n📋 Persyaratan Berkas:\n• Foto KTP Almarhum / Almarhumah\n• Foto e-KTP Pelapor (Keluarga / Ahli Waris)\n• Kartu Keluarga (KK)\n• Rincian waktu & tempat meninggal dunia\n\n⏱️ Estimasi Proses: 1 Hari Kerja.\n💰 Biaya: 100% GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Kematian:\n\nSurat Keterangan Kematian diterbitkan sebagai bukti sah wafatnya warga Desa Jombe untuk Akta Kematian Disdukcapil, pengurusan hak waris, maupun pensiun/asuransi.\n\n📋 Persyaratan Berkas:\n• Foto KTP Almarhum / Almarhumah\n• Foto e-KTP Pelapor (Keluarga / Ahli Waris)\n• Kartu Keluarga (KK)\n• Rincian waktu & tempat meninggal dunia\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik ajukan surat kematian.\n2️⃣ Isi data almarhum dan pelapor.\n3️⃣ Unggah berkas identitas.\n4️⃣ Tekan "Kirim Permohonan" dan ambil surat ber-TTD basah Kades di kantor desa.`,
     actionButton: { label: 'Ajukan Surat Kematian', url: '/layanan/surat-keterangan-kematian' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'umum',
@@ -129,8 +153,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'umum', 'surat umum', 'lainnya', 'rekomendasi', 'keterangan lain',
       'penghasilan', 'beda nama', 'kehilangan', 'keterangan dinas', 'pengantar'
     ],
-    reply: `Informasi Surat Keterangan Umum / Lainnya:\n\nSurat Keterangan Umum melayani kebutuhan administrasi desa yang tidak termasuk dalam 8 jenis surat khusus, seperti surat keterangan beda nama di berkas, surat keterangan penghasilan orang tua, atau surat pengantar dinas.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Rincian keperluan surat yang diajukan\n\n⏱️ Estimasi Proses: 1 Hari Kerja.\n💰 Biaya: 100% GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Umum / Lainnya:\n\nSurat Keterangan Umum melayani kebutuhan administrasi dinas yang tidak termasuk dalam 8 jenis surat khusus, seperti beda nama, penghasilan orang tua, atau pengantar dinas.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Rincian keperluan surat yang diajukan\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Buka form surat umum.\n2️⃣ Isi NIK dan rincian keperluan surat.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan".`,
     actionButton: { label: 'Ajukan Surat Umum', url: '/layanan/surat-keterangan-umum' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'lacak',
@@ -139,8 +165,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'lacak', 'status', 'tracking', 'cek surat', 'sampai mana', 'nomor registrasi',
       'no reg', 'jmb', 'antrean', 'progress', 'progres', 'riwayat', 'pantau', 'cek'
     ],
-    reply: `🔍 Cara Melacak Permohonan Surat (/lacak):\n\nAnda dapat memantau proses surat secara transparan tanpa harus datang ke kantor desa:\n1. Masuk ke menu "Lacak Permohonan" di website.\n2. Masukkan Nomor Registrasi Surat Anda (contoh: JMB-2026-00001) ATAU masukkan 16 digit NIK Anda.\n3. Klik "Cari".\n\n📌 Tahapan Status Surat:\n• MENUNGGU VERIFIKASI: Berkas baru masuk antrean operator.\n• SEDANG DIPROSES: Berkas diverifikasi dan draf surat sedang disiapkan.\n• PERLU PERBAIKAN: Dokumen foto buram atau data perlu diperbaiki.\n• DISETUJUI / SELESAI: Surat resmi siap diambil di kantor desa.`,
+    reply: `🔍 Cara Melacak Permohonan Surat (/lacak):\n\nAnda dapat memantau proses surat secara transparan tanpa harus datang ke kantor desa:\n\n👣 Langkah-Langkah Melacak Surat:\n1️⃣ Klik tombol "Buka Menu Lacak Surat" di bawah atau buka menu navigasi Lacak.\n2️⃣ Masukkan Nomor Registrasi Surat Anda (contoh: JMB-2026-00001) ATAU masukkan 16 digit NIK Anda.\n3️⃣ Klik tombol biru "Cari Status".\n4️⃣ Pantau hasilnya:\n   • MENUNGGU VERIFIKASI: Berkas baru masuk antrean operator.\n   • SEDANG DIPROSES: Draf surat sedang dipersiapkan.\n   • PERLU PERBAIKAN: Foto buram atau ada data yang perlu diperbaiki.\n   • DISETUJUI / SELESAI: Surat resmi telah dicetak dan ditandatangani basah Kepala Desa Jombe (JUSMAEDY, S.Pd). Siap diambil di kantor desa!`,
     actionButton: { label: 'Buka Menu Lacak Surat', url: '/lacak' },
+    tutorialId: 'lacak',
+    tutorialLabel: '🎬 Tonton Video Tutorial Lacak Surat',
   },
   {
     id: 'alur_ttd',
@@ -149,8 +177,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'tanda tangan', 'ttd', 'basah', 'stempel', 'cap', 'cetak', 'print',
       'tte', 'legalitas', 'resmi', 'bagaimana alurnya', 'cara kerja', 'alur pengajuan', 'proses surat'
     ],
-    reply: `💡 Alur Penerbitan & Legalitas Surat Resmi Desa Jombe:\n\n1️⃣ Pengajuan Online: Warga mengisi formulir pengajuan di website Lentera Desa kapan saja 24 jam.\n2️⃣ Verifikasi Operator: Petugas operator memeriksa kelengkapan identitas KTP/KK pemohon.\n3️⃣ Penerbitan Draf PDF: Sistem menerbitkan dokumen resmi ber-nomor registrasi agenda desa.\n4️⃣ Cetak Fisik: Dokumen dicetak pada lembar kertas berkop resmi Pemkab Jeneponto.\n5️⃣ Tanda Tangan Basah & Cap Stempel: Lembar cetak ditandatangani basah oleh Kepala Desa Jombe (JUSMAEDY, S.Pd) serta dibubuhi cap stempel basah kantor desa.\n6️⃣ Pengambilan: Berkas fisik siap diserahkan kepada warga di kantor desa.`,
+    reply: `💡 Alur Penerbitan & Legalitas Surat Resmi Desa Jombe:\n\n1️⃣ Pengajuan Online: Warga mengisi formulir mandiri di website Lentera Desa kapan saja 24 jam.\n2️⃣ Verifikasi Operator: Petugas operator memeriksa kelengkapan identitas KTP/KK pemohon.\n3️⃣ Penerbitan Draf PDF: Sistem menerbitkan dokumen resmi ber-nomor registrasi agenda desa.\n4️⃣ Cetak Fisik: Dokumen dicetak pada lembar kertas berkop resmi Pemkab Jeneponto.\n5️⃣ Tanda Tangan Basah & Cap Stempel: Lembar cetak ditandatangani basah oleh Kepala Desa Jombe (JUSMAEDY, S.Pd) serta dibubuhi cap stempel basah kantor desa.\n6️⃣ Pengambilan: Berkas fisik siap diserahkan kepada warga di kantor desa.`,
     actionButton: { label: 'Lihat Semua Layanan Surat', url: '/layanan' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Alur Pengajuan',
   },
   {
     id: 'verifikasi',
@@ -159,8 +189,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'validasi', 'verifikasi', 'keaslian', 'asli', 'palsu', 'cek barcode',
       'scan qr', 'qr code', 'legalisir', 'buku agenda', 'arsip'
     ],
-    reply: `🛡️ Validasi & Verifikasi Surat Resmi Desa Jombe (/verifikasi-ttd):\n\nSetiap surat yang diterbitkan memiliki QR Code Registrasi Arsip Resmi.\n\nInstansi luar (seperti Bank, Kepolisian, Kampus, atau KUA) maupun warga dapat memindai QR Code tersebut untuk membuktikan keaslian berkas yang terdaftar sah dalam buku agenda kependudukan Pemerintah Desa Jombe, Kec. Turatea, Kab. Jeneponto.`,
+    reply: `🛡️ Validasi & Verifikasi Surat Resmi Desa Jombe (/verifikasi-ttd):\n\nSetiap surat yang diterbitkan memiliki QR Code Registrasi Arsip Resmi.\n\n👣 Langkah-Langkah Validasi:\n1️⃣ Buka menu Verifikasi Surat atau scan QR Code di surat cetak.\n2️⃣ Masukkan Nomor Registrasi surat (JMB-XXXXX).\n3️⃣ Sistem memeriksa keaslian berkas dalam buku agenda kependudukan Desa Jombe, Kec. Turatea, Kab. Jeneponto.\n4️⃣ Dokumen fisik sah berkekuatan hukum penuh setelah ditandatangani basah oleh Kepala Desa Jombe (JUSMAEDY, S.Pd) dan dicap stempel kantor desa.`,
     actionButton: { label: 'Buka Halaman Validasi', url: '/verifikasi-ttd' },
+    tutorialId: 'lacak',
+    tutorialLabel: '🎬 Tonton Video Tutorial Validasi',
   },
   {
     id: 'pengaduan',
@@ -169,8 +201,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'lapor', 'aduan', 'pengaduan', 'keluhan', 'aspirasi', 'jalan rusak', 'lampu jalan',
       'mati lampu', 'sampah', 'irigasi', 'saluran air', 'pupuk', 'pgd', 'tiket'
     ],
-    reply: `📢 Layanan Pengaduan & Aspirasi Warga (/pengaduan):\n\nPemerintah Desa Jombe memfasilitasi aspirasi warga untuk melaporkan permasalahan seperti:\n• Infrastruktur: Jalan berlubang, jembatan, lampu penerangan jalan.\n• Pertanian & Lingkungan: Saluran irigasi, bantuan pupuk, kebersihan dusun.\n• Pelayanan Desa: Bantuan sosial atau masukan pelayanan perangkat desa.\n\nLaporan akan mendapatkan Nomor Tiket Aduan (PGD-XXXXX) dan dipantau langsung oleh perangkat desa.`,
+    reply: `📢 Layanan Pengaduan & Aspirasi Warga (/pengaduan):\n\nPemerintah Desa Jombe memfasilitasi aspirasi warga untuk melaporkan permasalahan seperti jalan berlubang, lampu jalan mati, irigasi sawah, ketersediaan pupuk, dll.\n\n👣 Langkah-Langkah Mengirim Pengaduan:\n1️⃣ Buka menu "Pengaduan" di website atau klik tombol di bawah.\n2️⃣ Pilih kategori laporan (Infrastruktur / Pertanian / Pelayanan Desa).\n3️⃣ Tuliskan judul, uraian masalah, dan nama dusun lokasi kejadian.\n4️⃣ Unggah foto bukti dokumentasi kondisi lapangan.\n5️⃣ Tekan "Kirim Pengaduan" dan catat Nomor Tiket Anda (PGD-XXXXX) untuk memantau tindak lanjut aparat desa.`,
     actionButton: { label: 'Kirim Pengaduan Sekarang', url: '/pengaduan' },
+    tutorialId: 'pengaduan',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengaduan',
   },
   {
     id: 'profil_desa',
@@ -209,8 +243,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'akun', 'login', 'masuk', 'daftar', 'register', 'buat akun',
       'dashboard', 'nik', 'lupa password', 'kata sandi', 'ganti password'
     ],
-    reply: `👤 Panduan Login & Akun Warga:\n\nSistem Lentera Desa dirancang mudah digunakan oleh seluruh lapisan warga:\n• Cukup masukkan 16 digit NIK e-KTP Anda untuk Masuk atau Mendaftar.\n• Tidak perlu menghafal kata sandi/password yang rumit.\n• Di Dashboard Warga (/dashboard), Anda dapat memantau riwayat surat permohonan dan tiket pengaduan Anda.`,
+    reply: `👤 Panduan Login & Akun Warga:\n\nSistem Lentera Desa dirancang mudah digunakan tanpa password:\n\n👣 Langkah-Langkah Masuk:\n1️⃣ Klik tombol "Masuk" di pojok kanan atas layar atau tombol di bawah.\n2️⃣ Masukkan 16 Digit NIK e-KTP Anda.\n3️⃣ Klik tombol hijau "Masuk Sekarang".\n4️⃣ Di Dashboard Warga (/dashboard), Anda dapat memantau riwayat surat permohonan dan tiket pengaduan Anda.`,
     actionButton: { label: 'Halaman Masuk / Daftar', url: '/login' },
+    tutorialId: 'login',
+    tutorialLabel: '🎬 Tonton Video Tutorial Login',
   },
   {
     id: 'kantor_jam',
@@ -231,6 +267,8 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     ],
     reply: `💰 Biaya Pelayanan Surat:\n\nSeluruh pengurusan administrasi surat keterangan desa di Lentera Desa Jombe adalah 100% GRATIS (Rp 0,-).\n\nPemerintah Desa Jombe tidak memungut biaya administrasi apa pun bagi warga masyarakat.`,
     actionButton: { label: 'Katalog Layanan Surat', url: '/layanan' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Layanan',
   },
   {
     id: 'kontak_wa',
@@ -249,19 +287,28 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'halo', 'hai', 'assalamualaikum', 'pagi', 'siang', 'sore', 'malam',
       'terima kasih', 'makasih', 'siapa kamu', 'bisa apa', 'fitur apa saja', 'bantuan', 'tolong', 'menu'
     ],
-    reply: `Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe, Kec. Turatea, Kab. Jeneponto.\n\nSaya dapat membantu Anda dengan informasi lengkap seputar seluruh fitur website ini:\n1. 📜 Syarat & Panduan 9 Jenis Surat Keterangan Desa\n2. 🔍 Lacak Status Permohonan Surat (/lacak)\n3. 🛡️ Validasi Dokumen & QR Code Surat Resmi (/verifikasi-ttd)\n4. 📢 Kirim Pengaduan & Aspirasi Warga (/pengaduan)\n5. 🌾 Profil Desa & Data Resmi BPS Turatea 2025 (/profil)\n6. 📍 Lokasi Kantor di Dusun Jombe Selatan & Jam Kerja (WITA)\n7. 💰 Biaya Pelayanan (100% Gratis)\n\nSilakan ketik pertanyaan apa pun atau klik topik pilihan di bawah!`,
+    reply: `Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe, Kec. Turatea, Kab. Jeneponto.\n\nSaya dapat membantu Anda dengan informasi langkah-langkah serta video tutorial panduan:\n1. 📜 Syarat & Langkah 9 Surat Keterangan Desa\n2. 🔍 Cara Lacak Surat (/lacak)\n3. 🛡️ Validasi & QR Code Surat Resmi (/verifikasi-ttd)\n4. 📢 Kirim Pengaduan Warga (/pengaduan)\n5. 🌾 Profil Desa & Data Resmi BPS Turatea 2025 (/profil)\n6. 📍 Lokasi Kantor di Dusun Jombe Selatan & Jam Kerja (WITA)\n7. 💰 Biaya Pelayanan (100% Gratis)\n\nSilakan ketik pertanyaan apa saja atau klik tombol Video Tutorial di bawah untuk melihat simulasi visual dengan panduan suara Maskot Daeng Jombe!`,
     actionButton: { label: 'Katalog Semua Layanan', url: '/layanan' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Interaktif',
   },
 ];
 
 // Smart matching logic (client-side fallback & instant matching)
-function matchKnowledgeLocally(inputPrompt: string): { reply: string; actionButton?: ActionButton } {
+function matchKnowledgeLocally(inputPrompt: string): {
+  reply: string;
+  actionButton?: ActionButton;
+  tutorialId?: string;
+  tutorialLabel?: string;
+} {
   const clean = String(inputPrompt || '').toLowerCase().trim();
 
   if (!clean) {
     return {
       reply: 'Halo! Ada yang bisa kami bantu seputar pelayanan surat atau informasi Desa Jombe?',
       actionButton: { label: 'Katalog Layanan Surat', url: '/layanan' },
+      tutorialId: 'sku',
+      tutorialLabel: '🎬 Tonton Video Tutorial Layanan',
     };
   }
 
@@ -306,16 +353,21 @@ function matchKnowledgeLocally(inputPrompt: string): { reply: string; actionButt
     return {
       reply: bestTopic.reply,
       actionButton: bestTopic.actionButton,
+      tutorialId: bestTopic.tutorialId,
+      tutorialLabel: bestTopic.tutorialLabel,
     };
   }
 
   return {
-    reply: `Terima kasih telah bertanya di Pusat Bantuan Desa Jombe. Kami belum menemukan informasi persis untuk "${inputPrompt}".\n\nTopik populer yang sering ditanyakan warga:\n• Syarat Surat Keterangan Usaha (SKU) atau SKTM\n• Cara melacak surat (/lacak)\n• Alur cetak & tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd)\n• Kirim pengaduan warga (/pengaduan)\n• Lokasi kantor desa di Dusun Jombe Selatan & jam buka (WITA).\n\nSilakan pilih salah satu menu di bawah atau perjelas kata kunci pertanyaan Anda.`,
+    reply: `Terima kasih telah bertanya di Pusat Bantuan Desa Jombe. Kami belum menemukan informasi persis untuk "${inputPrompt}".\n\nTopik populer yang sering ditanyakan warga:\n• Syarat & langkah Surat Keterangan Usaha (SKU) atau SKTM\n• Cara melacak surat (/lacak)\n• Alur cetak & tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd)\n• Kirim pengaduan warga (/pengaduan)\n• Lokasi kantor desa di Dusun Jombe Selatan & jam kerja (WITA).\n\nSilakan pilih salah satu menu di bawah atau klik tombol Video Tutorial untuk dipandu langsung oleh Maskot Daeng Jombe!`,
     actionButton: { label: 'Buka Katalog Semua Layanan', url: '/layanan' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Layanan',
   };
 }
 
 const QUICK_SUGGESTIONS = [
+  '🎬 Video Tutorial',
   'Syarat SKU',
   'Syarat SKTM',
   'Lacak Surat',
@@ -328,12 +380,17 @@ const QUICK_SUGGESTIONS = [
 
 export default function AiChatModal() {
   const [isOpen, setIsOpen] = useState(false);
+  const [tutorialOpen, setTutorialOpen] = useState(false);
+  const [tutorialId, setTutorialId] = useState<string>('sku');
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'init-1',
       sender: 'bot',
-      text: 'Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe. Ada yang bisa kami bantu mengenai syarat surat administrasi, lacak berkas, pengaduan, atau informasi desa lainnya?',
+      text: 'Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe.\n\nSaya siap memberikan informasi langkah-langkah persyaratan surat administrasi, lacak berkas, pengaduan, maupun video tutorial interaktif yang dipandu langsung oleh Maskot Desa Daeng Jombe!',
       actionButton: { label: 'Jelajahi Katalog Layanan', url: '/layanan' },
+      tutorialId: 'sku',
+      tutorialLabel: '🎬 Tonton Video Tutorial Interaktif',
       timestamp: 'Sekarang',
     },
   ]);
@@ -353,9 +410,20 @@ export default function AiChatModal() {
     }
   }, [messages, isOpen]);
 
+  const openTutorial = (idToOpen: string = 'sku') => {
+    setTutorialId(idToOpen);
+    setTutorialOpen(true);
+  };
+
   const processQuery = async (queryText: string) => {
     const cleanQuery = queryText.trim();
     if (!cleanQuery || loading) return;
+
+    // If user clicked video tutorial suggestion chip directly
+    if (cleanQuery.toLowerCase().includes('video tutorial') || cleanQuery.toLowerCase().includes('panduan video')) {
+      openTutorial('sku');
+      return;
+    }
 
     const userMsg: Message = {
       id: `user-${Date.now()}`,
@@ -389,6 +457,8 @@ export default function AiChatModal() {
             sender: 'bot',
             text: botData.reply,
             actionButton: botData.actionButton,
+            tutorialId: botData.tutorialId || (cleanQuery.includes('lacak') ? 'lacak' : cleanQuery.includes('aduan') || cleanQuery.includes('pengaduan') ? 'pengaduan' : cleanQuery.includes('login') || cleanQuery.includes('masuk') ? 'login' : 'sku'),
+            tutorialLabel: botData.tutorialLabel || '🎬 Tonton Video Tutorial (Dipandu Maskot)',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
@@ -405,6 +475,8 @@ export default function AiChatModal() {
           sender: 'bot',
           text: localResult.reply,
           actionButton: localResult.actionButton,
+          tutorialId: localResult.tutorialId || (cleanQuery.includes('lacak') ? 'lacak' : cleanQuery.includes('aduan') || cleanQuery.includes('pengaduan') ? 'pengaduan' : cleanQuery.includes('login') || cleanQuery.includes('masuk') ? 'login' : 'sku'),
+          tutorialLabel: localResult.tutorialLabel || '🎬 Tonton Video Tutorial (Dipandu Maskot)',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -427,8 +499,10 @@ export default function AiChatModal() {
       {
         id: `init-${Date.now()}`,
         sender: 'bot',
-        text: 'Percakapan telah diatur ulang. Ada informasi layanan desa atau persyaratan surat lain yang ingin Anda ketahui?',
+        text: 'Percakapan telah diatur ulang. Ada informasi layanan desa, langkah-langkah pengajuan, atau video panduan yang ingin Anda tonton?',
         actionButton: { label: 'Katalog Layanan Surat', url: '/layanan' },
+        tutorialId: 'sku',
+        tutorialLabel: '🎬 Tonton Video Tutorial Interaktif',
         timestamp: 'Sekarang',
       },
     ]);
@@ -450,8 +524,8 @@ export default function AiChatModal() {
           <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-emerald-900 animate-ping" />
         </div>
         <div className="text-left">
-          <div className="text-xs font-bold leading-none text-white">Bantuan AI Desa</div>
-          <div className="text-[10px] text-emerald-300 leading-none mt-1">CS Online 24 Jam</div>
+          <div className="text-xs font-bold leading-none text-white">Bantuan & Tutorial AI</div>
+          <div className="text-[10px] text-emerald-300 leading-none mt-1">CS Online + Video Maskot</div>
         </div>
       </button>
 
@@ -459,27 +533,41 @@ export default function AiChatModal() {
       {isOpen && (
         <div
           id="modal-ai-cs"
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[94vw] max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[560px] animate-in fade-in slide-in-from-bottom-4 duration-200"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[94vw] max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[590px] animate-in fade-in slide-in-from-bottom-4 duration-200"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-900 via-emerald-850 to-teal-900 text-white p-4 flex items-center justify-between shadow-xs border-b border-emerald-800">
+          <div className="bg-gradient-to-r from-emerald-900 via-emerald-850 to-teal-900 text-white p-3.5 sm:p-4 flex items-center justify-between shadow-xs border-b border-emerald-800">
             <div className="flex items-center gap-3">
-              <div className="w-9 h-9 rounded-xl bg-white/10 flex items-center justify-center border border-white/20 shadow-inner">
-                <Bot className="w-5 h-5 text-amber-300" />
+              <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-amber-400/50 shadow-inner bg-emerald-950 shrink-0">
+                <Image
+                  src="/images/mascot-desa-jombe.png"
+                  alt="Daeng Jombe"
+                  width={36}
+                  height={36}
+                  className="object-cover"
+                />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold leading-tight">AI Layanan Desa Jombe</h3>
+                  <h3 className="text-xs font-bold leading-tight">AI CS & Tutorial Desa</h3>
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                     🟢 Online
                   </span>
                 </div>
                 <span className="text-[10px] text-emerald-200 block mt-0.5">
-                  Informasi Resmi Seluruh Fitur Website
+                  Dipandu Maskot Daeng Jombe
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-1">
+              <button
+                onClick={() => openTutorial('sku')}
+                className="px-2 py-1 bg-amber-400 hover:bg-amber-300 text-emerald-950 text-[10px] font-black rounded-lg transition-colors shadow-xs flex items-center gap-1"
+                title="Buka Video Tutorial"
+              >
+                <Video className="w-3 h-3" />
+                <span>Video</span>
+              </button>
               <button
                 onClick={handleResetChat}
                 className="p-1.5 rounded-lg text-emerald-200 hover:text-white hover:bg-white/10 transition-colors"
@@ -498,12 +586,16 @@ export default function AiChatModal() {
           </div>
 
           {/* Quick Suggestion Chips Header */}
-          <div className="bg-emerald-50/70 border-b border-emerald-150 px-3 py-2 overflow-x-auto flex gap-1.5 scrollbar-none">
+          <div className="bg-emerald-50/80 border-b border-emerald-150 px-3 py-2 overflow-x-auto flex gap-1.5 scrollbar-none">
             {QUICK_SUGGESTIONS.map((chip, idx) => (
               <button
                 key={idx}
                 onClick={() => handleSuggestionClick(chip)}
-                className="whitespace-nowrap px-2.5 py-1 rounded-lg bg-white border border-emerald-200 text-[10px] font-semibold text-emerald-900 hover:bg-emerald-800 hover:text-white hover:border-emerald-800 transition-all shadow-xs shrink-0"
+                className={`whitespace-nowrap px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all shadow-xs shrink-0 flex items-center gap-1 ${
+                  chip.includes('Video')
+                    ? 'bg-amber-400 text-emerald-950 font-black border border-amber-300 hover:bg-amber-300'
+                    : 'bg-white border border-emerald-200 text-emerald-900 hover:bg-emerald-800 hover:text-white hover:border-emerald-800'
+                }`}
               >
                 {chip}
               </button>
@@ -518,8 +610,14 @@ export default function AiChatModal() {
                 className={`flex gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'bot' && (
-                  <div className="w-6 h-6 rounded-lg bg-emerald-800 text-white flex items-center justify-center shrink-0 mt-1 shadow-xs">
-                    <Bot className="w-3.5 h-3.5 text-amber-300" />
+                  <div className="relative w-7 h-7 rounded-lg overflow-hidden border border-amber-400/40 bg-emerald-900 shrink-0 mt-1 shadow-xs">
+                    <Image
+                      src="/images/mascot-desa-jombe.png"
+                      alt="Maskot Daeng Jombe"
+                      width={28}
+                      height={28}
+                      className="object-cover"
+                    />
                   </div>
                 )}
                 <div
@@ -529,18 +627,31 @@ export default function AiChatModal() {
                       : 'bg-white text-slate-800 rounded-tl-none border border-slate-200/90 shadow-sm'
                   }`}
                 >
-                  <div className="text-[11.5px]">{msg.text}</div>
+                  <div className="text-[11.5px] leading-relaxed">{msg.text}</div>
 
-                  {msg.actionButton && (
-                    <div className="mt-3 pt-2.5 border-t border-slate-150">
-                      <Link
-                        href={msg.actionButton.url}
-                        onClick={() => setIsOpen(false)}
-                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold rounded-xl text-[11px] transition-colors border border-emerald-200 shadow-xs"
+                  {/* Action Buttons & Video Tutorial Trigger */}
+                  {(msg.actionButton || msg.tutorialId) && (
+                    <div className="mt-3 pt-2.5 border-t border-slate-150 flex flex-wrap gap-2">
+                      {msg.actionButton && (
+                        <Link
+                          href={msg.actionButton.url}
+                          onClick={() => setIsOpen(false)}
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold rounded-xl text-[11px] transition-colors border border-emerald-200 shadow-xs"
+                        >
+                          <span>{msg.actionButton.label}</span>
+                          <ArrowRight className="w-3 h-3 text-emerald-700" />
+                        </Link>
+                      )}
+
+                      {/* Interactive Tutorial Button with Mascot */}
+                      <button
+                        onClick={() => openTutorial(msg.tutorialId || 'sku')}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-emerald-950 font-black rounded-xl text-[11px] transition-all shadow-xs border border-amber-300"
+                        title="Tonton simulasi visual video tutorial yang dipandu maskot"
                       >
-                        <span>{msg.actionButton.label}</span>
-                        <ArrowRight className="w-3 h-3 text-emerald-700" />
-                      </Link>
+                        <PlayCircle className="w-3.5 h-3.5 text-emerald-950" />
+                        <span>{msg.tutorialLabel || '🎬 Tonton Video Tutorial'}</span>
+                      </button>
                     </div>
                   )}
 
@@ -554,8 +665,8 @@ export default function AiChatModal() {
                 </div>
 
                 {msg.sender === 'user' && (
-                  <div className="w-6 h-6 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 mt-1 shadow-xs">
-                    <User className="w-3.5 h-3.5" />
+                  <div className="w-7 h-7 rounded-lg bg-slate-200 text-slate-700 flex items-center justify-center shrink-0 mt-1 shadow-xs">
+                    <User className="w-4 h-4" />
                   </div>
                 )}
               </div>
@@ -563,14 +674,20 @@ export default function AiChatModal() {
 
             {loading && (
               <div className="flex gap-2 items-center">
-                <div className="w-6 h-6 rounded-lg bg-emerald-800 text-white flex items-center justify-center shrink-0 shadow-xs">
-                  <Bot className="w-3.5 h-3.5 text-amber-300 animate-spin" />
+                <div className="relative w-7 h-7 rounded-lg overflow-hidden border border-amber-400/40 bg-emerald-900 shrink-0 shadow-xs">
+                  <Image
+                    src="/images/mascot-desa-jombe.png"
+                    alt="Daeng Jombe"
+                    width={28}
+                    height={28}
+                    className="object-cover"
+                  />
                 </div>
                 <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-200 text-xs text-slate-500 shadow-xs flex items-center gap-2">
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" />
-                  <span className="text-[11px] font-medium text-slate-500 ml-1">Mencocokkan informasi desa...</span>
+                  <span className="text-[11px] font-medium text-slate-500 ml-1">Daeng Jombe menyiapkan informasi & panduan...</span>
                 </div>
               </div>
             )}
@@ -587,7 +704,7 @@ export default function AiChatModal() {
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ketik pertanyaan atau kata kunci (contoh: syarat SKU, lacak surat, jam kantor)..."
+              placeholder="Ketik pertanyaan / minta tutorial (contoh: cara buat SKU, lacak surat, pengaduan)..."
               className="flex-1 px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:border-transparent bg-slate-50 text-slate-900 font-medium placeholder:text-slate-400"
             />
             <button
@@ -602,6 +719,13 @@ export default function AiChatModal() {
           </form>
         </div>
       )}
+
+      {/* Interactive Video Tutorial Modal with Mascot Daeng Jombe & Voice Over */}
+      <InteractiveTutorialModal
+        isOpen={tutorialOpen}
+        onClose={() => setTutorialOpen(false)}
+        initialTutorialId={tutorialId}
+      />
     </>
   );
 }

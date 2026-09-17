@@ -7,6 +7,8 @@ export interface AiTopic {
   keywords: string[];
   reply: string;
   actionButton?: { label: string; url: string };
+  tutorialId?: string;
+  tutorialLabel?: string;
 }
 
 export const AI_KNOWLEDGE_BASE: AiTopic[] = [
@@ -14,92 +16,118 @@ export const AI_KNOWLEDGE_BASE: AiTopic[] = [
     id: 'sku',
     title: 'Surat Keterangan Usaha (SKU)',
     keywords: ['sku', 'usaha', 'dagang', 'warung', 'toko', 'kios', 'jualan', 'kur', 'modal', 'umkm', 'bisnis', 'izin usaha', 'keterangan usaha', 'kredit usaha', 'bank'],
-    reply: `Informasi Surat Keterangan Usaha (SKU):\n\nSurat Keterangan Usaha (SKU) dipergunakan untuk keperluan legalitas usaha, pengajuan permodalan/KUR di perbankan, perizinan dagang, maupun pendataan bantuan UMKM.\n\n📋 Persyaratan Berkas Dokumen:\n• Foto e-KTP Pemohon asli\n• Foto Kartu Keluarga (KK)\n• Foto Tempat / Aktivitas Usaha di wilayah Desa Jombe\n\n⏱️ Estimasi Waktu Proses: 1 Hari Kerja.\n💰 Biaya: GRATIS (Rp 0,-).\n\nSetelah diajukan dan diverifikasi operator, berkas PDF siap dicetak untuk dibubuhi tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd) serta cap stempel kantor desa.`,
+    reply: `Informasi Surat Keterangan Usaha (SKU):\n\nSurat Keterangan Usaha (SKU) dipergunakan untuk legalitas usaha, pengajuan permodalan/KUR di bank, perizinan dagang, maupun pendataan bantuan UMKM.\n\n📋 Persyaratan Dokumen:\n• Foto e-KTP Pemohon asli\n• Foto Kartu Keluarga (KK)\n• Foto Tempat / Aktivitas Usaha di Desa Jombe\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol "Ajukan SKU Sekarang" di bawah ini.\n2️⃣ Masukkan 16 Digit NIK e-KTP dan rincian usaha Anda.\n3️⃣ Unggah foto KTP, KK, dan foto tempat usaha Anda.\n4️⃣ Tekan tombol hijau "Kirim Permohonan" dan simpan No. Registrasi (JMB-XXXXX).\n5️⃣ Berkas diverifikasi operator, dicetak fisik, lalu dibubuhi tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd) & cap stempel kantor desa.\n6️⃣ Ambil surat fisik resmi di Kantor Desa Jombe (1 Hari Kerja, 100% GRATIS).\n\n💡 Tonton simulasi video tutorial interaktif dengan menekan tombol tutorial di bawah!`,
     actionButton: { label: 'Ajukan SKU Sekarang', url: '/layanan/surat-keterangan-usaha' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial SKU',
   },
   {
     id: 'sktm',
     title: 'Surat Keterangan Kurang Mampu (SKTM)',
     keywords: ['sktm', 'tidak mampu', 'kurang mampu', 'miskin', 'beasiswa', 'kip', 'kuliah', 'sekolah', 'bantuan', 'bansos', 'keringanan', 'rumah sakit', 'bpjs', 'kis', 'pengobatan'],
-    reply: `Informasi Surat Keterangan Kurang Mampu (SKTM):\n\nSKTM diterbitkan bagi warga Desa Jombe yang membutuhkan surat pengantar resmi untuk pengajuan beasiswa pendidikan (KIP Kuliah/Sekolah), keringanan biaya rumah sakit, maupun pendaftaran program jaminan sosial pemerintah.\n\n📋 Persyaratan Berkas Dokumen:\n• Foto e-KTP Pemohon / Kepala Keluarga\n• Foto Kartu Keluarga (KK)\n• Keterangan keperluan pemohon\n\n⏱️ Estimasi Waktu Proses: 1 Hari Kerja.\n💰 Biaya: GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Kurang Mampu (SKTM):\n\nSKTM diterbitkan bagi warga Desa Jombe yang membutuhkan surat rekomendasi beasiswa pendidikan (KIP Kuliah/Sekolah), keringanan rumah sakit, maupun pendaftaran jaminan sosial.\n\n📋 Persyaratan Dokumen:\n• Foto e-KTP Pemohon / Kepala Keluarga\n• Foto Kartu Keluarga (KK)\n• Keterangan keperluan pemohon\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol "Ajukan SKTM Sekarang" di bawah ini.\n2️⃣ Masukkan 16 Digit NIK e-KTP pemohon.\n3️⃣ Unggah foto e-KTP dan Kartu Keluarga (KK).\n4️⃣ Tekan "Kirim Permohonan" dan catat No. Registrasi Anda.\n5️⃣ Surat resmi dicetak fisik dan ditandatangani basah oleh Kepala Desa Jombe (JUSMAEDY, S.Pd) + cap stempel kantor desa.\n6️⃣ Ambil berkas fisik di Kantor Desa (1 Hari Kerja, 100% GRATIS).`,
     actionButton: { label: 'Ajukan SKTM Sekarang', url: '/layanan/surat-keterangan-tidak-mampu' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'domisili',
     title: 'Surat Keterangan Domisili',
     keywords: ['domisili', 'tempat tinggal', 'tinggal', 'alamat', 'pindah', 'surat domisili', 'keterangan domisili', 'kost', 'kontrak', 'menetap', 'warga baru'],
-    reply: `Informasi Surat Keterangan Domisili:\n\nSurat Keterangan Domisili menerangkan secara sah bahwa warga yang bersangkutan bertempat tinggal dan menetap di salah satu dusun di wilayah Desa Jombe, Kecamatan Turatea.\n\n📋 Persyaratan Berkas Dokumen:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Alamat jelas tempat tinggal di Desa Jombe\n\n⏱️ Estimasi Waktu Proses: 1 Hari Kerja.\n💰 Biaya: GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Domisili:\n\nSurat Keterangan Domisili menerangkan tempat tinggal sah warga di salah satu dusun di wilayah Desa Jombe, Kecamatan Turatea.\n\n📋 Persyaratan Dokumen:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Alamat jelas tempat tinggal di Desa Jombe\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Buka formulir permohonan surat domisili.\n2️⃣ Masukkan 16 Digit NIK dan pilih nama dusun tempat tinggal.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan".\n5️⃣ Surat dicetak fisik dan dibubuhi tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd) serta stempel basah kantor desa (1 Hari Kerja, GRATIS).`,
     actionButton: { label: 'Ajukan Surat Domisili', url: '/layanan/surat-keterangan-domisili' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'skkb',
     title: 'Surat Keterangan Kelakuan Baik (SKKB / SKCK)',
     keywords: ['skkb', 'skck', 'kelakuan baik', 'polisi', 'polsek', 'polres', 'lamar kerja', 'pekerjaan', 'bumn', 'cpns', 'swasta', 'pengantar skck', 'pidana', 'kriminal'],
-    reply: `Informasi Surat Keterangan Kelakuan Baik (SKKB / SKCK):\n\nSKKB merupakan surat pengantar resmi desa untuk menerangkan bahwa pemohon berkelakuan baik dan tidak sedang tersangkut perkara kriminal, biasa digunakan untuk syarat penerbitan SKCK di kepolisian maupun kelengkapan melamar kerja.\n\n📋 Persyaratan Berkas Dokumen:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Keterangan instansi/tujuan pengajuan\n\n⏱️ Estimasi Waktu Proses: 1 Hari Kerja.\n💰 Biaya: GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Kelakuan Baik (SKKB / SKCK):\n\nSKKB merupakan surat pengantar resmi desa untuk menerangkan bahwa pemohon berkelakuan baik, digunakan untuk penerbitan SKCK di kepolisian maupun kelengkapan melamar kerja.\n\n📋 Persyaratan Dokumen:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Keterangan instansi/tujuan pengajuan\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol "Ajukan SKKB / SKCK" di bawah ini.\n2️⃣ Masukkan NIK e-KTP dan tuliskan tujuan pengajuan.\n3️⃣ Unggah foto KTP & KK.\n4️⃣ Tekan "Kirim Permohonan" dan tunggu verifikasi operator desa.\n5️⃣ Ambil surat fisik bertanda tangan basah Kades JUSMAEDY, S.Pd di kantor desa (1 Hari Kerja, GRATIS).`,
     actionButton: { label: 'Ajukan SKKB / SKCK', url: '/layanan/surat-keterangan-kelakuan-baik' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'belum_menikah',
     title: 'Surat Keterangan Belum Menikah',
     keywords: ['belum menikah', 'belum kawin', 'lajang', 'single', 'bujang', 'gadis', 'nikah', 'kua', 'pernikahan', 'tni', 'polri', 'ikatan dinas', 'kawin'],
-    reply: `Informasi Surat Keterangan Belum Menikah:\n\nSurat ini menyatakan status pemohon belum pernah melangsungkan pernikahan, biasa digunakan untuk kelengkapan administrasi berkas nikah di KUA, pendaftaran TNI/Polri, ikatan dinas, maupun persyaratan kerja.\n\n📋 Persyaratan Berkas Dokumen:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Pernyataan status lajang\n\n⏱️ Estimasi Waktu Proses: 1 Hari Kerja.\n💰 Biaya: GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Belum Menikah:\n\nSurat ini menyatakan status pemohon belum pernah melangsungkan pernikahan, digunakan untuk administrasi KUA, seleksi TNI/Polri, ikatan dinas, maupun kerja.\n\n📋 Persyaratan Dokumen:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol permohonan di bawah ini.\n2️⃣ Masukkan 16 Digit NIK e-KTP Anda.\n3️⃣ Unggah foto KTP & KK.\n4️⃣ Tekan "Kirim Permohonan".\n5️⃣ Surat dicetak fisik, ditandatangani basah Kades JUSMAEDY, S.Pd, dan distempel resmi (1 Hari Kerja, GRATIS).`,
     actionButton: { label: 'Ajukan Ket. Belum Menikah', url: '/layanan/surat-keterangan-belum-menikah' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'wali',
     title: 'Surat Keterangan Wali',
     keywords: ['wali', 'surat wali', 'perwalian', 'anak', 'sekolah', 'kuliah', 'wali nikah', 'orang tua wali', 'asuh', 'wali murid', 'ijazah'],
-    reply: `Informasi Surat Keterangan Wali:\n\nSurat Keterangan Wali menerangkan hubungan perwalian yang sah antara orang tua/wali dengan anak untuk keperluan pendaftaran pendidikan sekolah/kampus, wali nikah, maupun urusan administrasi hukum.\n\n📋 Persyaratan Berkas Dokumen:\n• Foto e-KTP Wali Pemohon\n• Foto Kartu Keluarga (KK)\n• Akta Kelahiran atau identitas anak/pihak yang diwali\n\n⏱️ Estimasi Waktu Proses: 1 Hari Kerja.\n💰 Biaya: GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Wali:\n\nSurat ini menerangkan hubungan perwalian yang sah antara wali dan anak untuk keperluan pendaftaran sekolah/kuliah, wali nikah, atau administrasi hukum.\n\n📋 Persyaratan Dokumen:\n• Foto e-KTP Wali Pemohon\n• Foto Kartu Keluarga (KK)\n• Akta Kelahiran / identitas anak yang diwali\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol pengajuan surat wali.\n2️⃣ Masukkan NIK wali dan data identitas anak.\n3️⃣ Unggah foto KTP wali & KK.\n4️⃣ Tekan "Kirim Permohonan" lalu ambil surat ber-TTD basah Kades JUSMAEDY, S.Pd di kantor desa.`,
     actionButton: { label: 'Ajukan Surat Wali', url: '/layanan/surat-keterangan-wali' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'kendaraan',
     title: 'Surat Keterangan Kepemilikan Kendaraan Bermotor',
     keywords: ['kendaraan', 'motor', 'mobil', 'stnk', 'bpkb', 'samsat', 'pajak', 'jual beli motor', 'hilang stnk', 'kepemilikan kendaraan', 'sepeda motor'],
-    reply: `Informasi Surat Keterangan Kepemilikan Kendaraan Bermotor:\n\nSurat ini menerangkan kepemilikan sah atas kendaraan bermotor roda 2 atau roda 4 di wilayah Desa Jombe, digunakan untuk pengurusan Samsat, bukti kepemilikan, atau dokumen pelengkap kehilangan STNK/BPKB.\n\n📋 Persyaratan Berkas Dokumen:\n• Foto e-KTP Pemilik Kendaraan\n• Foto Kartu Keluarga (KK)\n• Rincian nomor polisi (Plat), nomor rangka/mesin, dan bukti sah kendaraan\n\n⏱️ Estimasi Waktu Proses: 1 Hari Kerja.\n💰 Biaya: GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Kepemilikan Kendaraan Bermotor:\n\nSurat ini menerangkan kepemilikan sah atas kendaraan bermotor (roda 2 / roda 4) di Desa Jombe untuk keperluan Samsat, pengurusan pajak, maupun bukti kehilangan STNK/BPKB.\n\n📋 Persyaratan Dokumen:\n• Foto e-KTP Pemilik Kendaraan\n• Foto Kartu Keluarga (KK)\n• Rincian nomor polisi (Plat), nomor rangka & mesin\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol permohonan di bawah ini.\n2️⃣ Isi NIK dan nomor polisi serta merek kendaraan.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan" (Proses 1 Hari Kerja, 100% GRATIS).`,
     actionButton: { label: 'Ajukan Ket. Kendaraan', url: '/layanan/surat-keterangan-kepemilikan-kendaraan-bermotor' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'kematian',
     title: 'Surat Keterangan Kematian',
     keywords: ['kematian', 'meninggal', 'wafat', 'almarhum', 'almarhumah', 'meninggal dunia', 'akta kematian', 'waris', 'taspen', 'pensiun', 'ahli waris', 'kubur'],
-    reply: `Informasi Surat Keterangan Kematian:\n\nSurat Keterangan Kematian diterbitkan sebagai bukti otentik wafatnya seorang warga Desa Jombe, dipergunakan untuk penerbitan Akta Kematian di Disdukcapil, pembagian hak waris, penutupan rekening, maupun klaim pensiun/asuransi.\n\n📋 Persyaratan Berkas Dokumen:\n• Foto KTP Almarhum / Almarhumah\n• Foto e-KTP Pelapor (Keluarga / Ahli Waris)\n• Kartu Keluarga (KK)\n• Waktu, tanggal, dan tempat meninggal dunia\n\n⏱️ Estimasi Waktu Proses: 1 Hari Kerja.\n💰 Biaya: GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Kematian:\n\nSurat Keterangan Kematian diterbitkan sebagai bukti sah wafatnya warga Desa Jombe untuk penerbitan Akta Kematian di Disdukcapil, pengurusan hak waris, maupun pensiun/asuransi.\n\n📋 Persyaratan Dokumen:\n• Foto KTP Almarhum / Almarhumah\n• Foto e-KTP Pelapor (Keluarga / Ahli Waris)\n• Kartu Keluarga (KK)\n• Waktu, tanggal, dan tempat meninggal dunia\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol ajukan surat kematian di bawah.\n2️⃣ Isi data almarhum dan waktu meninggal dunia.\n3️⃣ Unggah foto KTP almarhum & KK pelapor.\n4️⃣ Tekan "Kirim Permohonan" dan ambil surat ber-TTD basah Kades di kantor desa.`,
     actionButton: { label: 'Ajukan Surat Kematian', url: '/layanan/surat-keterangan-kematian' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'umum',
     title: 'Surat Keterangan Umum / Lainnya',
     keywords: ['umum', 'surat umum', 'lainnya', 'rekomendasi', 'keterangan lain', 'penghasilan', 'beda nama', 'kehilangan', 'keterangan dinas', 'surat pengantar'],
-    reply: `Informasi Surat Keterangan Umum / Lainnya:\n\nSurat Keterangan Umum melayani kebutuhan administrasi dinas yang tidak tercakup dalam 8 kategori surat khusus, seperti surat keterangan beda nama, surat keterangan penghasilan orang tua, atau surat pengantar keperluan khusus.\n\n📋 Persyaratan Berkas Dokumen:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Rincian keperluan surat keterangan yang dibutuhkan\n\n⏱️ Estimasi Waktu Proses: 1 Hari Kerja.\n💰 Biaya: GRATIS (Rp 0,-).`,
+    reply: `Informasi Surat Keterangan Umum / Lainnya:\n\nSurat Keterangan Umum melayani kebutuhan administrasi dinas yang tidak tercakup dalam 8 kategori surat khusus, seperti surat beda nama, surat penghasilan, atau rekomendasi dinas.\n\n📋 Persyaratan Dokumen:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Rincian keperluan surat yang dibutuhkan\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol ajukan surat umum.\n2️⃣ Masukkan NIK dan uraian surat yang dibutuhkan.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan".`,
     actionButton: { label: 'Ajukan Surat Umum', url: '/layanan/surat-keterangan-umum' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengajuan',
   },
   {
     id: 'alur_ttd',
     title: 'Alur Penerbitan, Cetak Fisik & Tanda Tangan Basah',
     keywords: ['tanda tangan', 'ttd', 'basah', 'stempel', 'cap', 'cetak', 'print', 'tte', 'legalitas', 'resmi', 'bagaimana alurnya', 'cara kerja', 'alur pengajuan', 'proses surat'],
-    reply: `💡 Alur Pelayanan & Legalitas Surat Desa Jombe:\n\n1️⃣ Pengajuan Mandiri: Warga mengisi formulir pengajuan online di website Lentera Desa kapan saja 24 jam.\n2️⃣ Verifikasi Berkas: Petugas Operator Kantor Desa memeriksa kelengkapan KTP/KK dan data pemohon.\n3️⃣ Penerbitan Draf PDF: Sistem menerbitkan dokumen surat resmi ber-nomor registrasi buku agenda desa.\n4️⃣ Cetak Fisik (Print): Dokumen dicetak pada kertas ber-kop resmi Pemerintah Kabupaten Jeneponto.\n5️⃣ Tanda Tangan Basah & Stempel: Lembar fisik surat ditandatangani basah oleh Kepala Desa Jombe (JUSMAEDY, S.Pd) serta dibubuhi cap stempel basah kantor desa.\n6️⃣ Pengambilan: Surat sah fisik siap diserahkan kepada warga pemohon di kantor desa atau dikoordinasikan bersama Kepala Dusun.`,
+    reply: `💡 Alur Lengkap Pelayanan & Legalitas Surat Resmi Desa Jombe:\n\n1️⃣ Pengajuan Online: Warga mengisi formulir mandiri di website Lentera Desa kapan saja 24 jam.\n2️⃣ Verifikasi Operator: Operator Kantor Desa memeriksa kelengkapan KTP/KK dan data pemohon.\n3️⃣ Penerbitan Draf PDF: Sistem menerbitkan dokumen resmi dengan nomor registrasi agenda desa.\n4️⃣ Cetak Fisik (Print): Berkas dicetak pada lembar kertas berkop resmi Pemkab Jeneponto.\n5️⃣ Tanda Tangan Basah & Cap Stempel: Dokumen ditandatangani basah oleh Kepala Desa Jombe (JUSMAEDY, S.Pd) serta dibubuhi cap stempel basah kantor desa.\n6️⃣ Pengambilan: Surat sah fisik siap diserahkan kepada warga di kantor desa.`,
     actionButton: { label: 'Katalog Semua Layanan', url: '/layanan' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Alur Pengajuan',
   },
   {
     id: 'lacak',
     title: 'Fitur Lacak Status Permohonan',
     keywords: ['lacak', 'status', 'tracking', 'cek surat', 'sampai mana', 'nomor registrasi', 'no reg', 'jmb', 'antrean', 'progress', 'progres', 'riwayat', 'pantau'],
-    reply: `🔍 Cara Melacak Status Permohonan Surat (/lacak):\n\nAnda dapat memantau proses permohonan surat secara transparan tanpa perlu datang ke kantor desa:\n1. Buka menu "Lacak Permohonan" di website.\n2. Masukkan Nomor Registrasi Surat Anda (contoh: JMB-2026-00001) ATAU masukkan 16 digit NIK Anda.\n3. Klik tombol "Cari".\n\n📌 Arti Status Permohonan:\n• MENUNGGU VERIFIKASI: Berkas baru masuk antrean pemeriksaan operator.\n• SEDANG DIPROSES: Berkas diverifikasi dan draf surat sedang disiapkan.\n• PERLU PERBAIKAN: Ada foto dokumen yang buram/kurang lengkap (silakan perbaiki).\n• DISETUJUI / SELESAI: Surat resmi telah selesai dan siap diambil.`,
+    reply: `🔍 Cara Melacak Status Permohonan Surat (/lacak):\n\nAnda dapat memantau proses permohonan surat secara transparan tanpa perlu datang ke kantor desa:\n\n👣 Langkah-Langkah Melacak Surat:\n1️⃣ Buka menu "Lacak Permohonan" di navigasi website atau klik tombol di bawah.\n2️⃣ Masukkan Nomor Registrasi Surat Anda (contoh: JMB-2026-00001) ATAU masukkan 16 digit NIK Anda.\n3️⃣ Klik tombol biru "Cari".\n4️⃣ Sistem akan menampilkan status terkini:\n   • MENUNGGU VERIFIKASI: Berkas baru masuk antrean operator.\n   • SEDANG DIPROSES: Draf surat sedang dipersiapkan.\n   • PERLU PERBAIKAN: Foto buram atau ada data yang perlu diperbaiki.\n   • DISETUJUI / SELESAI: Surat fisik telah ditandatangani basah Kades dan siap diambil di kantor desa!`,
     actionButton: { label: 'Buka Halaman Lacak Surat', url: '/lacak' },
+    tutorialId: 'lacak',
+    tutorialLabel: '🎬 Tonton Video Tutorial Lacak Surat',
   },
   {
     id: 'verifikasi',
     title: 'Validasi Arsip & Keaslian Dokumen Desa',
     keywords: ['validasi', 'verifikasi', 'keaslian', 'asli', 'palsu', 'cek barcode', 'scan qr', 'qr code', 'legalisir', 'buku agenda', 'arsip'],
-    reply: `🛡️ Fitur Validasi Surat Resmi Desa Jombe (/verifikasi-ttd):\n\nSetiap surat yang diterbitkan dilengkapi QR Code Registrasi Arsip Resmi.\n\nInstansi luar (seperti Bank, Kepolisian, Kampus, atau KUA) maupun warga dapat memindai QR Code tersebut untuk memverifikasi bahwa surat bersangkutan benar-benar terdaftar secara sah dalam buku agenda kependudukan Pemerintah Desa Jombe, Kecamatan Turatea, Kabupaten Jeneponto.\n\nDokumen cetak fisik dinyatakan berkekuatan hukum penuh setelah dibubuhi tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd) dan cap stempel basah kantor desa.`,
+    reply: `🛡️ Fitur Validasi Surat Resmi Desa Jombe (/verifikasi-ttd):\n\nSetiap surat resmi yang diterbitkan dilengkapi QR Code Registrasi Arsip Resmi.\n\n👣 Langkah-Langkah Validasi:\n1️⃣ Buka menu "Verifikasi Surat" di website atau pindai QR Code pada surat cetak.\n2️⃣ Masukkan Nomor Registrasi Dokumen (contoh: JMB-2026-00001).\n3️⃣ Sistem menampilkan status keabsahan dokumen dalam buku agenda kependudukan Desa Jombe.\n4️⃣ Dokumen sah berkekuatan hukum penuh setelah ditandatangani basah oleh Kades JUSMAEDY, S.Pd dan distempel basah kantor desa.`,
     actionButton: { label: 'Halaman Validasi Dokumen', url: '/verifikasi-ttd' },
+    tutorialId: 'lacak',
+    tutorialLabel: '🎬 Tonton Video Tutorial Validasi',
   },
   {
     id: 'pengaduan',
     title: 'Layanan Pengaduan & Aspirasi Warga',
     keywords: ['lapor', 'aduan', 'pengaduan', 'keluhan', 'aspirasi', 'jalan rusak', 'lampu jalan', 'mati lampu', 'sampah', 'irigasi', 'saluran air', 'pupuk', 'pgd', 'tiket'],
-    reply: `📢 Layanan Pengaduan & Aspirasi Warga (/pengaduan):\n\nPemerintah Desa Jombe membuka ruang aspirasi bagi seluruh warga untuk menyampaikan laporan atau usulan terkait:\n• Infrastruktur: Jalan rusak, gorong-gorong, lampu penerangan jalan.\n• Pertanian & Lingkungan: Saluran irigasi sawah, ketersediaan pupuk, kebersihan dusun.\n• Pelayanan Desa: Bantuan sosial, pelayanan perangkat, keamanan lingkungan.\n\nSetiap laporan akan mendapatkan Nomor Tiket (PGD-XXXXX) dan langsung dipantau oleh perangkat desa untuk ditindaklanjuti.`,
+    reply: `📢 Layanan Pengaduan & Aspirasi Warga (/pengaduan):\n\nPemerintah Desa Jombe memfasilitasi laporan warga terkait infrastruktur, pertanian, maupun pelayanan desa.\n\n👣 Langkah-Langkah Mengirim Pengaduan:\n1️⃣ Buka menu "Pengaduan" di website atau klik tombol di bawah.\n2️⃣ Pilih kategori (Infrastruktur / Pertanian / Pelayanan Desa).\n3️⃣ Tuliskan judul dan uraian permasalahan serta nama dusun lokasi kejadian.\n4️⃣ Unggah foto bukti dokumentasi.\n5️⃣ Klik "Kirim Pengaduan" dan simpan Nomor Tiket Anda (PGD-XXXXX) untuk memantau tindak lanjut aparat desa.`,
     actionButton: { label: 'Kirim Pengaduan Warga', url: '/pengaduan' },
+    tutorialId: 'pengaduan',
+    tutorialLabel: '🎬 Tonton Video Tutorial Pengaduan',
   },
   {
     id: 'profil_desa',
@@ -126,8 +154,10 @@ export const AI_KNOWLEDGE_BASE: AiTopic[] = [
     id: 'akun_login',
     title: 'Akun Warga & Login Berbasis NIK',
     keywords: ['akun', 'login', 'masuk', 'daftar', 'register', 'buat akun', 'dashboard', 'nik', 'lupa password', 'kata sandi', 'ganti password'],
-    reply: `👤 Panduan Akun Warga & Login Mandiri:\n\nUntuk mempermudah warga, sistem Lentera Desa menggunakan metode Autentikasi NIK Praktis:\n• Cukup masukkan 16 digit NIK e-KTP Anda untuk Masuk atau Mendaftar.\n• Tidak perlu menghafal kata sandi/password yang rumit.\n• Di halaman Dashboard Warga (/dashboard), Anda dapat melihat riwayat seluruh surat yang pernah diajukan, melihat tindak lanjut pengaduan, dan mengubah nomor WhatsApp/alamat domisili Anda.`,
+    reply: `👤 Panduan Akun Warga & Login Mandiri:\n\nSistem Lentera Desa menggunakan metode Autentikasi NIK Praktis:\n\n👣 Langkah-Langkah Masuk Akun:\n1️⃣ Klik tombol "Masuk" di navigasi atas atau tombol di bawah ini.\n2️⃣ Masukkan 16 Digit NIK e-KTP Anda (tanpa perlu password).\n3️⃣ Klik tombol "Masuk Sekarang".\n4️⃣ Anda langsung tiba di Dashboard Warga untuk memantau riwayat surat dan tiket pengaduan Anda.`,
     actionButton: { label: 'Masuk / Daftar Akun', url: '/login' },
+    tutorialId: 'login',
+    tutorialLabel: '🎬 Tonton Video Tutorial Login',
   },
   {
     id: 'operator_admin',
@@ -170,13 +200,20 @@ export const AI_KNOWLEDGE_BASE: AiTopic[] = [
  * Smart Keyword Matching Engine:
  * Evaluates the user's input across all topics and returns the best matching result.
  */
-export function matchAiKnowledge(inputPrompt: string): { reply: string; actionButton?: { label: string; url: string } } {
+export function matchAiKnowledge(inputPrompt: string): {
+  reply: string;
+  actionButton?: { label: string; url: string };
+  tutorialId?: string;
+  tutorialLabel?: string;
+} {
   const clean = String(inputPrompt || '').toLowerCase().trim();
 
   if (!clean) {
     return {
       reply: 'Halo! Ada yang bisa kami bantu seputar pelayanan surat atau informasi Desa Jombe?',
       actionButton: { label: 'Katalog Layanan Surat', url: '/layanan' },
+      tutorialId: 'sku',
+      tutorialLabel: '🎬 Tonton Video Tutorial Layanan',
     };
   }
 
@@ -226,13 +263,17 @@ export function matchAiKnowledge(inputPrompt: string): { reply: string; actionBu
     return {
       reply: bestTopic.reply,
       actionButton: bestTopic.actionButton,
+      tutorialId: bestTopic.tutorialId,
+      tutorialLabel: bestTopic.tutorialLabel,
     };
   }
 
   // Fallback if no specific topic scored enough
   return {
-    reply: `Terima kasih telah menghubungi Pusat Informasi Desa Jombe. Kami belum menemukan informasi yang persis sama dengan kata kunci "${inputPrompt}".\n\nTopik populer yang sering ditanyakan warga:\n• Syarat Surat Keterangan Usaha (SKU) atau SKTM\n• Cara melacak status surat (/lacak)\n• Alur cetak & tanda tangan basah Kepala Desa\n• Lapor pengaduan warga (/pengaduan)\n• Jam buka kantor desa dan lokasi di Dusun Jombe Selatan.\n\nSilakan klik tombol di bawah untuk melihat katalog layanan lengkap atau perjelas kata kunci pertanyaan Anda.`,
+    reply: `Terima kasih telah menghubungi Pusat Informasi Desa Jombe. Kami belum menemukan informasi yang persis sama dengan kata kunci "${inputPrompt}".\n\nTopik populer yang sering ditanyakan warga:\n• Syarat Surat Keterangan Usaha (SKU) atau SKTM\n• Cara melacak status surat (/lacak)\n• Alur cetak & tanda tangan basah Kepala Desa\n• Lapor pengaduan warga (/pengaduan)\n• Jam buka kantor desa dan lokasi di Dusun Jombe Selatan.\n\nSilakan klik tombol di bawah untuk melihat katalog layanan lengkap atau tonton video tutorial berpanduan maskot.`,
     actionButton: { label: 'Buka Katalog Semua Layanan', url: '/layanan' },
+    tutorialId: 'sku',
+    tutorialLabel: '🎬 Tonton Video Tutorial Layanan',
   };
 }
 
