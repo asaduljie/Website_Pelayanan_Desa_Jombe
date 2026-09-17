@@ -282,13 +282,11 @@ export const trackApplication = async (req: any, res: Response) => {
           OR: [
             { id: { equals: query } },
             { applicationNumber: { contains: upperQuery, mode: 'insensitive' } },
-            { applicantName: { contains: upperQuery, mode: 'insensitive' } },
-            { applicantNik: { contains: query } },
+            { user: { name: { contains: upperQuery, mode: 'insensitive' } } },
+            { user: { nik: { contains: query } } },
             ...(cleanDigits && cleanDigits.length >= 4 ? [
-              { applicantNik: { contains: cleanDigits } },
               { user: { nik: { contains: cleanDigits } } }
             ] : []),
-            { user: { name: { contains: upperQuery, mode: 'insensitive' } } },
           ],
         },
         include: {
@@ -316,16 +314,16 @@ export const trackApplication = async (req: any, res: Response) => {
     const resultMap = new Map<string, any>();
 
     for (const app of dbApps) {
-      const applicantName = app.applicantName || app.user?.name || 'Warga Desa';
-      const applicantNik = app.applicantNik || app.user?.nik || '-';
-      const applicantAddress = app.applicantAddress || app.user?.address || (app.user?.dusun ? `${app.user.dusun}, Desa Jombe` : 'Desa Jombe');
+      const applicantName = (app as any).applicantName || app.user?.name || 'Warga Desa';
+      const applicantNik = (app as any).applicantNik || app.user?.nik || '-';
+      const applicantAddress = (app as any).applicantAddress || app.user?.address || (app.user?.dusun ? `${app.user.dusun}, Desa Jombe` : 'Desa Jombe');
 
       resultMap.set(app.id, {
         id: app.id,
         applicationNumber: app.applicationNumber,
         status: app.status,
         serviceName: app.service?.name || 'Surat Keterangan',
-        createdAt: app.createdAt.toISOString ? app.createdAt.toISOString() : app.createdAt,
+        createdAt: (app.createdAt as any)?.toISOString ? (app.createdAt as any).toISOString() : app.createdAt,
         user: app.user,
         applicantName,
         applicantNik,
@@ -336,9 +334,9 @@ export const trackApplication = async (req: any, res: Response) => {
           app.status === 'COMPLETED' || app.status === 'APPROVED'
             ? 'Surat resmi telah disetujui & ditandatangani Kepala Desa Jombe.'
             : app.status === 'NEED_REVISION'
-            ? app.revisionNotes || 'Memerlukan perbaikan dokumen lampiran.'
+            ? (app as any).revisionNotes || 'Memerlukan perbaikan dokumen lampiran.'
             : app.status === 'REJECTED'
-            ? app.rejectionReason || 'Permohonan ditolak oleh operator.'
+            ? (app as any).rejectionReason || 'Permohonan ditolak oleh operator.'
             : 'Permohonan sedang dalam antrean pemeriksaan oleh Operator Kantor Desa Jombe.',
       });
     }
@@ -354,7 +352,7 @@ export const trackApplication = async (req: any, res: Response) => {
           user: { name: match.userName, nik: match.userNik },
           applicantName: match.userName || 'Warga Desa',
           applicantNik: match.userNik || '-',
-          applicantAddress: match.userDusun ? `${match.userDusun}, Desa Jombe` : 'Desa Jombe',
+          applicantAddress: (match as any).userDusun ? `${(match as any).userDusun}, Desa Jombe` : 'Desa Jombe',
           letterNumber: match.letterNumber,
           pdfUrl: (match.status === 'COMPLETED' || match.status === 'APPROVED') ? `${protocol}://${host}/api/operator/pdf/${match.id}` : null,
           revisionNotes:
