@@ -11,173 +11,132 @@ import {
   VolumeX,
   ChevronRight,
   ChevronLeft,
-  MousePointerClick,
-  CheckCircle2,
   FileText,
   Search,
   MessageSquare,
-  ShieldCheck,
   UserCheck,
-  ZoomIn,
-  Compass,
-  FileCheck,
   Lock,
 } from 'lucide-react';
 
 export interface TutorialStep {
   stepNumber: number;
   title: string;
-  actionText: string;
   zoomTarget: 'nav_layanan' | 'card_sku' | 'input_nik' | 'upload_area' | 'btn_submit' | 'ttd_area' | 'nav_lacak' | 'search_lacak' | 'result_lacak' | 'nav_pengaduan' | 'form_aduan' | 'btn_aduan' | 'nav_login' | 'form_login';
   voiceScript: string;
-  explanation: string;
 }
 
 export interface TutorialConfig {
   id: string;
   title: string;
-  subtitle: string;
   steps: TutorialStep[];
 }
 
 export const TUTORIAL_DATA: Record<string, TutorialConfig> = {
   sku: {
     id: 'sku',
-    title: 'Tutorial Pengajuan Surat Keterangan Usaha (SKU)',
-    subtitle: 'Panduan video langkah demi langkah mengajukan surat usaha di website Lentera Desa',
+    title: 'Surat Keterangan Usaha (SKU)',
     steps: [
       {
         stepNumber: 1,
-        title: 'Klik Menu "Layanan" di Navigasi Atas',
-        actionText: 'Kursor bergerak menuju menu "Layanan" pada navigasi atas dan menekannya',
+        title: 'Pilih Menu Layanan',
         zoomTarget: 'nav_layanan',
-        voiceScript: 'Selamat datang di website Lentera Desa Jombe. Langkah pertama, perhatikan kursor yang bergerak menuju menu Layanan di navigasi atas. Silakan klik menu Layanan.',
-        explanation: 'Menu "Layanan" membuka seluruh katalog 9 surat keterangan administrasi desa.',
+        voiceScript: 'Langkah pertama, klik menu Layanan pada navigasi atas untuk membuka katalog surat.',
       },
       {
         stepNumber: 2,
-        title: 'Pilih Kartu "Surat Keterangan Usaha (SKU)"',
-        actionText: 'Kursor menzoom dan mengklik kartu layanan "Surat Keterangan Usaha (SKU)"',
+        title: 'Pilih Surat Usaha (SKU)',
         zoomTarget: 'card_sku',
-        voiceScript: 'Langkah kedua, kamera menzoom kartu Surat Keterangan Usaha atau SKU. Tekan tombol Ajukan Surat pada kartu ini. Layanan ini 100% gratis.',
-        explanation: 'Pilih kartu SKU untuk membuka formulir permohonan legalitas usaha dagang/kios/toko.',
+        voiceScript: 'Langkah kedua, pilih kartu Surat Keterangan Usaha. Layanan ini gratis dan diproses dalam satu hari kerja.',
       },
       {
         stepNumber: 3,
-        title: 'Masukkan 16 Digit NIK e-KTP Pemohon',
-        actionText: 'Kursor menzoom kolom NIK lalu mengetik 16 Digit NIK pemohon',
+        title: 'Ketik 16 Digit NIK',
         zoomTarget: 'input_nik',
-        voiceScript: 'Langkah ketiga, kursor menzoom ke kolom NIK. Masukkan enam belas digit NIK e-KTP Anda dengan benar. Data nama dan dusun Anda akan terisi secara otomatis.',
-        explanation: 'Cukup masukkan 16 digit NIK e-KTP yang valid bagi warga Desa Jombe.',
+        voiceScript: 'Langkah ketiga, masukkan enam belas digit NIK e-KTP Anda pada kolom yang ditunjukkan.',
       },
       {
         stepNumber: 4,
-        title: 'Unggah Foto KTP, KK, & Bukti Usaha',
-        actionText: 'Kursor menekan tombol pilih berkas untuk mengunggah foto KTP, KK, dan usaha',
+        title: 'Unggah Foto Dokumen',
         zoomTarget: 'upload_area',
-        voiceScript: 'Langkah keempat, kursor menekan area unggah berkas. Lampirkan foto e-KTP asli, Kartu Keluarga, dan foto tempat usaha Anda dengan jelas dan tidak buram.',
-        explanation: 'Unggah foto dokumen asli dengan kamera ponsel untuk memudahkan verifikasi operator.',
+        voiceScript: 'Langkah keempat, lampirkan foto e-KTP asli, Kartu Keluarga, dan foto tempat usaha Anda.',
       },
       {
         stepNumber: 5,
-        title: 'Tekan Tombol "Kirim Permohonan"',
-        actionText: 'Kursor menekan tombol hijau "Kirim Permohonan Sekarang"',
+        title: 'Kirim Permohonan',
         zoomTarget: 'btn_submit',
-        voiceScript: 'Langkah kelima, perhatikan kursor menekan tombol hijau Kirim Permohonan. Anda akan menerima nomor registrasi berawalan JMB untuk memantau proses surat Anda.',
-        explanation: 'Setelah dikirim, permohonan Anda langsung masuk antrean pemeriksaan operator kantor desa.',
+        voiceScript: 'Langkah kelima, tekan tombol hijau Kirim Permohonan. Anda akan menerima nomor registrasi surat Anda.',
       },
       {
         stepNumber: 6,
-        title: 'Cetak Fisik & Tanda Tangan Basah Kepala Desa',
-        actionText: 'Dokumen dicetak dan ditandatangani basah oleh Kepala Desa Jombe (JUSMAEDY, S.Pd)',
+        title: 'Tanda Tangan Basah Kades',
         zoomTarget: 'ttd_area',
-        voiceScript: 'Langkah keenam, operator mencetak surat berkop resmi Pemerintah Kabupaten Jeneponto. Surat fisik ditandatangani basah oleh Kepala Desa Jombe, Bapak Jusmaedy, serta dibubuhi cap stempel kantor desa. Surat sah siap Anda ambil di kantor desa.',
-        explanation: 'Surat resmi berkekuatan hukum penuh setelah ditandatangani basah dan distempel kantor desa.',
+        voiceScript: 'Langkah keenam, surat dicetak resmi dan ditandatangani basah oleh Kepala Desa Jombe serta distempel cap kantor desa.',
       },
     ],
   },
   lacak: {
     id: 'lacak',
-    title: 'Tutorial Melacak Status Permohonan Surat',
-    subtitle: 'Panduan memantau proses berkas surat Anda secara transparan dari rumah',
+    title: 'Lacak Surat',
     steps: [
       {
         stepNumber: 1,
-        title: 'Klik Menu "Lacak Surat" di Navigasi',
-        actionText: 'Kursor mengarah dan menekan menu "Lacak Surat" di navigasi atas',
+        title: 'Menu Lacak Surat',
         zoomTarget: 'nav_lacak',
-        voiceScript: 'Untuk mengecek status surat Anda, langkah pertama perhatikan kursor yang mengklik menu Lacak Surat di navigasi atas website.',
-        explanation: 'Halaman Lacak Surat (/lacak) dapat diakses 24 jam nonstop setiap hari.',
+        voiceScript: 'Untuk mengecek proses surat Anda, klik menu Lacak Surat pada navigasi atas.',
       },
       {
         stepNumber: 2,
-        title: 'Masukkan Nomor Registrasi / NIK Anda',
-        actionText: 'Kursor menzoom kolom pencarian dan mengetikkan nomor registrasi JMB',
+        title: 'Ketik Nomor Registrasi / NIK',
         zoomTarget: 'search_lacak',
-        voiceScript: 'Langkah kedua, kursor menzoom ke kolom pencarian. Masukkan nomor registrasi surat Anda, misalnya JMB-2026-00001, atau cukup masukkan enam belas digit NIK e-KTP Anda.',
-        explanation: 'Jika lupa nomor registrasi, Anda dapat langsung mengetikkan 16 digit NIK e-KTP.',
+        voiceScript: 'Langkah kedua, masukkan nomor registrasi surat atau enam belas digit NIK e-KTP Anda, lalu tekan Cari.',
       },
       {
         stepNumber: 3,
-        title: 'Periksa Status Surat (Disetujui & Siap Ambil)',
-        actionText: 'Kursor menzoom kartu status: "DISETUJUI / SELESAI"',
+        title: 'Periksa Status Surat',
         zoomTarget: 'result_lacak',
-        voiceScript: 'Langkah ketiga, lihat hasil pelacakan. Jika status telah Disetujui, berkas fisik surat resmi telah ditandatangani basah oleh Kepala Desa dan siap diambil di kantor desa.',
-        explanation: 'Status permohonan transparan: Menunggu Verifikasi, Sedang Diproses, hingga Selesai.',
+        voiceScript: 'Langkah ketiga, jika status telah Disetujui, berkas fisik resmi siap Anda ambil di kantor desa.',
       },
     ],
   },
   pengaduan: {
     id: 'pengaduan',
-    title: 'Tutorial Layanan Pengaduan & Aspirasi Warga',
-    subtitle: 'Panduan melaporkan jalan berlubang, lampu penerangan jalan, atau irigasi sawah',
+    title: 'Pengaduan Warga',
     steps: [
       {
         stepNumber: 1,
-        title: 'Klik Menu "Pengaduan" di Navigasi',
-        actionText: 'Kursor menekan menu "Pengaduan" di bagian navigasi atas',
+        title: 'Menu Pengaduan',
         zoomTarget: 'nav_pengaduan',
-        voiceScript: 'Pemerintah Desa Jombe membuka ruang aspirasi bagi seluruh warga. Langkah pertama, perhatikan kursor mengklik menu Pengaduan pada navigasi atas.',
-        explanation: 'Menu Pengaduan (/pengaduan) menampung seluruh aspirasi pembangunan dan pelayanan warga.',
+        voiceScript: 'Untuk menyampaikan laporan atau usulan warga, klik menu Pengaduan pada navigasi atas.',
       },
       {
         stepNumber: 2,
-        title: 'Isi Kategori & Uraian Pengaduan',
-        actionText: 'Kursor menzoom formulir dan mengetik nama dusun serta masalah kejadian',
+        title: 'Tuliskan Laporan',
         zoomTarget: 'form_aduan',
-        voiceScript: 'Langkah kedua, kursor menzoom ke formulir aduan. Pilih kategori seperti Infrastruktur atau Pertanian, lalu tuliskan nama dusun dan permasalahan secara jelas.',
-        explanation: 'Sebutkan nama dusun lokasi kejadian agar aparat desa dapat segera meninjau ke lapangan.',
+        voiceScript: 'Langkah kedua, pilih kategori pengaduan, lalu sebutkan nama dusun dan masalah yang dilaporkan secara jelas.',
       },
       {
         stepNumber: 3,
-        title: 'Kirim Pengaduan & Catat Nomor Tiket',
-        actionText: 'Kursor menekan tombol "Kirim Pengaduan" dan menerima Nomor Tiket PGD',
+        title: 'Kirim Laporan',
         zoomTarget: 'btn_aduan',
-        voiceScript: 'Langkah ketiga, kursor menekan tombol Kirim Pengaduan. Anda akan memperoleh nomor tiket aduan berawalan PGD untuk memantau tindak lanjut aparat desa.',
-        explanation: 'Nomor Tiket PGD-XXXXX dapat digunakan untuk memantau perkembangan penyelesaian laporan.',
+        voiceScript: 'Langkah ketiga, tekan Kirim Pengaduan. Anda akan memperoleh nomor tiket aduan untuk memantau penyelesaian laporan.',
       },
     ],
   },
   login: {
     id: 'login',
-    title: 'Tutorial Masuk Akun Warga Berbasis NIK',
-    subtitle: 'Panduan masuk ke dashboard warga tanpa perlu menghafal password rumit',
+    title: 'Masuk Akun NIK',
     steps: [
       {
         stepNumber: 1,
-        title: 'Klik Tombol "Masuk" di Pojok Kanan Atas',
-        actionText: 'Kursor bergerak ke pojok kanan atas dan menekan tombol hijau "Masuk"',
+        title: 'Klik Tombol Masuk',
         zoomTarget: 'nav_login',
-        voiceScript: 'Untuk membuka dashboard pribadi warga, langkah pertama perhatikan kursor bergerak ke pojok kanan atas dan menekan tombol Masuk.',
-        explanation: 'Tombol Masuk selalu tersedia di bagian kanan atas seluruh halaman website.',
+        voiceScript: 'Untuk masuk ke dashboard warga, klik tombol Masuk di pojok kanan atas.',
       },
       {
         stepNumber: 2,
-        title: 'Masukkan 16 Digit NIK e-KTP Anda',
-        actionText: 'Kursor menzoom kolom NIK dan menekan tombol "Masuk Sekarang"',
+        title: 'Ketik NIK 16 Digit',
         zoomTarget: 'form_login',
-        voiceScript: 'Langkah kedua, kursor menzoom ke kolom NIK, memasukkan enam belas digit NIK e-KTP Anda, lalu menekan Masuk Sekarang. Anda langsung tiba di dashboard pribadi Anda tanpa perlu password rumit.',
-        explanation: 'Sistem Lentera Desa menggunakan autentikasi NIK praktis yang aman dan mudah.',
+        voiceScript: 'Langkah kedua, masukkan enam belas digit NIK Anda lalu tekan Masuk Sekarang. Anda langsung tiba di dashboard pribadi.',
       },
     ],
   },
@@ -202,7 +161,7 @@ export default function InteractiveTutorialModal({
 
   // Motion cursor and zoom states
   const [animationPhase, setAnimationPhase] = useState<'approaching' | 'zooming' | 'clicking' | 'settled'>('approaching');
-  const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number }>({ x: 220, y: 160 });
+  const [cursorPosition, setCursorPosition] = useState<{ x: number; y: number }>({ x: 260, y: 190 });
   const [isClicked, setIsClicked] = useState<boolean>(false);
 
   const activeTutorial = TUTORIAL_DATA[selectedTutorialId] || TUTORIAL_DATA['sku'];
@@ -223,7 +182,7 @@ export default function InteractiveTutorialModal({
       osc.frequency.setValueAtTime(1000, ctx.currentTime);
       osc.frequency.exponentialRampToValueAtTime(160, ctx.currentTime + 0.04);
 
-      gain.gain.setValueAtTime(0.25, ctx.currentTime);
+      gain.gain.setValueAtTime(0.2, ctx.currentTime);
       gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.04);
 
       osc.connect(gain);
@@ -233,8 +192,8 @@ export default function InteractiveTutorialModal({
     } catch (e) {}
   };
 
-  // Pure Indonesian Voice Over Engine
-  const speakIndonesian = (text: string) => {
+  // Female Indonesian Voice Over Engine
+  const speakIndonesianFemale = (text: string) => {
     if (typeof window === 'undefined' || !('speechSynthesis' in window) || isMuted) {
       setIsSpeaking(false);
       return;
@@ -243,28 +202,37 @@ export default function InteractiveTutorialModal({
     try {
       window.speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
-
-      // Explicitly set language to Indonesian
       utterance.lang = 'id-ID';
 
-      // Find authentic Indonesian voice
       const voices = window.speechSynthesis.getVoices();
-      const idVoice = voices.find(
+
+      // Look for Indonesian female voices
+      const femaleIdVoice = voices.find(
         (v) =>
-          v.lang.toLowerCase() === 'id-id' ||
-          v.lang.toLowerCase() === 'id_id' ||
-          v.lang.toLowerCase().startsWith('id') ||
-          v.name.toLowerCase().includes('indonesia') ||
-          v.name.toLowerCase().includes('bahasa')
+          (v.lang.toLowerCase().includes('id') || v.name.toLowerCase().includes('indonesia')) &&
+          (v.name.toLowerCase().includes('female') ||
+            v.name.toLowerCase().includes('wanita') ||
+            v.name.toLowerCase().includes('perempuan') ||
+            v.name.toLowerCase().includes('gadis') ||
+            v.name.toLowerCase().includes('putri') ||
+            v.name.toLowerCase().includes('siti') ||
+            v.name.toLowerCase().includes('google bahasa indonesia') ||
+            !v.name.toLowerCase().includes('male'))
       );
+
+      const idVoice =
+        femaleIdVoice ||
+        voices.find(
+          (v) => v.lang.toLowerCase().includes('id') || v.name.toLowerCase().includes('indonesia')
+        );
 
       if (idVoice) {
         utterance.voice = idVoice;
       }
 
-      // Natural, clear, polite Indonesian cadence
-      utterance.rate = 0.94;
-      utterance.pitch = 1.0;
+      // Pleasant, clear female pitch & cadence
+      utterance.rate = 0.95;
+      utterance.pitch = 1.08;
       utterance.volume = 1.0;
 
       utterance.onstart = () => setIsSpeaking(true);
@@ -277,7 +245,6 @@ export default function InteractiveTutorialModal({
     }
   };
 
-  // Handle voices changing in browser
   useEffect(() => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
       const handleVoices = () => {
@@ -304,17 +271,17 @@ export default function InteractiveTutorialModal({
 
     const t2 = setTimeout(() => {
       setAnimationPhase('zooming');
-    }, 1200);
+    }, 1100);
 
     const t3 = setTimeout(() => {
       setAnimationPhase('clicking');
       setIsClicked(true);
       playClickSound();
-    }, 2000);
+    }, 1900);
 
     const t4 = setTimeout(() => {
       setAnimationPhase('settled');
-    }, 2600);
+    }, 2500);
 
     return () => {
       clearTimeout(t1);
@@ -328,7 +295,7 @@ export default function InteractiveTutorialModal({
   useEffect(() => {
     if (isOpen && currentStep) {
       if (isPlaying && !isMuted) {
-        speakIndonesian(currentStep.voiceScript);
+        speakIndonesianFemale(currentStep.voiceScript);
       } else {
         if (typeof window !== 'undefined' && 'speechSynthesis' in window) {
           window.speechSynthesis.cancel();
@@ -380,7 +347,7 @@ export default function InteractiveTutorialModal({
     }, 1900);
     setTimeout(() => setAnimationPhase('settled'), 2500);
 
-    speakIndonesian(currentStep.voiceScript);
+    speakIndonesianFemale(currentStep.voiceScript);
   };
 
   const toggleMute = () => {
@@ -392,7 +359,7 @@ export default function InteractiveTutorialModal({
       setIsMuted(true);
     } else {
       setIsMuted(false);
-      speakIndonesian(currentStep.voiceScript);
+      speakIndonesianFemale(currentStep.voiceScript);
     }
   };
 
@@ -400,45 +367,54 @@ export default function InteractiveTutorialModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-950/80 backdrop-blur-md animate-in fade-in duration-200">
-      <div className="relative w-full max-w-5xl bg-slate-900 rounded-3xl shadow-2xl border border-slate-700 overflow-hidden flex flex-col max-h-[95vh]">
-        {/* Top Header */}
-        <div className="bg-gradient-to-r from-emerald-900 via-emerald-850 to-teal-950 text-white px-5 py-3.5 flex items-center justify-between border-b border-emerald-700/60 shadow-md">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center shadow-md">
-              <Image
-                src="/logo_jeneponto.png"
-                alt="Logo Jeneponto"
-                width={30}
-                height={30}
-                className="object-contain"
-              />
-            </div>
-            <div>
-              <div className="flex items-center gap-2">
-                <h2 className="text-sm font-black tracking-tight text-white">
-                  Video Tutorial Website Lentera Desa
-                </h2>
-                <span className="px-2 py-0.5 rounded-full text-[9px] font-bold bg-amber-400 text-emerald-950 uppercase">
-                  Voice Over Indonesia
-                </span>
-              </div>
-              <p className="text-[10.5px] text-emerald-200">
-                Simulasi kursor interaktif dan zoom otomatis sesuai tampilan asli website Desa Jombe
-              </p>
-            </div>
+      <div className="relative w-[96vw] max-w-6xl bg-slate-900 rounded-3xl shadow-2xl border border-slate-700 overflow-hidden flex flex-col h-[90vh] max-h-[92vh]">
+        {/* Minimalist Top Header */}
+        <div className="bg-emerald-950 text-white px-5 py-3 flex items-center justify-between border-b border-emerald-800/80 shrink-0">
+          <div className="flex items-center gap-2.5">
+            <Image
+              src="/logo_jeneponto.png"
+              alt="Logo Jeneponto"
+              width={26}
+              height={26}
+              className="object-contain"
+            />
+            <h2 className="text-sm font-bold text-white tracking-wide">
+              Tutorial Website Lentera Desa
+            </h2>
           </div>
+
+          {/* Minimalist Tab Selector */}
+          <div className="hidden sm:flex items-center gap-1.5">
+            {Object.values(TUTORIAL_DATA).map((tut) => (
+              <button
+                key={tut.id}
+                onClick={() => {
+                  setSelectedTutorialId(tut.id);
+                  setCurrentStepIndex(0);
+                  setIsPlaying(true);
+                }}
+                className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
+                  selectedTutorialId === tut.id
+                    ? 'bg-emerald-700 text-white shadow-xs'
+                    : 'text-emerald-300 hover:text-white hover:bg-emerald-900/60'
+                }`}
+              >
+                {tut.title}
+              </button>
+            ))}
+          </div>
+
           <button
             onClick={handleClose}
-            className="p-1.5 rounded-xl bg-white/10 hover:bg-white/20 text-emerald-100 hover:text-white transition-colors"
+            className="p-1.5 rounded-lg text-emerald-200 hover:text-white hover:bg-white/10 transition-colors"
             title="Tutup Tutorial"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
-        {/* Tutorial Category Switcher */}
-        <div className="bg-emerald-950 border-b border-emerald-800/80 px-4 py-2 flex items-center gap-2 overflow-x-auto scrollbar-none">
-          <span className="text-[11px] font-bold text-emerald-300 shrink-0">Pilih Topik:</span>
+        {/* Mobile Topic Switcher Bar */}
+        <div className="sm:hidden bg-emerald-950/90 border-b border-emerald-800/60 px-3 py-1.5 flex items-center gap-1.5 overflow-x-auto scrollbar-none shrink-0">
           {Object.values(TUTORIAL_DATA).map((tut) => (
             <button
               key={tut.id}
@@ -447,26 +423,22 @@ export default function InteractiveTutorialModal({
                 setCurrentStepIndex(0);
                 setIsPlaying(true);
               }}
-              className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all shrink-0 flex items-center gap-1.5 ${
+              className={`px-2.5 py-1 rounded-md text-[11px] font-semibold whitespace-nowrap transition-all ${
                 selectedTutorialId === tut.id
-                  ? 'bg-amber-400 text-emerald-950 shadow-md scale-102'
-                  : 'bg-emerald-900/60 text-emerald-200 hover:bg-emerald-800 hover:text-white border border-emerald-700/50'
+                  ? 'bg-emerald-700 text-white'
+                  : 'text-emerald-300 hover:text-white'
               }`}
             >
-              {tut.id === 'sku' && <FileText className="w-3.5 h-3.5" />}
-              {tut.id === 'lacak' && <Search className="w-3.5 h-3.5" />}
-              {tut.id === 'pengaduan' && <MessageSquare className="w-3.5 h-3.5" />}
-              {tut.id === 'login' && <UserCheck className="w-3.5 h-3.5" />}
-              <span>{tut.title.replace('Tutorial ', '')}</span>
+              {tut.title}
             </button>
           ))}
         </div>
 
-        {/* Video Screen Viewport (Identical to Actual Lentera Desa Website) */}
-        <div className="flex-1 overflow-y-auto p-3 sm:p-4 bg-slate-950 flex flex-col justify-between">
-          <div className="relative w-full rounded-2xl overflow-hidden border-2 border-slate-700 bg-white shadow-2xl flex flex-col h-[380px] sm:h-[420px]">
+        {/* Large, Spacious Video Viewport */}
+        <div className="flex-1 bg-slate-950 p-2 sm:p-4 overflow-hidden flex flex-col justify-between">
+          <div className="relative w-full flex-1 rounded-2xl overflow-hidden border border-slate-700 bg-white shadow-2xl flex flex-col">
             {/* Real Website Header (Matching Navbar.tsx 1:1) */}
-            <div className="bg-white px-4 py-2.5 border-b border-slate-200 flex items-center justify-between z-20 shadow-xs">
+            <div className="bg-white px-5 py-3 border-b border-slate-200 flex items-center justify-between z-20 shadow-xs shrink-0">
               {/* Brand Logo & Identification */}
               <div className="flex items-center gap-2.5">
                 <div className="w-8 h-8 relative flex items-center justify-center">
@@ -480,11 +452,11 @@ export default function InteractiveTutorialModal({
                 </div>
                 <div className="flex flex-col">
                   <div className="flex items-baseline gap-1">
-                    <span className="text-sm font-black tracking-tight text-slate-900">
+                    <span className="text-sm sm:text-base font-black tracking-tight text-slate-900">
                       Lentera<span className="text-emerald-800">Desa</span>
                     </span>
                   </div>
-                  <div className="flex items-center gap-1 text-[8.5px] uppercase font-bold tracking-wider text-emerald-800 leading-none">
+                  <div className="flex items-center gap-1 text-[9px] uppercase font-bold tracking-wider text-emerald-800 leading-none">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
                     <span>Desa Jombe, Kec. Turatea, Kab. Jeneponto</span>
                   </div>
@@ -492,17 +464,17 @@ export default function InteractiveTutorialModal({
               </div>
 
               {/* Navigation Items */}
-              <div className="flex items-center gap-1 sm:gap-1.5 text-[11px] font-semibold">
-                <span className="px-2.5 py-1 text-slate-600 rounded-lg hidden sm:inline">Beranda</span>
-                <span className="px-2.5 py-1 text-slate-600 rounded-lg hidden md:inline">Profil Desa</span>
+              <div className="flex items-center gap-1 sm:gap-2 text-xs font-semibold">
+                <span className="px-3 py-1.5 text-slate-600 rounded-lg hidden sm:inline">Beranda</span>
+                <span className="px-3 py-1.5 text-slate-600 rounded-lg hidden md:inline">Profil Desa</span>
 
                 {/* Nav Layanan Target */}
                 <div className="relative">
                   <span
-                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1 font-bold ${
+                    className={`px-3.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1 font-bold ${
                       currentStep.zoomTarget === 'nav_layanan'
                         ? isClicked
-                          ? 'bg-amber-400 text-emerald-950 ring-4 ring-amber-300 shadow-md scale-95'
+                          ? 'bg-emerald-700 text-white ring-4 ring-emerald-300 shadow-md scale-95'
                           : 'bg-emerald-800 text-white ring-2 ring-emerald-600 shadow-sm'
                         : 'text-slate-600 hover:text-emerald-900 hover:bg-slate-50'
                     }`}
@@ -510,17 +482,17 @@ export default function InteractiveTutorialModal({
                     <span>Layanan Surat</span>
                   </span>
                   {currentStep.zoomTarget === 'nav_layanan' && isClicked && (
-                    <span className="absolute inset-0 rounded-xl bg-amber-400/80 animate-ping pointer-events-none" />
+                    <span className="absolute inset-0 rounded-xl bg-emerald-400/80 animate-ping pointer-events-none" />
                   )}
                 </div>
 
                 {/* Nav Lacak Target */}
                 <div className="relative">
                   <span
-                    className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
                       currentStep.zoomTarget === 'nav_lacak'
                         ? isClicked
-                          ? 'bg-amber-400 text-emerald-950 font-bold ring-4 ring-amber-300 scale-95 shadow-md'
+                          ? 'bg-emerald-700 text-white font-bold ring-4 ring-emerald-300 scale-95 shadow-md'
                           : 'bg-emerald-800 text-white font-bold ring-2 ring-emerald-600 shadow-sm'
                         : 'text-slate-600 hover:text-emerald-900 hover:bg-slate-50'
                     }`}
@@ -528,17 +500,17 @@ export default function InteractiveTutorialModal({
                     <span>Lacak Surat</span>
                   </span>
                   {currentStep.zoomTarget === 'nav_lacak' && isClicked && (
-                    <span className="absolute inset-0 rounded-xl bg-amber-400/80 animate-ping pointer-events-none" />
+                    <span className="absolute inset-0 rounded-xl bg-emerald-400/80 animate-ping pointer-events-none" />
                   )}
                 </div>
 
                 {/* Nav Pengaduan Target */}
                 <div className="relative hidden sm:block">
                   <span
-                    className={`px-2.5 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
+                    className={`px-3 py-1.5 rounded-xl transition-all cursor-pointer flex items-center gap-1 ${
                       currentStep.zoomTarget === 'nav_pengaduan'
                         ? isClicked
-                          ? 'bg-amber-400 text-emerald-950 font-bold ring-4 ring-amber-300 scale-95 shadow-md'
+                          ? 'bg-emerald-700 text-white font-bold ring-4 ring-emerald-300 scale-95 shadow-md'
                           : 'bg-emerald-800 text-white font-bold ring-2 ring-emerald-600 shadow-sm'
                         : 'text-slate-600 hover:text-emerald-900 hover:bg-slate-50'
                     }`}
@@ -546,17 +518,17 @@ export default function InteractiveTutorialModal({
                     <span>Pengaduan</span>
                   </span>
                   {currentStep.zoomTarget === 'nav_pengaduan' && isClicked && (
-                    <span className="absolute inset-0 rounded-xl bg-amber-400/80 animate-ping pointer-events-none" />
+                    <span className="absolute inset-0 rounded-xl bg-emerald-400/80 animate-ping pointer-events-none" />
                   )}
                 </div>
 
                 {/* Nav Login Target */}
                 <div className="relative ml-1">
                   <span
-                    className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs ${
+                    className={`px-4 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1 shadow-xs ${
                       currentStep.zoomTarget === 'nav_login'
                         ? isClicked
-                          ? 'bg-amber-400 text-emerald-950 ring-4 ring-amber-300 scale-95'
+                          ? 'bg-emerald-700 text-white ring-4 ring-emerald-300 scale-95'
                           : 'bg-emerald-800 text-white ring-2 ring-emerald-600'
                         : 'bg-emerald-800 hover:bg-emerald-900 text-white'
                     }`}
@@ -564,38 +536,38 @@ export default function InteractiveTutorialModal({
                     <span>Masuk</span>
                   </span>
                   {currentStep.zoomTarget === 'nav_login' && isClicked && (
-                    <span className="absolute inset-0 rounded-xl bg-amber-400/80 animate-ping pointer-events-none" />
+                    <span className="absolute inset-0 rounded-xl bg-emerald-400/80 animate-ping pointer-events-none" />
                   )}
                 </div>
               </div>
             </div>
 
-            {/* Real Web Body with Zoom Camera Transform */}
-            <div className="relative flex-1 bg-slate-50 overflow-hidden flex items-center justify-center p-3 sm:p-5">
+            {/* Real Web Body with Smooth Zoom Transform */}
+            <div className="relative flex-1 bg-slate-50 overflow-hidden flex items-center justify-center p-4 sm:p-8">
               <div
-                className={`w-full max-w-xl transition-all duration-700 ease-out transform ${
+                className={`w-full max-w-2xl transition-all duration-700 ease-out transform ${
                   animationPhase === 'zooming' || animationPhase === 'clicking'
-                    ? 'scale-125 sm:scale-135 shadow-2xl rounded-2xl'
+                    ? 'scale-115 sm:scale-120 shadow-xl rounded-2xl'
                     : 'scale-100'
                 }`}
               >
                 {/* Step 1: Real Website Hero Banner */}
                 {currentStep.zoomTarget === 'nav_layanan' && (
-                  <div className="p-5 bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-2xl shadow-xl text-center space-y-3">
-                    <span className="inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold bg-emerald-700/60 text-emerald-200 border border-emerald-500/30">
+                  <div className="p-6 sm:p-8 bg-gradient-to-br from-emerald-900 to-teal-950 text-white rounded-2xl shadow-xl text-center space-y-3.5">
+                    <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-bold bg-emerald-700/60 text-emerald-200 border border-emerald-500/30">
                       Sistem Pelayanan Mandiri Desa Jombe
                     </span>
-                    <h3 className="text-base sm:text-lg font-black leading-snug text-white">
+                    <h3 className="text-lg sm:text-xl font-black leading-snug text-white">
                       Layanan Surat Administrasi Desa Jombe<br />Mudah, Cepat & 100% Bebas Pungli
                     </h3>
-                    <div className="max-w-md mx-auto flex items-center gap-2 p-1.5 bg-white rounded-xl shadow-md">
+                    <div className="max-w-md mx-auto flex items-center gap-2 p-2 bg-white rounded-xl shadow-md">
                       <Search className="w-4 h-4 text-slate-400 ml-2" />
                       <input
                         readOnly
                         placeholder="Cari layanan surat keterangan..."
                         className="flex-1 text-xs text-slate-800 bg-transparent focus:outline-none"
                       />
-                      <span className="px-3 py-1.5 bg-emerald-800 text-white text-[10px] font-bold rounded-lg">
+                      <span className="px-3.5 py-1.5 bg-emerald-800 text-white text-xs font-bold rounded-lg">
                         Cari
                       </span>
                     </div>
@@ -604,32 +576,32 @@ export default function InteractiveTutorialModal({
 
                 {/* Step 2: Real SKU Service Card */}
                 {currentStep.zoomTarget === 'card_sku' && (
-                  <div className="p-4 sm:p-5 bg-white rounded-2xl border-2 border-emerald-600 shadow-xl text-left space-y-3">
+                  <div className="p-6 bg-white rounded-2xl border-2 border-emerald-600 shadow-xl text-left space-y-3.5">
                     <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-200">
-                          <FileText className="w-4 h-4" />
+                      <div className="flex items-center gap-2.5">
+                        <div className="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-800 flex items-center justify-center border border-emerald-200">
+                          <FileText className="w-5 h-5" />
                         </div>
                         <div>
-                          <h4 className="text-xs sm:text-sm font-black text-slate-900">
+                          <h4 className="text-sm font-black text-slate-900">
                             Surat Keterangan Usaha (SKU)
                           </h4>
-                          <span className="text-[10px] text-slate-500">Legalitas Usaha & Syarat KUR Bank</span>
+                          <span className="text-xs text-slate-500">Legalitas Usaha & Syarat KUR Bank</span>
                         </div>
                       </div>
-                      <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-emerald-100 text-emerald-900 border border-emerald-300">
+                      <span className="px-3 py-1 rounded-full text-xs font-black bg-emerald-100 text-emerald-900 border border-emerald-300">
                         GRATIS
                       </span>
                     </div>
-                    <p className="text-[11px] text-slate-600 leading-relaxed">
-                      Menerangkan secara sah bahwa warga menjalankan usaha mikro/warung di wilayah Desa Jombe.
+                    <p className="text-xs text-slate-600 leading-relaxed">
+                      Menerangkan secara sah bahwa pemohon memiliki dan mengelola usaha produktif di wilayah Desa Jombe.
                     </p>
-                    <div className="pt-1 flex items-center justify-between border-t border-slate-100">
-                      <span className="text-[10px] text-slate-500 font-medium">Estimasi: 1 Hari Kerja</span>
+                    <div className="pt-2 flex items-center justify-between border-t border-slate-100">
+                      <span className="text-xs text-slate-500 font-medium">Estimasi: 1 Hari Kerja</span>
                       <button
-                        className={`px-4 py-2 rounded-xl text-xs font-black transition-all ${
+                        className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                           isClicked
-                            ? 'bg-amber-400 text-emerald-950 ring-4 ring-amber-300 scale-95 shadow-md'
+                            ? 'bg-emerald-700 text-white ring-4 ring-emerald-300 scale-95 shadow-md'
                             : 'bg-emerald-800 hover:bg-emerald-900 text-white shadow-sm'
                         }`}
                       >
@@ -641,36 +613,36 @@ export default function InteractiveTutorialModal({
 
                 {/* Step 3: Real Form Input NIK */}
                 {currentStep.zoomTarget === 'input_nik' && (
-                  <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3">
-                    <div className="border-b border-slate-100 pb-2 flex items-center justify-between">
-                      <h4 className="text-xs sm:text-sm font-black text-slate-900">Formulir Permohonan SKU</h4>
-                      <span className="text-[10px] font-bold text-emerald-800">Langkah 1 dari 2</span>
+                  <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3.5">
+                    <div className="border-b border-slate-100 pb-2.5 flex items-center justify-between">
+                      <h4 className="text-sm font-black text-slate-900">Formulir Permohonan SKU</h4>
+                      <span className="text-xs font-bold text-emerald-800">Langkah 1 dari 2</span>
                     </div>
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <div>
-                        <label className="text-[10px] font-bold text-slate-700 block mb-1">
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5">
                           Nomor Induk Kependudukan (NIK 16 Digit) <span className="text-red-500">*</span>
                         </label>
                         <div className="relative">
                           <input
                             readOnly
                             value="7304051208990001"
-                            className={`w-full px-3.5 py-2 rounded-xl text-xs font-mono font-bold text-slate-900 transition-all ${
+                            className={`w-full px-4 py-2.5 rounded-xl text-xs font-mono font-bold text-slate-900 transition-all ${
                               isClicked
-                                ? 'bg-amber-50 border-2 border-amber-400 ring-4 ring-amber-200'
+                                ? 'bg-emerald-50 border-2 border-emerald-600 ring-4 ring-emerald-200'
                                 : 'bg-slate-50 border border-slate-300'
                             }`}
                           />
                           {isClicked && (
-                            <span className="absolute right-2.5 top-2 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[9px] font-black">
+                            <span className="absolute right-3 top-2.5 px-2 py-0.5 rounded-md bg-emerald-600 text-white text-[10px] font-black">
                               NIK TERVERIFIKASI ✓
                             </span>
                           )}
                         </div>
                       </div>
                       <div>
-                        <label className="text-[10px] font-bold text-slate-700 block mb-1">Nama Pemohon</label>
-                        <input readOnly value="Warga Desa Jombe (Dusun Jombe Selatan)" className="w-full px-3 py-1.5 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-700" />
+                        <label className="text-xs font-bold text-slate-700 block mb-1.5">Nama Lengkap Pemohon</label>
+                        <input readOnly value="Warga Desa Jombe (Dusun Jombe Selatan)" className="w-full px-4 py-2 bg-slate-100 border border-slate-200 rounded-xl text-xs text-slate-700" />
                       </div>
                     </div>
                   </div>
@@ -678,20 +650,20 @@ export default function InteractiveTutorialModal({
 
                 {/* Step 4: Real Upload Area */}
                 {currentStep.zoomTarget === 'upload_area' && (
-                  <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3">
-                    <h4 className="text-xs sm:text-sm font-black text-slate-900">Lampiran Foto Dokumen Asli</h4>
-                    <div className="grid grid-cols-2 gap-3">
+                  <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3.5">
+                    <h4 className="text-sm font-black text-slate-900">Lampiran Dokumen Persyaratan</h4>
+                    <div className="grid grid-cols-2 gap-3.5">
                       <div
-                        className={`p-3.5 rounded-xl border-2 border-dashed text-center transition-all ${
-                          isClicked ? 'border-amber-400 bg-amber-50/70' : 'border-emerald-500 bg-emerald-50/40'
+                        className={`p-4 rounded-xl border-2 border-dashed text-center transition-all ${
+                          isClicked ? 'border-emerald-600 bg-emerald-50' : 'border-emerald-400 bg-emerald-50/40'
                         }`}
                       >
-                        <div className="text-[10.5px] font-black text-slate-900">Foto e-KTP Asli</div>
-                        <span className="text-[9px] text-emerald-800 font-bold">ktp_pemohon.jpg (✓)</span>
+                        <div className="text-xs font-black text-slate-900">Foto e-KTP Asli</div>
+                        <span className="text-[10px] text-emerald-800 font-bold">ktp_asli.jpg (✓ Terunggah)</span>
                       </div>
-                      <div className="p-3.5 rounded-xl border-2 border-dashed border-emerald-500 bg-emerald-50/40 text-center">
-                        <div className="text-[10.5px] font-black text-slate-900">Kartu Keluarga (KK)</div>
-                        <span className="text-[9px] text-emerald-800 font-bold">kartu_keluarga.jpg (✓)</span>
+                      <div className="p-4 rounded-xl border-2 border-dashed border-emerald-400 bg-emerald-50/40 text-center">
+                        <div className="text-xs font-black text-slate-900">Kartu Keluarga (KK)</div>
+                        <span className="text-[10px] text-emerald-800 font-bold">kk_asli.jpg (✓ Terunggah)</span>
                       </div>
                     </div>
                   </div>
@@ -699,23 +671,23 @@ export default function InteractiveTutorialModal({
 
                 {/* Step 5: Real Submit Button */}
                 {currentStep.zoomTarget === 'btn_submit' && (
-                  <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xl text-center space-y-3">
-                    <div className="text-xs text-slate-600 flex items-center justify-center gap-1">
-                      <Lock className="w-3.5 h-3.5 text-emerald-700" />
+                  <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xl text-center space-y-3.5">
+                    <div className="text-xs text-slate-600 flex items-center justify-center gap-1.5">
+                      <Lock className="w-4 h-4 text-emerald-700" />
                       <span>Data kependudukan Anda aman & dilindungi Pemerintah Desa Jombe</span>
                     </div>
                     <button
-                      className={`w-full py-3 rounded-xl text-xs font-black transition-all flex items-center justify-center gap-2 shadow-lg ${
+                      className={`w-full py-3.5 rounded-xl text-xs sm:text-sm font-black transition-all flex items-center justify-center gap-2 shadow-lg ${
                         isClicked
-                          ? 'bg-amber-400 text-emerald-950 ring-4 ring-amber-300 scale-95'
+                          ? 'bg-emerald-700 text-white ring-4 ring-emerald-300 scale-95'
                           : 'bg-emerald-800 hover:bg-emerald-900 text-white'
                       }`}
                     >
                       <span>🚀 Kirim Permohonan Surat Sekarang</span>
                     </button>
                     {isClicked && (
-                      <div className="p-2.5 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-black text-emerald-900 animate-in fade-in">
-                        Permohonan Berhasil! Nomor Registrasi: JMB-2026-00001
+                      <div className="p-3 rounded-xl bg-emerald-50 border border-emerald-200 text-xs font-black text-emerald-900 animate-in fade-in">
+                        Permohonan Berhasil Dikirim! No. Registrasi: JMB-2026-00001
                       </div>
                     )}
                   </div>
@@ -723,28 +695,27 @@ export default function InteractiveTutorialModal({
 
                 {/* Step 6: Real Physical Wet Signature Document */}
                 {currentStep.zoomTarget === 'ttd_area' && (
-                  <div className="p-4 sm:p-6 bg-white rounded-2xl border-2 border-amber-400 shadow-2xl text-left space-y-2 font-serif text-slate-900">
-                    <div className="text-center font-bold text-[11px] border-b-2 border-slate-900 pb-1.5 leading-tight">
+                  <div className="p-6 sm:p-8 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3 font-serif text-slate-900">
+                    <div className="text-center font-bold text-xs sm:text-sm border-b-2 border-slate-900 pb-2 leading-tight">
                       PEMERINTAH KABUPATEN JENEPONTO<br />
                       KECAMATAN TURATEA<br />
-                      <span className="text-xs font-black">KANTOR KEPALA DESA JOMBE</span><br />
-                      <span className="text-[8px] font-sans text-slate-600 font-normal">Alamat: Jalan Poros Dusun Jombe Selatan, Kode Pos 92351</span>
+                      <span className="font-black text-sm">KANTOR KEPALA DESA JOMBE</span><br />
+                      <span className="text-[9px] font-sans text-slate-600 font-normal">Alamat: Jalan Poros Dusun Jombe Selatan, Kode Pos 92351</span>
                     </div>
                     <div className="text-center py-1">
-                      <div className="font-bold underline text-[11px]">SURAT KETERANGAN USAHA</div>
-                      <div className="text-[8.5px] font-sans">Nomor: 510 / 042 / DJ / III / 2026</div>
+                      <div className="font-bold underline text-xs">SURAT KETERANGAN USAHA</div>
+                      <div className="text-[9px] font-sans">Nomor: 510 / 042 / DJ / III / 2026</div>
                     </div>
-                    <div className="text-[9.5px] font-sans text-slate-700 leading-normal">
+                    <div className="text-xs font-sans text-slate-700 leading-relaxed">
                       Menerangkan bahwa pemohon adalah benar warga Desa Jombe yang memiliki usaha mikro di Dusun Jombe Selatan.
                     </div>
-                    <div className="pt-2 flex justify-end">
+                    <div className="pt-3 flex justify-end">
                       <div className="text-center relative pr-4">
-                        <div className="text-[8.5px] font-sans">Kepala Desa Jombe,</div>
-                        {/* Blue Wet Signature Simulation */}
-                        <div className="font-bold text-[11px] text-blue-900 underline mt-3 tracking-wide">
+                        <div className="text-[9px] font-sans">Kepala Desa Jombe,</div>
+                        <div className="font-bold text-xs text-blue-900 underline mt-3 tracking-wide">
                           JUSMAEDY, S.Pd
                         </div>
-                        <div className="text-[7.5px] font-sans text-slate-500">
+                        <div className="text-[8px] font-sans text-slate-500">
                           (Ditandatangani Basah & Distempel Cap Kantor Desa)
                         </div>
                       </div>
@@ -754,19 +725,19 @@ export default function InteractiveTutorialModal({
 
                 {/* Lacak Search Real Form */}
                 {currentStep.zoomTarget === 'search_lacak' && (
-                  <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3">
-                    <h4 className="text-xs sm:text-sm font-black text-slate-900">Lacak Status Permohonan Surat</h4>
-                    <div className="flex gap-2">
+                  <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3.5">
+                    <h4 className="text-sm font-black text-slate-900">Lacak Status Permohonan Surat</h4>
+                    <div className="flex gap-2.5">
                       <input
                         readOnly
                         value="JMB-2026-00001"
-                        className={`flex-1 px-3.5 py-2 rounded-xl text-xs font-mono font-bold transition-all ${
-                          isClicked ? 'bg-amber-50 border-2 border-amber-400 ring-4 ring-amber-200' : 'bg-slate-50 border border-slate-300'
+                        className={`flex-1 px-4 py-2.5 rounded-xl text-xs font-mono font-bold transition-all ${
+                          isClicked ? 'bg-emerald-50 border-2 border-emerald-600 ring-4 ring-emerald-200' : 'bg-slate-50 border border-slate-300'
                         }`}
                       />
                       <button
-                        className={`px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                          isClicked ? 'bg-amber-400 text-emerald-950 ring-4 ring-amber-300' : 'bg-emerald-800 text-white'
+                        className={`px-5 py-2.5 rounded-xl text-xs font-bold transition-all ${
+                          isClicked ? 'bg-emerald-700 text-white ring-4 ring-emerald-300' : 'bg-emerald-800 text-white'
                         }`}
                       >
                         Lacak
@@ -777,39 +748,39 @@ export default function InteractiveTutorialModal({
 
                 {/* Lacak Result Real Card */}
                 {currentStep.zoomTarget === 'result_lacak' && (
-                  <div className="p-4 sm:p-5 bg-white rounded-2xl border-2 border-emerald-600 shadow-xl text-left space-y-2.5">
+                  <div className="p-6 bg-white rounded-2xl border-2 border-emerald-600 shadow-xl text-left space-y-3">
                     <div className="flex items-center justify-between border-b border-slate-100 pb-2">
                       <span className="text-xs font-black text-slate-900">No. Registrasi: JMB-2026-00001</span>
-                      <span className="px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900 font-black text-[10px]">
+                      <span className="px-3 py-1 rounded-full bg-emerald-100 text-emerald-900 font-black text-xs">
                         DISETUJUI / SELESAI
                       </span>
                     </div>
-                    <div className="text-[11px] text-slate-600">
+                    <div className="text-xs text-slate-600 leading-relaxed">
                       Surat Keterangan Usaha (SKU) telah selesai diverifikasi, dicetak, dan ditandatangani basah oleh Kepala Desa Jombe.
                     </div>
-                    <div className="text-[10px] font-bold text-emerald-800 bg-emerald-50 p-2 rounded-lg">
-                      📍 Silakan ambil berkas fisik di Kantor Desa Jombe pada jam kerja (08.00 - 15.00 WITA).
+                    <div className="text-xs font-bold text-emerald-800 bg-emerald-50 p-2.5 rounded-xl">
+                      📍 Berkas fisik resmi siap diambil di Kantor Desa Jombe pada jam kerja (08.00 - 15.00 WITA).
                     </div>
                   </div>
                 )}
 
                 {/* Real Pengaduan Form */}
                 {currentStep.zoomTarget === 'form_aduan' && (
-                  <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-2.5">
-                    <h4 className="text-xs sm:text-sm font-black text-slate-900">Formulir Pengaduan & Aspirasi Warga</h4>
-                    <div className="space-y-1.5">
-                      <input readOnly value="Jalan berlubang di poros Dusun Jombe Selatan" className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 font-medium" />
-                      <textarea readOnly rows={2} value="Mohon perbaikan jalan rusak sebelum musim hujan agar pengangkutan panen jagung lancar." className="w-full px-3 py-1.5 bg-slate-50 border border-slate-300 rounded-xl text-[11px] text-slate-700" />
+                  <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3">
+                    <h4 className="text-sm font-black text-slate-900">Formulir Pengaduan & Aspirasi Warga</h4>
+                    <div className="space-y-2">
+                      <input readOnly value="Jalan berlubang di poros Dusun Jombe Selatan" className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-800 font-medium" />
+                      <textarea readOnly rows={2} value="Mohon perbaikan jalan rusak sebelum musim hujan agar pengangkutan panen jagung lancar." className="w-full px-3.5 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs text-slate-700" />
                     </div>
                   </div>
                 )}
 
                 {/* Real Pengaduan Submit */}
                 {currentStep.zoomTarget === 'btn_aduan' && (
-                  <div className="p-4 sm:p-5 bg-white rounded-2xl border border-slate-200 shadow-xl text-center space-y-2.5">
+                  <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xl text-center space-y-3">
                     <button
-                      className={`w-full py-2.5 rounded-xl text-xs font-black transition-all ${
-                        isClicked ? 'bg-amber-400 text-emerald-950 ring-4 ring-amber-300 scale-95' : 'bg-emerald-800 text-white'
+                      className={`w-full py-3 rounded-xl text-xs font-black transition-all ${
+                        isClicked ? 'bg-emerald-700 text-white ring-4 ring-emerald-300 scale-95' : 'bg-emerald-800 text-white'
                       }`}
                     >
                       Kirim Laporan Pengaduan
@@ -824,17 +795,17 @@ export default function InteractiveTutorialModal({
 
                 {/* Real Login Form */}
                 {currentStep.zoomTarget === 'form_login' && (
-                  <div className="p-5 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3">
-                    <div className="text-center font-black text-slate-900 text-xs sm:text-sm">
+                  <div className="p-6 bg-white rounded-2xl border border-slate-200 shadow-xl text-left space-y-3.5">
+                    <div className="text-center font-black text-slate-900 text-sm">
                       Masuk ke Sistem Lentera Desa
                     </div>
                     <div>
-                      <label className="text-[10px] font-bold text-slate-700 block mb-1">16 Digit NIK e-KTP</label>
-                      <input readOnly value="7304051208990001" className="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold" />
+                      <label className="text-xs font-bold text-slate-700 block mb-1">16 Digit NIK e-KTP</label>
+                      <input readOnly value="7304051208990001" className="w-full px-3.5 py-2.5 bg-slate-50 border border-slate-300 rounded-xl text-xs font-mono font-bold" />
                     </div>
                     <button
-                      className={`w-full py-2.5 rounded-xl text-xs font-black transition-all ${
-                        isClicked ? 'bg-amber-400 text-emerald-950 ring-4 ring-amber-300 scale-95' : 'bg-emerald-800 text-white'
+                      className={`w-full py-3 rounded-xl text-xs font-black transition-all ${
+                        isClicked ? 'bg-emerald-700 text-white ring-4 ring-emerald-300 scale-95' : 'bg-emerald-800 text-white'
                       }`}
                     >
                       Masuk Sekarang
@@ -843,7 +814,7 @@ export default function InteractiveTutorialModal({
                 )}
               </div>
 
-              {/* Animated Gliding Cursor Arrow */}
+              {/* Clean Animated Cursor Arrow (Tanpa Teks / Label Kuning) */}
               <div
                 className="absolute pointer-events-none z-30 transition-all duration-700 ease-out"
                 style={{
@@ -852,8 +823,8 @@ export default function InteractiveTutorialModal({
               >
                 <div className="relative">
                   <svg
-                    className={`w-7 h-7 filter drop-shadow-xl transition-transform ${
-                      isClicked ? 'scale-75 translate-x-1 translate-y-1' : 'scale-100'
+                    className={`w-7 h-7 filter drop-shadow-lg transition-transform ${
+                      isClicked ? 'scale-80 translate-x-0.5 translate-y-0.5' : 'scale-100'
                     }`}
                     viewBox="0 0 24 24"
                     fill="none"
@@ -861,91 +832,65 @@ export default function InteractiveTutorialModal({
                   >
                     <path
                       d="M3 3L10.07 19.97L12.58 12.58L19.97 10.07L3 3Z"
-                      fill="#F59E0B"
-                      stroke="#78350F"
+                      fill="#047857"
+                      stroke="#FFFFFF"
                       strokeWidth="2"
                       strokeLinejoin="round"
                     />
                   </svg>
                   {isClicked && (
-                    <span className="absolute -top-3 -left-3 w-10 h-10 rounded-full border-4 border-amber-400 animate-ping" />
+                    <span className="absolute -top-3 -left-3 w-10 h-10 rounded-full border-4 border-emerald-400 animate-ping" />
                   )}
-                  <span className="absolute left-6 top-4 whitespace-nowrap px-2 py-0.5 rounded-md bg-amber-400 text-emerald-950 font-black text-[9px] shadow-lg border border-amber-300">
-                    KLIK
-                  </span>
                 </div>
               </div>
-
-              {/* Bottom Action Callout Banner */}
-              <div className="absolute bottom-3 inset-x-4 p-2.5 rounded-xl bg-amber-400 text-emerald-950 font-black text-xs shadow-xl flex items-center justify-center gap-2 border-2 border-amber-300 z-20">
-                <MousePointerClick className="w-4 h-4 text-emerald-950 shrink-0" />
-                <span className="truncate">{currentStep.actionText}</span>
-              </div>
             </div>
           </div>
 
-          {/* Subtitle & Narration Box (Indonesian Voice Over) */}
-          <div className="mt-3 p-3.5 rounded-2xl bg-slate-900 border border-slate-800 space-y-2">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <span className="flex h-2 w-2 relative">
-                  {isSpeaking && <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75" />}
-                  <span className="relative inline-flex rounded-full h-2 w-2 bg-emerald-500" />
-                </span>
-                <span className="text-xs font-extrabold text-emerald-300">
-                  Narator Suara Bahasa Indonesia:
-                </span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <button
-                  onClick={toggleMute}
-                  className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-colors flex items-center gap-1 border ${
-                    !isMuted
-                      ? 'bg-emerald-900/80 text-emerald-300 border-emerald-700 hover:bg-emerald-800'
-                      : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
-                  }`}
-                >
-                  {isMuted ? <VolumeX className="w-3.5 h-3.5" /> : <Volume2 className="w-3.5 h-3.5 text-emerald-400" />}
-                  <span>{isMuted ? 'Mute' : 'Suara Aktif'}</span>
-                </button>
-                <button
-                  onClick={handleReplay}
-                  className="px-2.5 py-1 rounded-lg bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs transition-colors flex items-center gap-1"
-                >
-                  <RotateCcw className="w-3.5 h-3.5" />
-                  <span>Ulangi</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Subtitle Text */}
-            <p className="text-xs sm:text-sm text-white font-medium leading-relaxed bg-slate-950/80 p-3 rounded-xl border border-slate-800">
-              "{currentStep.voiceScript}"
-            </p>
-          </div>
-
-          {/* Timeline & Playback Navigation Controls */}
-          <div className="mt-3 p-3 rounded-2xl bg-slate-900 border border-slate-800 flex flex-wrap items-center justify-between gap-2.5">
-            <div className="flex items-center gap-2">
+          {/* Minimalist Subtitle & Player Control Bar */}
+          <div className="mt-3 p-3 rounded-2xl bg-slate-900 border border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+            {/* Play/Pause & Subtitle */}
+            <div className="flex items-center gap-3 w-full sm:w-auto">
               <button
                 onClick={() => setIsPlaying(!isPlaying)}
-                className={`px-3.5 py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 text-xs ${
+                className={`p-2 sm:px-3 sm:py-2 rounded-xl font-bold transition-all flex items-center gap-1.5 text-xs shrink-0 ${
                   isPlaying
-                    ? 'bg-amber-400 text-emerald-950 shadow-md hover:bg-amber-300'
-                    : 'bg-emerald-700 text-white hover:bg-emerald-600'
+                    ? 'bg-emerald-700 text-white hover:bg-emerald-600'
+                    : 'bg-emerald-600 text-white hover:bg-emerald-500'
                 }`}
               >
                 {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4" />}
-                <span>{isPlaying ? 'Jeda' : 'Putar Video'}</span>
+                <span className="hidden sm:inline">{isPlaying ? 'Jeda' : 'Putar'}</span>
               </button>
 
-              <div className="text-xs font-bold text-slate-300 ml-2">
-                Langkah <span className="text-amber-400">{currentStepIndex + 1}</span> dari {totalSteps}:{' '}
-                <span className="text-white font-normal">{currentStep.title}</span>
+              <button
+                onClick={toggleMute}
+                className={`p-2 sm:px-2.5 sm:py-2 rounded-xl border text-xs font-semibold transition-colors flex items-center gap-1.5 shrink-0 ${
+                  !isMuted
+                    ? 'bg-emerald-900/60 text-emerald-300 border-emerald-700 hover:bg-emerald-800'
+                    : 'bg-slate-800 text-slate-400 border-slate-700 hover:text-white'
+                }`}
+                title={isMuted ? 'Nyalakan Suara' : 'Matikan Suara'}
+              >
+                {isMuted ? <VolumeX className="w-4 h-4" /> : <Volume2 className="w-4 h-4 text-emerald-400" />}
+                <span className="hidden sm:inline">{isMuted ? 'Mute' : 'Suara'}</span>
+              </button>
+
+              <button
+                onClick={handleReplay}
+                className="p-2 sm:px-2.5 sm:py-2 rounded-xl bg-slate-800 text-slate-300 hover:text-white border border-slate-700 text-xs transition-colors shrink-0"
+                title="Ulangi Langkah Ini"
+              >
+                <RotateCcw className="w-4 h-4" />
+              </button>
+
+              {/* Clean Subtitle Text */}
+              <div className="flex-1 text-xs text-slate-200 line-clamp-2 pl-2 border-l border-slate-800">
+                "{currentStep.voiceScript}"
               </div>
             </div>
 
-            <div className="flex items-center gap-2">
+            {/* Navigation Buttons */}
+            <div className="flex items-center gap-2 shrink-0 self-end sm:self-auto">
               <button
                 onClick={handlePrevStep}
                 disabled={currentStepIndex === 0}
@@ -955,6 +900,10 @@ export default function InteractiveTutorialModal({
                 <span>Sebelumnya</span>
               </button>
 
+              <span className="text-xs font-bold text-slate-300 px-1">
+                {currentStepIndex + 1} / {totalSteps}
+              </span>
+
               <button
                 onClick={handleNextStep}
                 disabled={currentStepIndex === totalSteps - 1}
@@ -962,13 +911,6 @@ export default function InteractiveTutorialModal({
               >
                 <span>Selanjutnya</span>
                 <ChevronRight className="w-4 h-4" />
-              </button>
-
-              <button
-                onClick={handleClose}
-                className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs border border-slate-700 ml-2"
-              >
-                Tutup
               </button>
             </div>
           </div>
