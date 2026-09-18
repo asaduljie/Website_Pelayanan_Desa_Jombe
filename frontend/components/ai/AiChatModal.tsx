@@ -57,7 +57,7 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'sku', 'usaha', 'dagang', 'warung', 'toko', 'kios', 'jualan', 'kur',
       'modal', 'umkm', 'bisnis', 'izin usaha', 'kredit usaha', 'bank', 'pedagang'
     ],
-    reply: `Informasi Surat Keterangan Usaha (SKU):\n\nSurat Keterangan Usaha (SKU) digunakan sebagai bukti legalitas usaha di Desa Jombe untuk pengajuan permodalan/KUR bank, izin usaha, maupun pendataan bantuan UMKM.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon asli\n• Foto Kartu Keluarga (KK)\n• Foto Tempat / Aktivitas Usaha di wilayah Desa Jombe\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol "Ajukan SKU Sekarang" di bawah ini.\n2️⃣ Masukkan 16 Digit NIK e-KTP dan data usaha Anda.\n3️⃣ Unggah foto KTP, KK, dan foto tempat usaha.\n4️⃣ Tekan tombol hijau "Kirim Permohonan" dan simpan No. Registrasi (JMB-XXXXX).\n5️⃣ Berkas diverifikasi operator, dicetak fisik, lalu dibubuhi tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd) & cap stempel kantor desa.\n6️⃣ Ambil surat fisik resmi di Kantor Desa Jombe (1 Hari Kerja, 100% GRATIS).\n\n💡 Ingin melihat simulasi visual? Tekan tombol "Tonton Video Tutorial" di bawah untuk panduan langsung oleh Maskot Daeng Jombe!`,
+    reply: `Informasi Surat Keterangan Usaha (SKU):\n\nSurat Keterangan Usaha (SKU) digunakan sebagai bukti legalitas usaha di Desa Jombe untuk pengajuan permodalan/KUR bank, izin usaha, maupun pendataan bantuan UMKM.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon asli\n• Foto Kartu Keluarga (KK)\n• Foto Tempat / Aktivitas Usaha di wilayah Desa Jombe\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol "Ajukan SKU Sekarang" di bawah ini.\n2️⃣ Masukkan 16 Digit NIK e-KTP dan data usaha Anda.\n3️⃣ Unggah foto KTP, KK, dan foto tempat usaha.\n4️⃣ Tekan tombol hijau "Kirim Permohonan" dan simpan No. Registrasi (JMB-XXXXX).\n5️⃣ Berkas diverifikasi operator, dicetak fisik, lalu dibubuhi tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd) & cap stempel kantor desa.\n6️⃣ Ambil surat fisik resmi di Kantor Desa Jombe (1 Hari Kerja, 100% GRATIS).\n\n💡 Ingin melihat simulasi visual? Tekan tombol "Tonton Video Tutorial" di bawah untuk melihat rekaman langkah-langkah di website!`,
     actionButton: { label: 'Ajukan SKU Sekarang', url: '/layanan/surat-keterangan-usaha' },
     tutorialId: 'sku',
     tutorialLabel: '🎬 Tonton Video Tutorial SKU',
@@ -287,10 +287,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
       'halo', 'hai', 'assalamualaikum', 'pagi', 'siang', 'sore', 'malam',
       'terima kasih', 'makasih', 'siapa kamu', 'bisa apa', 'fitur apa saja', 'bantuan', 'tolong', 'menu'
     ],
-    reply: `Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe, Kec. Turatea, Kab. Jeneponto.\n\nSaya dapat membantu Anda dengan informasi langkah-langkah serta video tutorial panduan:\n1. 📜 Syarat & Langkah 9 Surat Keterangan Desa\n2. 🔍 Cara Lacak Surat (/lacak)\n3. 🛡️ Validasi & QR Code Surat Resmi (/verifikasi-ttd)\n4. 📢 Kirim Pengaduan Warga (/pengaduan)\n5. 🌾 Profil Desa & Data Resmi BPS Turatea 2025 (/profil)\n6. 📍 Lokasi Kantor di Dusun Jombe Selatan & Jam Kerja (WITA)\n7. 💰 Biaya Pelayanan (100% Gratis)\n\nSilakan ketik pertanyaan apa saja atau klik tombol Video Tutorial di bawah untuk melihat simulasi visual dengan panduan suara Maskot Daeng Jombe!`,
+    reply: `Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe, Kec. Turatea, Kab. Jeneponto.\n\nSaya dapat membantu Anda dengan informasi langkah-langkah serta video tutorial panduan:\n1. 📜 Syarat & Langkah 9 Surat Keterangan Desa\n2. 🔍 Cara Lacak Surat (/lacak)\n3. 🛡️ Validasi & QR Code Surat Resmi (/verifikasi-ttd)\n4. 📢 Kirim Pengaduan Warga (/pengaduan)\n5. 🌾 Profil Desa & Data Resmi BPS Turatea 2025 (/profil)\n6. 📍 Lokasi Kantor di Dusun Jombe Selatan & Jam Kerja (WITA)\n7. 💰 Biaya Pelayanan (100% Gratis)\n\nSilakan ketik pertanyaan apa saja atau klik tombol Video Tutorial untuk melihat simulasi visual di website dengan panduan suara Bahasa Indonesia!`,
     actionButton: { label: 'Katalog Semua Layanan', url: '/layanan' },
     tutorialId: 'sku',
-    tutorialLabel: '🎬 Tonton Video Tutorial Interaktif',
+    tutorialLabel: '🎬 Tonton Video Tutorial Web',
   },
 ];
 
@@ -308,7 +308,7 @@ function matchKnowledgeLocally(inputPrompt: string): {
       reply: 'Halo! Ada yang bisa kami bantu seputar pelayanan surat atau informasi Desa Jombe?',
       actionButton: { label: 'Katalog Layanan Surat', url: '/layanan' },
       tutorialId: 'sku',
-      tutorialLabel: '🎬 Tonton Video Tutorial Layanan',
+      tutorialLabel: '🎬 Tonton Video Tutorial Web',
     };
   }
 
@@ -359,15 +359,15 @@ function matchKnowledgeLocally(inputPrompt: string): {
   }
 
   return {
-    reply: `Terima kasih telah bertanya di Pusat Bantuan Desa Jombe. Kami belum menemukan informasi persis untuk "${inputPrompt}".\n\nTopik populer yang sering ditanyakan warga:\n• Syarat & langkah Surat Keterangan Usaha (SKU) atau SKTM\n• Cara melacak surat (/lacak)\n• Alur cetak & tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd)\n• Kirim pengaduan warga (/pengaduan)\n• Lokasi kantor desa di Dusun Jombe Selatan & jam kerja (WITA).\n\nSilakan pilih salah satu menu di bawah atau klik tombol Video Tutorial untuk dipandu langsung oleh Maskot Daeng Jombe!`,
+    reply: `Terima kasih telah bertanya di Pusat Bantuan Desa Jombe. Kami belum menemukan informasi persis untuk "${inputPrompt}".\n\nTopik populer yang sering ditanyakan warga:\n• Syarat & langkah Surat Keterangan Usaha (SKU) atau SKTM\n• Cara melacak surat (/lacak)\n• Alur cetak & tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd)\n• Kirim pengaduan warga (/pengaduan)\n• Lokasi kantor desa di Dusun Jombe Selatan & jam kerja (WITA).\n\nSilakan pilih salah satu menu di bawah atau klik tombol Video Tutorial untuk melihat simulasi visual langkah-langkah di website!`,
     actionButton: { label: 'Buka Katalog Semua Layanan', url: '/layanan' },
     tutorialId: 'sku',
-    tutorialLabel: '🎬 Tonton Video Tutorial Layanan',
+    tutorialLabel: '🎬 Tonton Video Tutorial Web',
   };
 }
 
 const QUICK_SUGGESTIONS = [
-  '🎬 Video Tutorial',
+  '🎬 Video Tutorial Web',
   'Syarat SKU',
   'Syarat SKTM',
   'Lacak Surat',
@@ -387,10 +387,10 @@ export default function AiChatModal() {
     {
       id: 'init-1',
       sender: 'bot',
-      text: 'Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe.\n\nSaya siap memberikan informasi langkah-langkah persyaratan surat administrasi, lacak berkas, pengaduan, maupun video tutorial interaktif yang dipandu langsung oleh Maskot Desa Daeng Jombe!',
+      text: 'Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe.\n\nSaya siap memberikan informasi langkah-langkah persyaratan surat administrasi, lacak berkas, pengaduan, maupun video tutorial interaktif dengan simulasi kursor dan narasi suara Bahasa Indonesia!',
       actionButton: { label: 'Jelajahi Katalog Layanan', url: '/layanan' },
       tutorialId: 'sku',
-      tutorialLabel: '🎬 Tonton Video Tutorial Interaktif',
+      tutorialLabel: '🎬 Tonton Video Tutorial Web',
       timestamp: 'Sekarang',
     },
   ]);
@@ -437,7 +437,6 @@ export default function AiChatModal() {
     setLoading(true);
 
     try {
-      // Try backend API first with a quick timeout fallback
       const controller = new AbortController();
       const timeoutId = setTimeout(() => controller.abort(), 4000);
 
@@ -458,7 +457,7 @@ export default function AiChatModal() {
             text: botData.reply,
             actionButton: botData.actionButton,
             tutorialId: botData.tutorialId || (cleanQuery.includes('lacak') ? 'lacak' : cleanQuery.includes('aduan') || cleanQuery.includes('pengaduan') ? 'pengaduan' : cleanQuery.includes('login') || cleanQuery.includes('masuk') ? 'login' : 'sku'),
-            tutorialLabel: botData.tutorialLabel || '🎬 Tonton Video Tutorial (Dipandu Maskot)',
+            tutorialLabel: botData.tutorialLabel || '🎬 Tonton Video Tutorial Web',
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
@@ -466,7 +465,6 @@ export default function AiChatModal() {
       }
       throw new Error('Fallback to local matching');
     } catch (error) {
-      // Offline / network fallback with identical knowledge base
       const localResult = matchKnowledgeLocally(cleanQuery);
       setMessages((prev) => [
         ...prev,
@@ -476,7 +474,7 @@ export default function AiChatModal() {
           text: localResult.reply,
           actionButton: localResult.actionButton,
           tutorialId: localResult.tutorialId || (cleanQuery.includes('lacak') ? 'lacak' : cleanQuery.includes('aduan') || cleanQuery.includes('pengaduan') ? 'pengaduan' : cleanQuery.includes('login') || cleanQuery.includes('masuk') ? 'login' : 'sku'),
-          tutorialLabel: localResult.tutorialLabel || '🎬 Tonton Video Tutorial (Dipandu Maskot)',
+          tutorialLabel: localResult.tutorialLabel || '🎬 Tonton Video Tutorial Web',
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -499,10 +497,10 @@ export default function AiChatModal() {
       {
         id: `init-${Date.now()}`,
         sender: 'bot',
-        text: 'Percakapan telah diatur ulang. Ada informasi layanan desa, langkah-langkah pengajuan, atau video panduan yang ingin Anda tonton?',
+        text: 'Percakapan telah diatur ulang. Ada informasi layanan desa, langkah-langkah pengajuan, atau video panduan website yang ingin Anda tonton?',
         actionButton: { label: 'Katalog Layanan Surat', url: '/layanan' },
         tutorialId: 'sku',
-        tutorialLabel: '🎬 Tonton Video Tutorial Interaktif',
+        tutorialLabel: '🎬 Tonton Video Tutorial Web',
         timestamp: 'Sekarang',
       },
     ]);
@@ -525,7 +523,7 @@ export default function AiChatModal() {
         </div>
         <div className="text-left">
           <div className="text-xs font-bold leading-none text-white">Bantuan & Tutorial AI</div>
-          <div className="text-[10px] text-emerald-300 leading-none mt-1">CS Online + Video Maskot</div>
+          <div className="text-[10px] text-emerald-300 leading-none mt-1">CS Online 24 Jam</div>
         </div>
       </button>
 
@@ -538,35 +536,35 @@ export default function AiChatModal() {
           {/* Header */}
           <div className="bg-gradient-to-r from-emerald-900 via-emerald-850 to-teal-900 text-white p-3.5 sm:p-4 flex items-center justify-between shadow-xs border-b border-emerald-800">
             <div className="flex items-center gap-3">
-              <div className="relative w-9 h-9 rounded-xl overflow-hidden border border-amber-400/50 shadow-inner bg-emerald-950 shrink-0">
+              <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center border border-white/20 shadow-xs shrink-0">
                 <Image
-                  src="/images/mascot-desa-jombe.png"
-                  alt="Daeng Jombe"
-                  width={36}
-                  height={36}
-                  className="object-cover"
+                  src="/logo_jeneponto.png"
+                  alt="Logo Jeneponto"
+                  width={28}
+                  height={28}
+                  className="object-contain"
                 />
               </div>
               <div>
                 <div className="flex items-center gap-2">
-                  <h3 className="text-xs font-bold leading-tight">AI CS & Tutorial Desa</h3>
+                  <h3 className="text-xs font-bold leading-tight">AI Layanan & Tutorial Desa</h3>
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
                     🟢 Online
                   </span>
                 </div>
                 <span className="text-[10px] text-emerald-200 block mt-0.5">
-                  Dipandu Maskot Daeng Jombe
+                  Lentera Desa Jombe 24 Jam
                 </span>
               </div>
             </div>
             <div className="flex items-center gap-1">
               <button
                 onClick={() => openTutorial('sku')}
-                className="px-2 py-1 bg-amber-400 hover:bg-amber-300 text-emerald-950 text-[10px] font-black rounded-lg transition-colors shadow-xs flex items-center gap-1"
+                className="px-2.5 py-1 bg-amber-400 hover:bg-amber-300 text-emerald-950 text-[10.5px] font-black rounded-lg transition-colors shadow-xs flex items-center gap-1"
                 title="Buka Video Tutorial"
               >
-                <Video className="w-3 h-3" />
-                <span>Video</span>
+                <Video className="w-3.5 h-3.5" />
+                <span>Tutorial</span>
               </button>
               <button
                 onClick={handleResetChat}
@@ -610,14 +608,8 @@ export default function AiChatModal() {
                 className={`flex gap-2 ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}
               >
                 {msg.sender === 'bot' && (
-                  <div className="relative w-7 h-7 rounded-lg overflow-hidden border border-amber-400/40 bg-emerald-900 shrink-0 mt-1 shadow-xs">
-                    <Image
-                      src="/images/mascot-desa-jombe.png"
-                      alt="Maskot Daeng Jombe"
-                      width={28}
-                      height={28}
-                      className="object-cover"
-                    />
+                  <div className="w-7 h-7 rounded-lg bg-emerald-800 text-white flex items-center justify-center shrink-0 mt-1 shadow-xs border border-emerald-700">
+                    <Bot className="w-4 h-4 text-emerald-200" />
                   </div>
                 )}
                 <div
@@ -643,11 +635,11 @@ export default function AiChatModal() {
                         </Link>
                       )}
 
-                      {/* Interactive Tutorial Button with Mascot */}
+                      {/* Interactive Tutorial Button */}
                       <button
                         onClick={() => openTutorial(msg.tutorialId || 'sku')}
                         className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gradient-to-r from-amber-400 to-amber-500 hover:from-amber-300 hover:to-amber-400 text-emerald-950 font-black rounded-xl text-[11px] transition-all shadow-xs border border-amber-300"
-                        title="Tonton simulasi visual video tutorial yang dipandu maskot"
+                        title="Tonton simulasi visual video tutorial di website"
                       >
                         <PlayCircle className="w-3.5 h-3.5 text-emerald-950" />
                         <span>{msg.tutorialLabel || '🎬 Tonton Video Tutorial'}</span>
@@ -674,20 +666,14 @@ export default function AiChatModal() {
 
             {loading && (
               <div className="flex gap-2 items-center">
-                <div className="relative w-7 h-7 rounded-lg overflow-hidden border border-amber-400/40 bg-emerald-900 shrink-0 shadow-xs">
-                  <Image
-                    src="/images/mascot-desa-jombe.png"
-                    alt="Daeng Jombe"
-                    width={28}
-                    height={28}
-                    className="object-cover"
-                  />
+                <div className="w-7 h-7 rounded-lg bg-emerald-800 text-white flex items-center justify-center shrink-0 shadow-xs">
+                  <Bot className="w-4 h-4 text-emerald-200 animate-spin" />
                 </div>
                 <div className="bg-white p-3 rounded-2xl rounded-tl-none border border-slate-200 text-xs text-slate-500 shadow-xs flex items-center gap-2">
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" />
-                  <span className="text-[11px] font-medium text-slate-500 ml-1">Daeng Jombe menyiapkan informasi & panduan...</span>
+                  <span className="text-[11px] font-medium text-slate-500 ml-1">Menyiapkan informasi & panduan...</span>
                 </div>
               </div>
             )}
@@ -720,7 +706,7 @@ export default function AiChatModal() {
         </div>
       )}
 
-      {/* Interactive Video Tutorial Modal with Mascot Daeng Jombe & Voice Over */}
+      {/* Interactive Video Tutorial Modal with Authentic Website Replica & Pure Indonesian Voice Over */}
       <InteractiveTutorialModal
         isOpen={tutorialOpen}
         onClose={() => setTutorialOpen(false)}
