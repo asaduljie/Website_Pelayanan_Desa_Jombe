@@ -176,6 +176,30 @@ export default function ServiceApplicationFormPage() {
           if (u.address) setAlamatLengkap(u.address);
         } catch (e) {}
       }
+
+      // Conversational AI Form Pre-filling from URL Query Parameters
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const qNik = params.get('nik');
+        const qNama = params.get('nama');
+        const qDusun = params.get('dusun');
+        const qPhone = params.get('phone');
+        const qDetail = params.get('detail');
+
+        if (qNik) setNik(qNik);
+        if (qNama) setNama(qNama);
+        if (qDusun) setDusun(qDusun);
+        if (qPhone) setPhone(qPhone);
+        if (qDetail) {
+          setFormData((prev) => ({
+            ...prev,
+            nama_usaha: qDetail,
+            keterangan: qDetail,
+            tujuan: qDetail,
+            alasan: qDetail,
+          }));
+        }
+      } catch (err) {}
     }
   }, []);
 

@@ -35,6 +35,25 @@ export default function PengaduanPage() {
 
   useEffect(() => {
     fetchComplaints();
+
+    if (typeof window !== 'undefined') {
+      try {
+        const params = new URLSearchParams(window.location.search);
+        const qNik = params.get('nik');
+        const qName = params.get('nama') || params.get('name');
+        const qDusun = params.get('dusun');
+        const qTitle = params.get('title') || params.get('judul');
+        const qCategory = params.get('category') || params.get('kategori');
+        const qDesc = params.get('desc') || params.get('detail');
+
+        if (qNik) setNik(qNik);
+        if (qName) setName(qName);
+        if (qDusun) setAddress(qDusun);
+        if (qTitle) setTitle(qTitle);
+        if (qCategory) setCategory(qCategory);
+        if (qDesc) setDescription(qDesc);
+      } catch (err) {}
+    }
   }, []);
 
   const fetchComplaints = async () => {

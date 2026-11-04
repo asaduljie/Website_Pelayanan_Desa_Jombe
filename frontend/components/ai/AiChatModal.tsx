@@ -19,9 +19,28 @@ import {
   ShieldCheck,
   PlayCircle,
   Video,
+  Mic,
+  MicOff,
+  FileEdit,
+  AlertTriangle,
+  MapPin,
+  FileCheck,
+  Search,
 } from 'lucide-react';
 import api from '@/lib/api';
 import InteractiveTutorialModal from './InteractiveTutorialModal';
+
+export interface ExtractedEntities {
+  serviceSlug?: string;
+  serviceName?: string;
+  nik?: string;
+  nama?: string;
+  dusun?: string;
+  detail?: string;
+  regNumber?: string;
+  isUrgent?: boolean;
+  urgentReason?: string;
+}
 
 interface ActionButton {
   label: string;
@@ -35,6 +54,7 @@ interface Message {
   actionButton?: ActionButton;
   tutorialId?: string;
   tutorialLabel?: string;
+  extractedEntities?: ExtractedEntities;
   timestamp: string;
 }
 
@@ -48,6 +68,100 @@ interface TopicKnowledge {
   tutorialLabel?: string;
 }
 
+// Client-side Natural Language & Entity Extraction for Conversational Form Filing
+export function extractEntitiesFromPrompt(prompt: string): ExtractedEntities {
+  const text = String(prompt || '').trim();
+  const lower = text.toLowerCase();
+  const entities: ExtractedEntities = {};
+
+  // 1. Detect 16-digit NIK
+  const nikMatch = text.match(/\b\d{16}\b/);
+  if (nikMatch) {
+    entities.nik = nikMatch[0];
+  }
+
+  // 2. Detect Tracking / Registration Number (JMB-XXXXX or PGD-XXXXX)
+  const regMatch = text.match(/\b((?:JMB|PGD)-\d{4}-\d{5}|(?:JMB|PGD)-[A-Za-z0-9]+)\b/i);
+  if (regMatch) {
+    entities.regNumber = regMatch[0].toUpperCase();
+  }
+
+  // 3. Detect Dusun in Desa Jombe
+  if (lower.includes('jombe utara')) entities.dusun = 'Dusun Jombe Utara';
+  else if (lower.includes('jombe tengah')) entities.dusun = 'Dusun Jombe Tengah';
+  else if (lower.includes('jombe selatan')) entities.dusun = 'Dusun Jombe Selatan';
+  else if (lower.includes('tompo balang') || lower.includes('tompobalang')) entities.dusun = 'Dusun Tompo Balang';
+  else if (lower.includes('muncu') || lower.includes('muncu-muncu') || lower.includes('muncumuncu')) entities.dusun = 'Dusun Muncu-muncu';
+
+  // 4. Detect Citizen Name
+  const nameMatch = text.match(/(?:nama\s+saya|atas\s+nama|nama\s*[:=]|bernama)\s+([A-Za-z\s'.]{3,35})(?=\s+(?:nik|usaha|dusun|alamat|keperluan|tinggal|mau|ingin)|$)/i);
+  if (nameMatch && nameMatch[1]) {
+    const rawName = nameMatch[1].trim();
+    if (!['saya', 'desa', 'jombe', 'warga', 'pemohon', 'admin', 'operator'].includes(rawName.toLowerCase())) {
+      entities.nama = rawName;
+    }
+  }
+
+  // 5. Detect Service Intent
+  if (
+    lower.includes('sku') || lower.includes('usaha') || lower.includes('warung') ||
+    lower.includes('toko') || lower.includes('kios') || lower.includes('dagang') ||
+    lower.includes('palele') || lower.includes('kur') || lower.includes('modal') ||
+    lower.includes('jual jagung') || lower.includes('ammuntuka')
+  ) {
+    entities.serviceSlug = 'surat-keterangan-usaha';
+    entities.serviceName = 'Surat Keterangan Usaha (SKU)';
+    const usahaMatch = text.match(/(?:usaha|jualan|dagang|toko|kios)\s+([A-Za-z0-9\s]{3,30})(?=\s+(?:di|dusun|nik|nama)|$)/i);
+    if (usahaMatch && usahaMatch[1]) {
+      entities.detail = usahaMatch[1].trim();
+    }
+  } else if (
+    lower.includes('sktm') || lower.includes('tidak mampu') || lower.includes('kurang mampu') ||
+    lower.includes('miskin') || lower.includes('kasiasi') || lower.includes('beasiswa') ||
+    lower.includes('kip') || lower.includes('bansos') || lower.includes('taena doe')
+  ) {
+    entities.serviceSlug = 'surat-keterangan-tidak-mampu';
+    entities.serviceName = 'Surat Keterangan Kurang Mampu (SKTM)';
+  } else if (lower.includes('domisili') || lower.includes('tempat tinggal') || lower.includes('tinggal ri') || lower.includes('pindah')) {
+    entities.serviceSlug = 'surat-keterangan-domisili';
+    entities.serviceName = 'Surat Keterangan Domisili';
+  } else if (lower.includes('skkb') || lower.includes('skck') || lower.includes('kelakuan baik') || lower.includes('polisi') || lower.includes('lamar kerja')) {
+    entities.serviceSlug = 'surat-keterangan-kelakuan-baik';
+    entities.serviceName = 'Surat Keterangan Kelakuan Baik (SKKB)';
+  } else if (lower.includes('belum menikah') || lower.includes('belum kawin') || lower.includes('lajang') || lower.includes('bujang') || lower.includes('tenapa na bunting')) {
+    entities.serviceSlug = 'surat-keterangan-belum-menikah';
+    entities.serviceName = 'Surat Keterangan Belum Menikah';
+  } else if (lower.includes('wali') || lower.includes('perwalian')) {
+    entities.serviceSlug = 'surat-keterangan-wali';
+    entities.serviceName = 'Surat Keterangan Wali';
+  } else if (lower.includes('kendaraan') || lower.includes('motor') || lower.includes('mobil') || lower.includes('stnk') || lower.includes('plat') || lower.includes('oto')) {
+    entities.serviceSlug = 'surat-keterangan-kepemilikan-kendaraan-bermotor';
+    entities.serviceName = 'Surat Keterangan Kepemilikan Kendaraan Bermotor';
+  } else if (lower.includes('kematian') || lower.includes('meninggal') || lower.includes('wafat') || lower.includes('mate') || lower.includes('kalabbusang')) {
+    entities.serviceSlug = 'surat-keterangan-kematian';
+    entities.serviceName = 'Surat Keterangan Kematian';
+  } else if (
+    lower.includes('lapor') || lower.includes('aduan') || lower.includes('pengaduan') ||
+    lower.includes('keluhan') || lower.includes('jalan rusak') || lower.includes('lampu mati') ||
+    lower.includes('rusaki') || lower.includes('poso') || lower.includes('kokojang')
+  ) {
+    entities.serviceSlug = 'pengaduan';
+    entities.serviceName = 'Layanan Pengaduan Warga';
+  }
+
+  // 6. Urgency Analysis for Citizens Complaints
+  const urgentKeywords = ['ambruk', 'bahaya', 'darurat', 'longsor', 'banjir', 'putus', 'korban', 'rusak parah', 'genting', 'hancur'];
+  for (const uk of urgentKeywords) {
+    if (lower.includes(uk)) {
+      entities.isUrgent = true;
+      entities.urgentReason = `Terdeteksi indikasi situasi mendesak (${uk.toUpperCase()})`;
+      break;
+    }
+  }
+
+  return entities;
+}
+
 // Comprehensive offline-resilient Knowledge Base for ALL features of Lentera Desa Jombe
 const KNOWLEDGE_BASE: TopicKnowledge[] = [
   {
@@ -55,7 +169,8 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Surat Keterangan Usaha (SKU)',
     keywords: [
       'sku', 'usaha', 'dagang', 'warung', 'toko', 'kios', 'jualan', 'kur',
-      'modal', 'umkm', 'bisnis', 'izin usaha', 'kredit usaha', 'bank', 'pedagang'
+      'modal', 'umkm', 'bisnis', 'izin usaha', 'kredit usaha', 'bank', 'pedagang',
+      'palele', 'pabrik', 'jual jagung', 'ammuntuka', 'dacing', 'pasar karisa'
     ],
     reply: `Informasi Surat Keterangan Usaha (SKU):\n\nSurat Keterangan Usaha (SKU) digunakan sebagai bukti legalitas usaha di Desa Jombe untuk pengajuan permodalan/KUR bank, izin usaha, maupun pendataan bantuan UMKM.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon asli\n• Foto Kartu Keluarga (KK)\n• Foto Tempat / Aktivitas Usaha di wilayah Desa Jombe\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol "Ajukan SKU Sekarang" di bawah ini.\n2️⃣ Masukkan 16 Digit NIK e-KTP dan data usaha Anda.\n3️⃣ Unggah foto KTP, KK, dan foto tempat usaha.\n4️⃣ Tekan tombol hijau "Kirim Permohonan" dan simpan No. Registrasi (JMB-XXXXX).\n5️⃣ Berkas diverifikasi operator, dicetak fisik, lalu dibubuhi tanda tangan basah Kepala Desa Jombe (JUSMAEDY, S.Pd) & cap stempel kantor desa.\n6️⃣ Ambil surat fisik resmi di Kantor Desa Jombe (1 Hari Kerja, 100% GRATIS).\n\n💡 Ingin melihat simulasi visual? Tekan tombol "Tonton Video Tutorial" di bawah untuk melihat rekaman langkah-langkah di website!`,
     actionButton: { label: 'Ajukan SKU Sekarang', url: '/layanan/surat-keterangan-usaha' },
@@ -67,7 +182,8 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Surat Keterangan Kurang Mampu (SKTM)',
     keywords: [
       'sktm', 'tidak mampu', 'kurang mampu', 'miskin', 'beasiswa', 'kip', 'kuliah',
-      'sekolah', 'bantuan', 'bansos', 'keringanan', 'rumah sakit', 'bpjs', 'kis', 'pengobatan', 'spp'
+      'sekolah', 'bantuan', 'bansos', 'keringanan', 'rumah sakit', 'bpjs', 'kis', 'pengobatan', 'spp',
+      'kasiasi', 'taena doe', 'sura kasiasi', 'maburang'
     ],
     reply: `Informasi Surat Keterangan Kurang Mampu (SKTM):\n\nSKTM diterbitkan bagi warga Desa Jombe yang membutuhkan rekomendasi beasiswa pendidikan (KIP Kuliah/Sekolah), keringanan rumah sakit, maupun bansos.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon / Kepala Keluarga\n• Foto Kartu Keluarga (KK)\n• Keterangan tujuan/keperluan pemohon\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol "Ajukan SKTM Sekarang".\n2️⃣ Masukkan 16 Digit NIK pemohon.\n3️⃣ Unggah foto e-KTP dan Kartu Keluarga.\n4️⃣ Tekan "Kirim Permohonan" dan catat No. Registrasi Anda.\n5️⃣ Surat resmi dicetak fisik dan ditandatangani basah oleh Kades JUSMAEDY, S.Pd + cap stempel kantor desa (1 Hari Kerja, GRATIS).\n6️⃣ Berkas fisik resmi siap diambil di kantor desa.`,
     actionButton: { label: 'Ajukan SKTM Sekarang', url: '/layanan/surat-keterangan-tidak-mampu' },
@@ -79,7 +195,8 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Surat Keterangan Domisili',
     keywords: [
       'domisili', 'tempat tinggal', 'tinggal', 'alamat', 'pindah', 'surat domisili',
-      'keterangan domisili', 'kost', 'kontrak', 'menetap', 'warga baru', 'rt', 'rw'
+      'keterangan domisili', 'kost', 'kontrak', 'menetap', 'warga baru', 'rt', 'rw',
+      'ammempo'
     ],
     reply: `Informasi Surat Keterangan Domisili:\n\nSurat Keterangan Domisili menerangkan status tempat tinggal sah di salah satu dusun di wilayah Desa Jombe, Kecamatan Turatea.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n• Alamat lengkap tempat tinggal di Desa Jombe\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik tombol permohonan surat domisili.\n2️⃣ Masukkan 16 Digit NIK dan dusun tempat tinggal.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan".\n5️⃣ Ambil surat bertanda tangan basah Kades JUSMAEDY, S.Pd di kantor desa (1 Hari Kerja, GRATIS).`,
     actionButton: { label: 'Ajukan Surat Domisili', url: '/layanan/surat-keterangan-domisili' },
@@ -103,7 +220,8 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Surat Keterangan Belum Menikah',
     keywords: [
       'belum menikah', 'belum kawin', 'lajang', 'single', 'bujang', 'gadis',
-      'nikah', 'kua', 'pernikahan', 'tni', 'polri', 'ikatan dinas', 'kawin'
+      'nikah', 'kua', 'pernikahan', 'tni', 'polri', 'ikatan dinas', 'kawin',
+      'bunting', 'tenapa na bunting', 'ana rannu'
     ],
     reply: `Informasi Surat Keterangan Belum Menikah:\n\nSurat ini menyatakan status belum pernah menikah, digunakan untuk kelengkapan berkas KUA, pendaftaran TNI/Polri, ikatan dinas, maupun kerja.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemohon\n• Foto Kartu Keluarga (KK)\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik ajukan surat belum menikah.\n2️⃣ Masukkan NIK e-KTP Anda.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan" dan tunggu proses operator (1 Hari Kerja, GRATIS).`,
     actionButton: { label: 'Ajukan Ket. Belum Menikah', url: '/layanan/surat-keterangan-belum-menikah' },
@@ -127,7 +245,7 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Surat Keterangan Kepemilikan Kendaraan Bermotor',
     keywords: [
       'kendaraan', 'motor', 'mobil', 'stnk', 'bpkb', 'samsat', 'pajak',
-      'jual beli motor', 'hilang stnk', 'kepemilikan kendaraan', 'sepeda motor', 'plat'
+      'jual beli motor', 'hilang stnk', 'kepemilikan kendaraan', 'sepeda motor', 'plat', 'oto'
     ],
     reply: `Informasi Surat Keterangan Kepemilikan Kendaraan Bermotor:\n\nSurat ini menerangkan kepemilikan sah atas kendaraan bermotor (roda 2 / roda 4) di Desa Jombe untuk keperluan Samsat, pajak, atau bukti kehilangan STNK/BPKB.\n\n📋 Persyaratan Berkas:\n• Foto e-KTP Pemilik Kendaraan\n• Foto Kartu Keluarga (KK)\n• Data Nomor Polisi (Plat), Nomor Rangka, dan Nomor Mesin\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik ajukan surat kendaraan.\n2️⃣ Masukkan NIK dan nomor plat kendaraan.\n3️⃣ Unggah foto KTP dan KK.\n4️⃣ Tekan "Kirim Permohonan" (Proses 1 Hari Kerja, 100% GRATIS).`,
     actionButton: { label: 'Ajukan Ket. Kendaraan', url: '/layanan/surat-keterangan-kepemilikan-kendaraan-bermotor' },
@@ -139,7 +257,8 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Surat Keterangan Kematian',
     keywords: [
       'kematian', 'meninggal', 'wafat', 'almarhum', 'almarhumah', 'meninggal dunia',
-      'akta kematian', 'waris', 'taspen', 'pensiun', 'ahli waris', 'kubur'
+      'akta kematian', 'waris', 'taspen', 'pensiun', 'ahli waris', 'kubur',
+      'mate', 'kalabbusang', 'bija mate'
     ],
     reply: `Informasi Surat Keterangan Kematian:\n\nSurat Keterangan Kematian diterbitkan sebagai bukti sah wafatnya warga Desa Jombe untuk Akta Kematian Disdukcapil, pengurusan hak waris, maupun pensiun/asuransi.\n\n📋 Persyaratan Berkas:\n• Foto KTP Almarhum / Almarhumah\n• Foto e-KTP Pelapor (Keluarga / Ahli Waris)\n• Kartu Keluarga (KK)\n• Rincian waktu & tempat meninggal dunia\n\n👣 Langkah-Langkah Pengajuan:\n1️⃣ Klik ajukan surat kematian.\n2️⃣ Isi data almarhum dan pelapor.\n3️⃣ Unggah berkas identitas.\n4️⃣ Tekan "Kirim Permohonan" dan ambil surat ber-TTD basah Kades di kantor desa.`,
     actionButton: { label: 'Ajukan Surat Kematian', url: '/layanan/surat-keterangan-kematian' },
@@ -163,7 +282,8 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Fitur Lacak Status Surat',
     keywords: [
       'lacak', 'status', 'tracking', 'cek surat', 'sampai mana', 'nomor registrasi',
-      'no reg', 'jmb', 'antrean', 'progress', 'progres', 'riwayat', 'pantau', 'cek'
+      'no reg', 'jmb', 'antrean', 'progress', 'progres', 'riwayat', 'pantau', 'cek',
+      'kemaemi', 'selesaimi'
     ],
     reply: `🔍 Cara Melacak Permohonan Surat (/lacak):\n\nAnda dapat memantau proses surat secara transparan tanpa harus datang ke kantor desa:\n\n👣 Langkah-Langkah Melacak Surat:\n1️⃣ Klik tombol "Buka Menu Lacak Surat" di bawah atau buka menu navigasi Lacak.\n2️⃣ Masukkan Nomor Registrasi Surat Anda (contoh: JMB-2026-00001) ATAU masukkan 16 digit NIK Anda.\n3️⃣ Klik tombol biru "Cari Status".\n4️⃣ Pantau hasilnya:\n   • MENUNGGU VERIFIKASI: Berkas baru masuk antrean operator.\n   • SEDANG DIPROSES: Draf surat sedang dipersiapkan.\n   • PERLU PERBAIKAN: Foto buram atau ada data yang perlu diperbaiki.\n   • DISETUJUI / SELESAI: Surat resmi telah dicetak dan ditandatangani basah Kepala Desa Jombe (JUSMAEDY, S.Pd). Siap diambil di kantor desa!`,
     actionButton: { label: 'Buka Menu Lacak Surat', url: '/lacak' },
@@ -199,7 +319,8 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Layanan Pengaduan & Aspirasi Warga',
     keywords: [
       'lapor', 'aduan', 'pengaduan', 'keluhan', 'aspirasi', 'jalan rusak', 'lampu jalan',
-      'mati lampu', 'sampah', 'irigasi', 'saluran air', 'pupuk', 'pgd', 'tiket'
+      'mati lampu', 'sampah', 'irigasi', 'saluran air', 'pupuk', 'pgd', 'tiket',
+      'rusaki', 'hancuri', 'ambruk', 'kokojang', 'poso'
     ],
     reply: `📢 Layanan Pengaduan & Aspirasi Warga (/pengaduan):\n\nPemerintah Desa Jombe memfasilitasi aspirasi warga untuk melaporkan permasalahan seperti jalan berlubang, lampu jalan mati, irigasi sawah, ketersediaan pupuk, dll.\n\n👣 Langkah-Langkah Mengirim Pengaduan:\n1️⃣ Buka menu "Pengaduan" di website atau klik tombol di bawah.\n2️⃣ Pilih kategori laporan (Infrastruktur / Pertanian / Pelayanan Desa).\n3️⃣ Tuliskan judul, uraian masalah, dan nama dusun lokasi kejadian.\n4️⃣ Unggah foto bukti dokumentasi kondisi lapangan.\n5️⃣ Tekan "Kirim Pengaduan" dan catat Nomor Tiket Anda (PGD-XXXXX) untuk memantau tindak lanjut aparat desa.`,
     actionButton: { label: 'Kirim Pengaduan Sekarang', url: '/pengaduan' },
@@ -221,7 +342,7 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Pemerintah Desa & Pejabat Kepala Desa',
     keywords: [
       'kades', 'kepala desa', 'sekdes', 'sekretaris desa', 'perangkat desa',
-      'aparat', 'jusmaedy', 'syamsul', 'siapa kades', 'nama lurah', 'struktur'
+      'aparat', 'jusmaedy', 'syamsul', 'siapa kades', 'nama lurah', 'struktur', 'karaeng'
     ],
     reply: `🏛️ Struktur Pimpinan Pemerintah Desa Jombe:\n\n• Kepala Desa: JUSMAEDY, S.Pd (Pemimpin penyelenggaraan pemerintahan, pembangunan desa, dan pembinaan kemasyarakatan).\n• Sekretaris Desa: SYAMSUL RISWAN (Koordinator administrasi pelayanan umum, keuangan, dan kearsipan desa).\n• Didukung jajaran Kasi, Kaur, serta 5 Kepala Dusun se-Desa Jombe.`,
     actionButton: { label: 'Lihat Struktur Aparatur Desa', url: '/profil' },
@@ -285,9 +406,10 @@ const KNOWLEDGE_BASE: TopicKnowledge[] = [
     title: 'Pusat Bantuan & Fitur Lentera Desa',
     keywords: [
       'halo', 'hai', 'assalamualaikum', 'pagi', 'siang', 'sore', 'malam',
-      'terima kasih', 'makasih', 'siapa kamu', 'bisa apa', 'fitur apa saja', 'bantuan', 'tolong', 'menu'
+      'terima kasih', 'makasih', 'siapa kamu', 'bisa apa', 'fitur apa saja', 'bantuan', 'tolong', 'menu',
+      'tabe', 'aga kareba'
     ],
-    reply: `Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe, Kec. Turatea, Kab. Jeneponto.\n\nSaya dapat membantu Anda dengan informasi langkah-langkah serta video tutorial panduan:\n1. 📜 Syarat & Langkah 9 Surat Keterangan Desa\n2. 🔍 Cara Lacak Surat (/lacak)\n3. 🛡️ Validasi & QR Code Surat Resmi (/verifikasi-ttd)\n4. 📢 Kirim Pengaduan Warga (/pengaduan)\n5. 🌾 Profil Desa & Data Resmi BPS Turatea 2025 (/profil)\n6. 📍 Lokasi Kantor di Dusun Jombe Selatan & Jam Kerja (WITA)\n7. 💰 Biaya Pelayanan (100% Gratis)\n\nSilakan ketik pertanyaan apa saja atau klik tombol Video Tutorial untuk melihat simulasi visual di website dengan panduan suara Bahasa Indonesia!`,
+    reply: `Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe, Kec. Turatea, Kab. Jeneponto.\n\nSaya dapat membantu Anda dengan informasi langkah-langkah serta video tutorial panduan:\n1. 📜 Syarat & Langkah 9 Surat Keterangan Desa\n2. 🔍 Cara Lacak Surat (/lacak)\n3. 🛡️ Validasi & QR Code Surat Resmi (/verifikasi-ttd)\n4. 📢 Kirim Pengaduan Warga (/pengaduan)\n5. 🌾 Profil Desa & Data Resmi BPS Turatea 2025 (/profil)\n6. 📍 Lokasi Kantor di Dusun Jombe Selatan & Jam Kerja (WITA)\n7. 💰 Biaya Pelayanan (100% Gratis)\n\nSilakan ketik pertanyaan, gunakan tombol mikrofon untuk bicara langsung, atau sebutkan nama dan NIK Anda untuk membuat draf surat otomatis!`,
     actionButton: { label: 'Katalog Semua Layanan', url: '/layanan' },
     tutorialId: 'sku',
     tutorialLabel: '🎬 Tonton Video Tutorial Web',
@@ -300,8 +422,10 @@ function matchKnowledgeLocally(inputPrompt: string): {
   actionButton?: ActionButton;
   tutorialId?: string;
   tutorialLabel?: string;
+  extractedEntities?: ExtractedEntities;
 } {
   const clean = String(inputPrompt || '').toLowerCase().trim();
+  const entities = extractEntitiesFromPrompt(inputPrompt);
 
   if (!clean) {
     return {
@@ -309,6 +433,38 @@ function matchKnowledgeLocally(inputPrompt: string): {
       actionButton: { label: 'Katalog Layanan Surat', url: '/layanan' },
       tutorialId: 'sku',
       tutorialLabel: '🎬 Tonton Video Tutorial Web',
+      extractedEntities: entities,
+    };
+  }
+
+  // Direct Registration Tracking Shortcut
+  if (entities.regNumber) {
+    const isComplaint = entities.regNumber.startsWith('PGD-');
+    return {
+      reply: `🔍 Nomor Registrasi Dikenali: ${entities.regNumber}\n\nSistem AI siap membantu mengecek progres ${
+        isComplaint ? 'tiket pengaduan' : 'surat permohonan'
+      } Anda secara instan.\n\nKlik tombol di bawah ini untuk melihat status dokumen Anda:`,
+      actionButton: {
+        label: `🔍 Lacak Status ${entities.regNumber}`,
+        url: `/lacak?no=${entities.regNumber}`,
+      },
+      tutorialId: 'lacak',
+      tutorialLabel: '🎬 Tonton Video Tutorial Lacak',
+      extractedEntities: entities,
+    };
+  }
+
+  // Emergency Alert Shortcut
+  if (entities.isUrgent) {
+    return {
+      reply: `🚨 PERINGATAN DARURAT: Sistem AI mendeteksi laporan mendesak (${entities.urgentReason}).\n\nSilakan segera kirimkan dokumentasi foto dan lokasi melalui formulir pengaduan darurat di bawah agar petugas desa dapat segera bergerak ke lokasi:`,
+      actionButton: {
+        label: '🚨 Kirim Pengaduan Darurat',
+        url: `/pengaduan?kategori=Jalan%20%26%20Jembatan&urgensi=Darurat${entities.dusun ? `&dusun=${encodeURIComponent(entities.dusun)}` : ''}`,
+      },
+      tutorialId: 'pengaduan',
+      tutorialLabel: '🎬 Tonton Video Tutorial Pengaduan',
+      extractedEntities: entities,
     };
   }
 
@@ -350,11 +506,29 @@ function matchKnowledgeLocally(inputPrompt: string): {
   }
 
   if (bestTopic && highestScore >= 2.5) {
+    let customizedAction = bestTopic.actionButton;
+
+    // Enhance action button with prefilled query parameters if entities found
+    if (entities.serviceSlug && (entities.nik || entities.nama || entities.dusun || entities.detail)) {
+      const qParams = new URLSearchParams();
+      if (entities.nik) qParams.set('nik', entities.nik);
+      if (entities.nama) qParams.set('nama', entities.nama);
+      if (entities.dusun) qParams.set('dusun', entities.dusun);
+      if (entities.detail) qParams.set('detail', entities.detail);
+
+      const targetPath = entities.serviceSlug === 'pengaduan' ? '/pengaduan' : `/layanan/${entities.serviceSlug}`;
+      customizedAction = {
+        label: `Ajukan ${entities.serviceName || 'Surat'} (Data Terisi Otomatis)`,
+        url: `${targetPath}?${qParams.toString()}`,
+      };
+    }
+
     return {
       reply: bestTopic.reply,
-      actionButton: bestTopic.actionButton,
+      actionButton: customizedAction,
       tutorialId: bestTopic.tutorialId,
       tutorialLabel: bestTopic.tutorialLabel,
+      extractedEntities: entities,
     };
   }
 
@@ -363,16 +537,17 @@ function matchKnowledgeLocally(inputPrompt: string): {
     actionButton: { label: 'Buka Katalog Semua Layanan', url: '/layanan' },
     tutorialId: 'sku',
     tutorialLabel: '🎬 Tonton Video Tutorial Web',
+    extractedEntities: entities,
   };
 }
 
 const QUICK_SUGGESTIONS = [
   '🎬 Video Tutorial Web',
-  'Syarat SKU',
-  'Syarat SKTM',
+  'Buat SKU Otomatis',
   'Lacak Surat',
+  'Lapor Pengaduan',
+  'Syarat SKTM',
   'Alur TTD Basah',
-  'Pengaduan Warga',
   'Data BPS 2025',
   'Jam Buka Kantor',
   'Biaya Layanan',
@@ -383,11 +558,16 @@ export default function AiChatModal() {
   const [tutorialOpen, setTutorialOpen] = useState(false);
   const [tutorialId, setTutorialId] = useState<string>('sku');
 
+  // Speech Recognition (Voice Input) States
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const recognitionRef = useRef<any>(null);
+
   const [messages, setMessages] = useState<Message[]>([
     {
       id: 'init-1',
       sender: 'bot',
-      text: 'Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe.\n\nSaya siap memberikan informasi langkah-langkah persyaratan surat administrasi, lacak berkas, pengaduan, maupun video tutorial interaktif dengan simulasi kursor dan narasi suara Bahasa Indonesia!',
+      text: 'Halo! Selamat datang di Pusat Bantuan Cerdas Lentera Desa Jombe.\n\nSaya dilengkapi asisten percakapan cerdas yang dapat mengisi formulir otomatis, mencari dokumen, merespons suara mikrofon, dan memutar simulasi video tutorial website!',
       actionButton: { label: 'Jelajahi Katalog Layanan', url: '/layanan' },
       tutorialId: 'sku',
       tutorialLabel: '🎬 Tonton Video Tutorial Web',
@@ -410,6 +590,59 @@ export default function AiChatModal() {
     }
   }, [messages, isOpen]);
 
+  // Initialize Web Speech API for Indonesian Voice Input
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const SpeechClass = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+      if (SpeechClass) {
+        setSpeechSupported(true);
+        const recognition = new SpeechClass();
+        recognition.continuous = false;
+        recognition.interimResults = true;
+        recognition.lang = 'id-ID';
+
+        recognition.onresult = (event: any) => {
+          let currentTranscript = '';
+          for (let i = event.resultIndex; i < event.results.length; i++) {
+            currentTranscript += event.results[i][0].transcript;
+          }
+          if (currentTranscript) {
+            setInput(currentTranscript);
+          }
+        };
+
+        recognition.onend = () => {
+          setIsListening(false);
+        };
+
+        recognition.onerror = () => {
+          setIsListening(false);
+        };
+
+        recognitionRef.current = recognition;
+      }
+    }
+  }, []);
+
+  const toggleListening = () => {
+    if (!speechSupported || !recognitionRef.current) {
+      alert('Browser Anda belum mendukung input suara langsung. Silakan gunakan Google Chrome di HP/Laptop atau ketik pesan Anda.');
+      return;
+    }
+
+    if (isListening) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    } else {
+      try {
+        recognitionRef.current.start();
+        setIsListening(true);
+      } catch (e) {
+        setIsListening(false);
+      }
+    }
+  };
+
   const openTutorial = (idToOpen: string = 'sku') => {
     setTutorialId(idToOpen);
     setTutorialOpen(true);
@@ -419,9 +652,21 @@ export default function AiChatModal() {
     const cleanQuery = queryText.trim();
     if (!cleanQuery || loading) return;
 
+    if (isListening && recognitionRef.current) {
+      recognitionRef.current.stop();
+      setIsListening(false);
+    }
+
     // If user clicked video tutorial suggestion chip directly
     if (cleanQuery.toLowerCase().includes('video tutorial') || cleanQuery.toLowerCase().includes('panduan video')) {
       openTutorial('sku');
+      return;
+    }
+
+    // Interactive SKU autofill suggestion shortcut
+    if (cleanQuery === 'Buat SKU Otomatis') {
+      const demoPrompt = 'Saya mau buat SKU nama saya Daeng Rewa NIK 7304051208990001 usaha kios jagung di Dusun Jombe Selatan';
+      processQuery(demoPrompt);
       return;
     }
 
@@ -449,6 +694,8 @@ export default function AiChatModal() {
 
       if (res.data?.status === 'success' && res.data?.data?.reply) {
         const botData = res.data.data;
+        const entities = botData.extractedEntities || extractEntitiesFromPrompt(cleanQuery);
+
         setMessages((prev) => [
           ...prev,
           {
@@ -458,6 +705,7 @@ export default function AiChatModal() {
             actionButton: botData.actionButton,
             tutorialId: botData.tutorialId || (cleanQuery.includes('lacak') ? 'lacak' : cleanQuery.includes('aduan') || cleanQuery.includes('pengaduan') ? 'pengaduan' : cleanQuery.includes('login') || cleanQuery.includes('masuk') ? 'login' : 'sku'),
             tutorialLabel: botData.tutorialLabel || '🎬 Tonton Video Tutorial Web',
+            extractedEntities: entities,
             timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
           },
         ]);
@@ -475,6 +723,7 @@ export default function AiChatModal() {
           actionButton: localResult.actionButton,
           tutorialId: localResult.tutorialId || (cleanQuery.includes('lacak') ? 'lacak' : cleanQuery.includes('aduan') || cleanQuery.includes('pengaduan') ? 'pengaduan' : cleanQuery.includes('login') || cleanQuery.includes('masuk') ? 'login' : 'sku'),
           tutorialLabel: localResult.tutorialLabel || '🎬 Tonton Video Tutorial Web',
+          extractedEntities: localResult.extractedEntities,
           timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
         },
       ]);
@@ -497,7 +746,7 @@ export default function AiChatModal() {
       {
         id: `init-${Date.now()}`,
         sender: 'bot',
-        text: 'Percakapan telah diatur ulang. Ada informasi layanan desa, langkah-langkah pengajuan, atau video panduan website yang ingin Anda tonton?',
+        text: 'Percakapan telah diatur ulang. Ada informasi layanan desa, pembuatan formulir otomatis, atau video panduan website yang ingin Anda ketahui?',
         actionButton: { label: 'Katalog Layanan Surat', url: '/layanan' },
         tutorialId: 'sku',
         tutorialLabel: '🎬 Tonton Video Tutorial Web',
@@ -523,7 +772,7 @@ export default function AiChatModal() {
         </div>
         <div className="text-left">
           <div className="text-xs font-bold leading-none text-white">Bantuan & Tutorial AI</div>
-          <div className="text-[10px] text-emerald-300 leading-none mt-1">CS Online 24 Jam</div>
+          <div className="text-[10px] text-emerald-300 leading-none mt-1">CS Pintar 24 Jam</div>
         </div>
       </button>
 
@@ -531,10 +780,10 @@ export default function AiChatModal() {
       {isOpen && (
         <div
           id="modal-ai-cs"
-          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[94vw] max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[590px] animate-in fade-in slide-in-from-bottom-4 duration-200"
+          className="fixed bottom-4 right-4 sm:bottom-6 sm:right-6 z-50 w-[94vw] max-w-sm sm:max-w-md bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col h-[600px] animate-in fade-in slide-in-from-bottom-4 duration-200"
         >
           {/* Header */}
-          <div className="bg-gradient-to-r from-emerald-900 via-emerald-850 to-teal-900 text-white p-3.5 sm:p-4 flex items-center justify-between shadow-xs border-b border-emerald-800">
+          <div className="bg-gradient-to-r from-emerald-900 via-emerald-850 to-teal-900 text-white p-3.5 sm:p-4 flex items-center justify-between shadow-xs border-b border-emerald-800 shrink-0">
             <div className="flex items-center gap-3">
               <div className="w-9 h-9 rounded-xl bg-white p-1 flex items-center justify-center border border-white/20 shadow-xs shrink-0">
                 <Image
@@ -549,7 +798,7 @@ export default function AiChatModal() {
                 <div className="flex items-center gap-2">
                   <h3 className="text-xs font-bold leading-tight">AI Layanan & Tutorial Desa</h3>
                   <span className="inline-flex items-center px-1.5 py-0.5 rounded-full text-[9px] font-semibold bg-emerald-500/20 text-emerald-300 border border-emerald-400/30">
-                    🟢 Online
+                    🟢 Cerdas
                   </span>
                 </div>
                 <span className="text-[10px] text-emerald-200 block mt-0.5">
@@ -584,7 +833,7 @@ export default function AiChatModal() {
           </div>
 
           {/* Quick Suggestion Chips Header */}
-          <div className="bg-emerald-50/80 border-b border-emerald-150 px-3 py-2 overflow-x-auto flex gap-1.5 scrollbar-none">
+          <div className="bg-emerald-50/80 border-b border-emerald-150 px-3 py-2 overflow-x-auto flex gap-1.5 scrollbar-none shrink-0">
             {QUICK_SUGGESTIONS.map((chip, idx) => (
               <button
                 key={idx}
@@ -592,6 +841,8 @@ export default function AiChatModal() {
                 className={`whitespace-nowrap px-2.5 py-1 rounded-lg text-[10px] font-semibold transition-all shadow-xs shrink-0 flex items-center gap-1 ${
                   chip.includes('Video')
                     ? 'bg-amber-400 text-emerald-950 font-black border border-amber-300 hover:bg-amber-300'
+                    : chip.includes('Otomatis')
+                    ? 'bg-emerald-800 text-white font-bold border border-emerald-700 hover:bg-emerald-900'
                     : 'bg-white border border-emerald-200 text-emerald-900 hover:bg-emerald-800 hover:text-white hover:border-emerald-800'
                 }`}
               >
@@ -621,6 +872,60 @@ export default function AiChatModal() {
                 >
                   <div className="text-[11.5px] leading-relaxed">{msg.text}</div>
 
+                  {/* Smart Conversational Form Draft Card (Named Entity Recognition) */}
+                  {msg.extractedEntities && (msg.extractedEntities.nik || msg.extractedEntities.nama || msg.extractedEntities.serviceSlug) && (
+                    <div className="mt-3 p-3 bg-emerald-50/90 rounded-xl border border-emerald-200 text-slate-900 space-y-1.5 animate-in fade-in zoom-in-95">
+                      <div className="flex items-center gap-1.5 text-[11px] font-black text-emerald-900 border-b border-emerald-200 pb-1.5">
+                        <FileEdit className="w-3.5 h-3.5 text-emerald-700" />
+                        <span>Draf Formulir Terdeteksi Otomatis:</span>
+                      </div>
+                      <div className="grid grid-cols-1 gap-1 text-[10.5px]">
+                        {msg.extractedEntities.serviceName && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500 font-medium">Layanan:</span>
+                            <span className="font-bold text-emerald-900">{msg.extractedEntities.serviceName}</span>
+                          </div>
+                        )}
+                        {msg.extractedEntities.nik && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500 font-medium">NIK:</span>
+                            <span className="font-mono font-bold text-slate-900 bg-emerald-100 px-1.5 py-0.5 rounded text-[10px]">
+                              {msg.extractedEntities.nik} (✓ 16 Digit)
+                            </span>
+                          </div>
+                        )}
+                        {msg.extractedEntities.nama && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500 font-medium">Nama:</span>
+                            <span className="font-bold text-slate-900">{msg.extractedEntities.nama}</span>
+                          </div>
+                        )}
+                        {msg.extractedEntities.dusun && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500 font-medium">Lokasi:</span>
+                            <span className="font-semibold text-slate-800">{msg.extractedEntities.dusun}</span>
+                          </div>
+                        )}
+                        {msg.extractedEntities.detail && (
+                          <div className="flex items-center justify-between">
+                            <span className="text-slate-500 font-medium">Keterangan:</span>
+                            <span className="font-semibold text-slate-800 truncate max-w-[150px]">{msg.extractedEntities.detail}</span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Urgent Alert Banner if Urgent is Detected */}
+                  {msg.extractedEntities?.isUrgent && (
+                    <div className="mt-2.5 p-2.5 bg-red-50 border border-red-300 rounded-xl text-red-900 flex items-start gap-2">
+                      <AlertTriangle className="w-4 h-4 text-red-600 shrink-0 mt-0.5" />
+                      <div className="text-[10px] leading-tight font-semibold">
+                        {msg.extractedEntities.urgentReason || 'Status darurat teridentifikasi. Segera kirimkan foto lapangan.'}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Action Buttons & Video Tutorial Trigger */}
                   {(msg.actionButton || msg.tutorialId) && (
                     <div className="mt-3 pt-2.5 border-t border-slate-150 flex flex-wrap gap-2">
@@ -628,10 +933,10 @@ export default function AiChatModal() {
                         <Link
                           href={msg.actionButton.url}
                           onClick={() => setIsOpen(false)}
-                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-900 font-bold rounded-xl text-[11px] transition-colors border border-emerald-200 shadow-xs"
+                          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-emerald-700 hover:bg-emerald-800 text-white font-bold rounded-xl text-[11px] transition-colors shadow-xs"
                         >
                           <span>{msg.actionButton.label}</span>
-                          <ArrowRight className="w-3 h-3 text-emerald-700" />
+                          <ArrowRight className="w-3 h-3 text-emerald-200" />
                         </Link>
                       )}
 
@@ -673,26 +978,58 @@ export default function AiChatModal() {
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.3s]" />
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce [animation-delay:-0.15s]" />
                   <span className="inline-block w-1.5 h-1.5 bg-emerald-600 rounded-full animate-bounce" />
-                  <span className="text-[11px] font-medium text-slate-500 ml-1">Menyiapkan informasi & panduan...</span>
+                  <span className="text-[11px] font-medium text-slate-500 ml-1">Menganalisis permintaan warga...</span>
                 </div>
               </div>
             )}
             <div ref={messagesEndRef} />
           </div>
 
+          {/* Voice Listening Banner */}
+          {isListening && (
+            <div className="bg-red-500 text-white px-3 py-1.5 text-[10px] font-bold flex items-center justify-between animate-pulse">
+              <div className="flex items-center gap-1.5">
+                <Mic className="w-3.5 h-3.5 animate-bounce" />
+                <span>Mendengarkan suara Anda... (Bicaralah dalam Bahasa Indonesia atau Daerah)</span>
+              </div>
+              <button
+                type="button"
+                onClick={toggleListening}
+                className="underline hover:text-red-100"
+              >
+                Berhenti
+              </button>
+            </div>
+          )}
+
           {/* Input Footer */}
           <form
             onSubmit={handleSend}
-            className="p-3 bg-white border-t border-slate-200 flex items-center gap-2 shadow-sm"
+            className="p-3 bg-white border-t border-slate-200 flex items-center gap-2 shadow-sm shrink-0"
           >
             <input
               ref={inputRef}
               type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
-              placeholder="Ketik pertanyaan / minta tutorial (contoh: cara buat SKU, lacak surat, pengaduan)..."
+              placeholder={isListening ? 'Mendengarkan...' : 'Ketik pertanyaan / NIK Anda / gunakan mikrofon...'}
               className="flex-1 px-3.5 py-2.5 text-xs border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-emerald-700 focus:border-transparent bg-slate-50 text-slate-900 font-medium placeholder:text-slate-400"
             />
+
+            {/* Voice Input (Speech-to-Text) Button */}
+            <button
+              type="button"
+              onClick={toggleListening}
+              className={`p-2.5 rounded-xl transition-all shadow-sm active:scale-95 shrink-0 ${
+                isListening
+                  ? 'bg-red-600 text-white ring-4 ring-red-200 animate-pulse'
+                  : 'bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200'
+              }`}
+              title={isListening ? 'Hentikan Perekaman Suara' : 'Bicara Menggunakan Mikrofon (Voice Input)'}
+            >
+              {isListening ? <MicOff className="w-4 h-4 text-white" /> : <Mic className="w-4 h-4 text-emerald-800" />}
+            </button>
+
             <button
               id="btn-ai-cs-send"
               type="submit"
@@ -706,7 +1043,7 @@ export default function AiChatModal() {
         </div>
       )}
 
-      {/* Interactive Video Tutorial Modal with Authentic Website Replica & Pure Indonesian Voice Over */}
+      {/* Interactive Video Tutorial Modal with Authentic Website Replica */}
       <InteractiveTutorialModal
         isOpen={tutorialOpen}
         onClose={() => setTutorialOpen(false)}
