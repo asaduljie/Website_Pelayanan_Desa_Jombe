@@ -57,26 +57,23 @@ export const downloadApplicationPdf = async (req: AuthRequest, res: Response) =>
       }
     }
 
-    // Strict validation: Only allow PDF if status is COMPLETED or requested by authorized operator
-    if (application && application.status && application.status !== 'COMPLETED') {
-      const isOperator = req.user?.role === 'OPERATOR' || req.user?.role === 'ADMIN';
-      if (!isOperator) {
-        return res.status(403).send(`
-          <html>
-            <head><title>Surat Belum Disetujui</title></head>
-            <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc;">
-              <div style="background: white; padding: 32px; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 480px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
-                <div style="font-size: 48px; margin-bottom: 12px;">⏳</div>
-                <h2 style="color: #0f172a; margin: 0 0 8px 0; font-size: 18px;">Surat Belum Dapat Diunduh</h2>
-                <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 20px 0;">
-                  Permohonan surat (<strong>${application.applicationNumber}</strong>) saat ini berstatus <strong>${application.status}</strong> dan masih menunggu pemeriksaan serta persetujuan Kepala Desa Jombe.
-                </p>
-                <a href="/lacak?no=${application.applicationNumber}" style="display: inline-block; background: #064e3b; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: bold;">Lacak Status Surat</a>
-              </div>
-            </body>
-          </html>
-        `);
-      }
+    // Full Automation: Allow direct PDF download for completed and auto-generated documents
+    if (application && application.status === 'REJECTED') {
+      return res.status(403).send(`
+        <html>
+          <head><title>Permohonan Ditolak</title></head>
+          <body style="font-family: sans-serif; display: flex; align-items: center; justify-content: center; height: 100vh; margin: 0; background: #f8fafc;">
+            <div style="background: white; padding: 32px; border-radius: 16px; border: 1px solid #e2e8f0; max-width: 480px; text-align: center; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+              <div style="font-size: 48px; margin-bottom: 12px;">❌</div>
+              <h2 style="color: #991b1b; margin: 0 0 8px 0; font-size: 18px;">Permohonan Surat Ditolak</h2>
+              <p style="color: #64748b; font-size: 13px; line-height: 1.5; margin: 0 0 20px 0;">
+                Permohonan surat (<strong>${application.applicationNumber}</strong>) tidak dapat diterbitkan. Silakan ajukan ulang dengan berkas persyaratan yang sesuai.
+              </p>
+              <a href="/layanan" style="display: inline-block; background: #064e3b; color: white; padding: 10px 20px; border-radius: 8px; text-decoration: none; font-size: 13px; font-weight: bold;">Ajukan Permohonan Baru</a>
+            </div>
+          </body>
+        </html>
+      `);
     }
 
     // Fallback demo for operator testing

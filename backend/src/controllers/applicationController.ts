@@ -107,13 +107,16 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
     const sId = resolvedService?.id || 'service-sku-1';
     const sSlug = serviceSlug || resolvedService?.slug || 'surat-keterangan-usaha';
 
-    // 5. Generate Application Number
+    // 5. Generate Application Number & Direct PDF URL (Full Automation)
     const totalApps = await prisma.application.count().catch(() => 0);
     const applicationNumber = `JMB-${new Date().getFullYear()}-${String(totalApps + 1).padStart(5, '0')}`;
     const newAppId = `app-web-${Date.now()}`;
     const defaultLetterNumber = `503/470/${Math.floor(100 + Math.random() * 900)}/DS-JMB/${new Date().getFullYear()}`;
 
-    // 6. Simpan ke Supabase PostgreSQL
+    const host = req.get('host') || 'lentera-desa-backend.vercel.app';
+    const protocol = host.includes('localhost') ? req.protocol : 'https';
+
+    // 6. Simpan ke Supabase PostgreSQL (Full Automation: Langsung COMPLETED & Terbit)
     let createdDbApp: any = null;
     if (citizen && resolvedService) {
       try {
@@ -122,13 +125,20 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
             applicationNumber,
             userId: citizen.id,
             serviceId: resolvedService.id,
-            status: 'PENDING',
+            status: 'COMPLETED',
             history: {
-              create: {
-                status: 'PENDING',
-                actorName: userName,
-                notes: 'Permohonan surat diajukan mandiri via portal website Desa Jombe.',
-              },
+              create: [
+                {
+                  status: 'SUBMITTED',
+                  actorName: userName,
+                  notes: 'Permohonan surat diajukan mandiri via portal website Desa Jombe.',
+                },
+                {
+                  status: 'COMPLETED',
+                  actorName: 'Sistem Otomatisasi Mandiri Desa Jombe',
+                  notes: 'Surat resmi diverifikasi & diterbitkan secara otomatis oleh sistem (Disetujui Kepala Desa Jombe).',
+                },
+              ],
             },
           },
           include: {
@@ -142,8 +152,9 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
     }
 
     const actualId = createdDbApp?.id || newAppId;
+    const pdfUrl = `${protocol}://${host}/api/operator/pdf/${actualId}`;
 
-    // 7. Simpan Record Lengkap ke PersistentDatabase
+    // 7. Simpan Record Lengkap ke PersistentDatabase (Langsung Terbit Status COMPLETED)
     const appRecord = {
       id: actualId,
       applicationNumber,
@@ -154,7 +165,8 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
       serviceId: sId,
       serviceName,
       serviceSlug: sSlug,
-      status: 'PENDING' as const,
+      status: 'COMPLETED' as const,
+      pdfUrl,
       detailValue: typeof fieldValues === 'string' ? fieldValues : `Alamat: ${userAddress}. Keterangan: Pengajuan Surat Mandiri Portal Website Desa Jombe`,
       uploadedPhotos: Array.isArray(uploadedPhotos) && uploadedPhotos.length > 0 ? uploadedPhotos : [
         { title: 'Foto e-KTP Asli Pemohon', type: 'KTP' },
@@ -170,14 +182,15 @@ export const createApplication = async (req: AuthRequest, res: Response) => {
 
     return res.status(201).json({
       status: 'success',
-      message: 'Permohonan surat berhasil dikirim! Simpan Nomor Registrasi Anda untuk melacak status.',
+      message: 'Surat resmi Anda telah berhasil diterbitkan otomatis oleh sistem! Berkas siap diunduh dan dicetak.',
       data: {
         id: actualId,
         applicationNumber,
         serviceName,
         userName,
         userNik,
-        status: 'PENDING',
+        status: 'COMPLETED',
+        pdfUrl,
         createdAt: new Date().toISOString(),
       },
     });

@@ -14,6 +14,8 @@ import {
   ShieldCheck,
   Copy,
   ExternalLink,
+  Download,
+  Printer,
 } from 'lucide-react';
 import api from '@/lib/api';
 import Captcha from '@/components/ui/Captcha';
@@ -292,12 +294,18 @@ export default function ServiceApplicationFormPage() {
       const res = await api.post('/applications', dataPayload);
 
       if (res.data?.status === 'success') {
+        const d = res.data.data;
+        const apiBase = (process.env.NEXT_PUBLIC_API_URL || 'https://lentera-desa-backend.vercel.app/api').replace(/\/$/, '');
+        const directPdfUrl = d.pdfUrl || `${apiBase}/operator/pdf/${d.id}`;
+
         setSubmittedResult({
-          applicationNumber: res.data.data.applicationNumber,
-          serviceName: res.data.data.serviceName || service?.name,
-          userName: res.data.data.userName || nama,
+          id: d.id,
+          applicationNumber: d.applicationNumber,
+          serviceName: d.serviceName || service?.name,
+          userName: d.userName || nama,
           userNik: cleanNik,
-          createdAt: res.data.data.createdAt,
+          pdfUrl: directPdfUrl,
+          createdAt: d.createdAt,
         });
       }
     } catch (err: any) {
@@ -317,29 +325,45 @@ export default function ServiceApplicationFormPage() {
   }
 
   // ============================================================================
-  // SUCCESS CONFIRMATION MODAL (PUBLIC TRACKING NOTIFICATION)
+  // SUCCESS CONFIRMATION MODAL (FULL AUTOMATION: INSTANT PDF GENERATION)
   // ============================================================================
   if (submittedResult) {
     return (
       <div className="min-h-screen py-12 max-w-2xl mx-auto px-4 sm:px-6">
-        <div className="bg-white rounded-3xl p-8 border border-emerald-200 shadow-xl space-y-6 text-center">
-          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-inner">
-            <CheckCircle2 className="w-10 h-10" />
+        <div className="bg-white rounded-3xl p-8 border-2 border-emerald-300 shadow-2xl space-y-6 text-center animate-in fade-in zoom-in-95 duration-200">
+          <div className="w-16 h-16 rounded-full bg-emerald-100 text-emerald-800 flex items-center justify-center mx-auto shadow-inner border-2 border-emerald-300">
+            <CheckCircle2 className="w-10 h-10 text-emerald-700" />
           </div>
 
           <div className="space-y-2">
-            <span className="text-[11px] font-bold text-emerald-800 uppercase tracking-widest bg-emerald-50 px-3 py-1 rounded-full border border-emerald-200 inline-block">
-              Permohonan Berhasil Dikirim
+            <span className="text-[11px] font-black text-emerald-900 uppercase tracking-widest bg-emerald-100 px-3.5 py-1 rounded-full border border-emerald-300 inline-block">
+              ✓ Surat Resmi Selesai & Diterbitkan Otomatis
             </span>
-            <h2 className="text-2xl font-extrabold text-slate-900">Surat Sedang Diproses Operator</h2>
+            <h2 className="text-2xl font-black text-slate-900">Surat Resmi Anda Siap Diunduh!</h2>
             <p className="text-xs text-slate-600 max-w-md mx-auto leading-relaxed">
-              Data permohonan dan berkas dokumen Anda telah masuk ke sistem antrean verifikasi Kantor Desa Jombe.
+              Sistem Mandiri Desa Jombe telah memproses dan menerbitkan dokumen surat resmi Anda dengan nomor agenda dan stempel resmi secara instan.
             </p>
+          </div>
+
+          {/* Instant PDF Download Action Box */}
+          <div className="p-4 bg-emerald-50 rounded-2xl border border-emerald-200 space-y-3">
+            <a
+              href={submittedResult.pdfUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="w-full py-4 bg-emerald-800 hover:bg-emerald-900 text-white font-black text-sm rounded-xl shadow-lg flex items-center justify-center gap-2.5 transition-all transform hover:scale-[1.02] cursor-pointer"
+            >
+              <Download className="w-5 h-5 text-emerald-200" />
+              <span>Unduh & Cetak Berkas Surat PDF Sekarang</span>
+            </a>
+            <span className="text-[10px] text-emerald-800 font-medium block">
+              Format PDF standar A4 berkop Pemkab Jeneponto & Tanda Tangan Basah Kepala Desa Jombe (JUSMAEDY, S.Pd).
+            </span>
           </div>
 
           {/* Registration Number Card */}
           <div className="p-5 rounded-2xl bg-slate-50 border border-slate-200 text-left space-y-3">
-            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Nomor Registrasi Surat Anda:</span>
+            <span className="text-[11px] font-bold text-slate-500 uppercase tracking-wider block">Nomor Registrasi Arsip Resmi:</span>
             <div className="flex items-center justify-between gap-3 bg-white p-3 rounded-xl border border-slate-300">
               <span className="font-mono text-lg font-black text-emerald-900 tracking-wider">
                 {submittedResult.applicationNumber}
@@ -347,7 +371,7 @@ export default function ServiceApplicationFormPage() {
               <button
                 type="button"
                 onClick={() => handleCopyAppNumber(submittedResult.applicationNumber)}
-                className="px-3 py-1.5 text-xs font-bold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-lg border border-emerald-200 flex items-center gap-1.5 transition-all"
+                className="px-3 py-1.5 text-xs font-bold bg-emerald-50 text-emerald-800 hover:bg-emerald-100 rounded-lg border border-emerald-200 flex items-center gap-1.5 transition-all cursor-pointer"
               >
                 <Copy className="w-3.5 h-3.5" />
                 {copied ? 'Tersalin!' : 'Salin Nomor'}
@@ -359,25 +383,21 @@ export default function ServiceApplicationFormPage() {
             </div>
           </div>
 
-          {/* Direct Actions */}
-          <div className="space-y-2 pt-2">
+          {/* Secondary Actions */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2.5 pt-1">
             <button
-              onClick={() => router.push(`/lacak?nomor=${submittedResult.applicationNumber}`)}
-              className="w-full py-3.5 bg-emerald-800 hover:bg-emerald-900 text-white font-extrabold text-xs rounded-xl shadow-md flex items-center justify-center gap-2 transition-all"
+              onClick={() => router.push(`/lacak?no=${submittedResult.applicationNumber}`)}
+              className="py-3 bg-white border border-slate-300 hover:bg-slate-50 text-slate-800 font-bold text-xs rounded-xl flex items-center justify-center gap-2 transition-all cursor-pointer"
             >
-              <ExternalLink className="w-4 h-4" /> Lacak Status Surat Ini Sekarang
+              <ExternalLink className="w-4 h-4 text-emerald-700" /> Cek di Halaman Lacak
             </button>
             <button
               onClick={() => router.push('/layanan')}
-              className="w-full py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all"
+              className="py-3 bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-xs rounded-xl transition-all cursor-pointer"
             >
-              Kembali ke Katalog Layanan Surat
+              Kembali ke Katalog Layanan
             </button>
           </div>
-
-          <p className="text-[11px] text-slate-400">
-            💡 <em>Simpan nomor registrasi Anda. Begitu surat disetujui, Anda dapat langsung mengunduh berkas PDF resmi dari menu Lacak Surat.</em>
-          </p>
         </div>
       </div>
     );
