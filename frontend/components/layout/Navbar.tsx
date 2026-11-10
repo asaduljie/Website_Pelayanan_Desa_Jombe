@@ -17,7 +17,8 @@ import {
   User,
   UserPlus,
   UserCheck,
-  Edit3
+  Edit3,
+  Sparkles,
 } from 'lucide-react';
 import ProfileModal from './ProfileModal';
 
@@ -175,6 +176,21 @@ export default function Navbar() {
                 <Newspaper className="w-3.5 h-3.5 text-emerald-700" />
                 Berita
               </Link>
+
+              {/* Asisten AI & Tutorial Direct Trigger */}
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('open-jombe-ai'));
+                  }
+                }}
+                className="px-3 py-1.5 rounded-xl text-xs font-black text-emerald-950 bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 hover:from-amber-200 hover:to-amber-300 border border-amber-400 shadow-xs flex items-center gap-1.5 transition-all transform hover:scale-105 cursor-pointer ml-1"
+                title="Buka Pusat Bantuan AI & Tutorial Interaktif Website"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-emerald-950 animate-pulse" />
+                <span>Asisten AI</span>
+              </button>
             </nav>
 
             {/* Desktop User Account Actions */}
@@ -335,6 +351,24 @@ export default function Navbar() {
                 <Newspaper className="w-4 h-4 text-emerald-700" />
                 Berita & Informasi
               </Link>
+
+              {/* Mobile AI Assistant Trigger */}
+              <button
+                type="button"
+                onClick={() => {
+                  setMobileMenuOpen(false);
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('open-jombe-ai'));
+                  }
+                }}
+                className="w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl font-black text-xs text-emerald-950 bg-gradient-to-r from-amber-300 to-amber-400 border border-amber-400 shadow-xs cursor-pointer mt-2"
+              >
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-emerald-950 animate-pulse" />
+                  <span>Asisten AI & Tutorial Interaktif</span>
+                </div>
+                <span className="text-[9px] bg-emerald-900 text-white px-2 py-0.5 rounded-full font-bold">ONLINE</span>
+              </button>
             </nav>
 
             <div className="pt-3 border-t border-slate-100">

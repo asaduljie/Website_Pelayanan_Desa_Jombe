@@ -24,6 +24,7 @@ import {
   MapPin,
   Compass,
   Download,
+  Sparkles,
 } from 'lucide-react';
 import api from '@/lib/api';
 
@@ -131,6 +132,18 @@ export default function HomePage() {
                 Ajukan Permohonan Surat
                 <ArrowRight className="w-4 h-4 group-hover:translate-x-1 transition-transform" />
               </Link>
+              <button
+                type="button"
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    window.dispatchEvent(new Event('open-jombe-ai'));
+                  }
+                }}
+                className="w-full sm:w-auto px-7 py-4 rounded-2xl bg-gradient-to-r from-amber-300 via-amber-400 to-amber-300 hover:from-amber-200 hover:to-amber-300 text-emerald-950 font-black text-sm shadow-xl transition-all flex items-center justify-center gap-2 transform hover:-translate-y-0.5 cursor-pointer border border-amber-300"
+              >
+                <Sparkles className="w-4 h-4 text-emerald-950 animate-pulse" />
+                <span>Asisten AI & Tutorial Web</span>
+              </button>
               <Link
                 href="/profil"
                 className="w-full sm:w-auto px-8 py-4 rounded-2xl bg-white/15 hover:bg-white/25 text-white font-bold text-sm backdrop-blur-md border border-white/30 transition-all flex items-center justify-center gap-2 shadow-lg"
@@ -207,6 +220,38 @@ export default function HomePage() {
             <Compass className="w-4 h-4 text-emerald-200" />
             <span>Jelajahi Profil Desa</span>
           </Link>
+        </div>
+
+        {/* Asisten AI & Tutorial Interaktif Highlight Card */}
+        <div className="bg-gradient-to-r from-emerald-950 via-teal-950 to-slate-900 text-white rounded-3xl p-6 sm:p-8 shadow-xl border-2 border-emerald-700/60 flex flex-col md:flex-row justify-between items-start md:items-center gap-5">
+          <div className="space-y-2 max-w-xl">
+            <div className="flex items-center gap-2">
+              <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-ping"></span>
+              <span className="text-[11px] font-black uppercase tracking-wider text-amber-300">
+                Fitur Baru: Layanan Mandiri Cerdas 24 Jam
+              </span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-black text-white flex items-center gap-2">
+              <Sparkles className="w-5 h-5 text-amber-300" />
+              Asisten AI & Tutorial Interaktif Desa Jombe
+            </h3>
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Bingung cara mengurus surat? Cukup bicara lewat mikrofon atau ketik nama & NIK Anda. Asisten AI akan otomatis menyiapkan draf formulir dan memandu Anda lewat video simulasi visual!
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined') {
+                window.dispatchEvent(new Event('open-jombe-ai'));
+              }
+            }}
+            className="px-6 py-3.5 bg-gradient-to-r from-amber-400 via-amber-300 to-amber-400 hover:from-amber-300 hover:to-amber-200 text-emerald-950 font-black text-xs sm:text-sm rounded-2xl shadow-xl transition-all flex items-center gap-2 shrink-0 cursor-pointer border border-amber-300 transform hover:scale-105"
+          >
+            <Sparkles className="w-4 h-4 text-emerald-950 animate-pulse" />
+            <span>Buka Asisten AI Sekarang ➔</span>
+          </button>
         </div>
       </section>
 

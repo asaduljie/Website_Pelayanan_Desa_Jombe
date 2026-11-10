@@ -590,6 +590,13 @@ export default function AiChatModal() {
     }
   }, [messages, isOpen]);
 
+  // Global Event Listener to Open AI Chat from Navbar or Hero Banner
+  useEffect(() => {
+    const handleOpenAi = () => setIsOpen(true);
+    window.addEventListener('open-jombe-ai', handleOpenAi);
+    return () => window.removeEventListener('open-jombe-ai', handleOpenAi);
+  }, []);
+
   // Initialize Web Speech API for Indonesian Voice Input
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -761,18 +768,21 @@ export default function AiChatModal() {
       <button
         id="btn-ai-cs-trigger"
         onClick={() => setIsOpen(true)}
-        className={`fixed bottom-6 right-6 z-40 px-4 py-3.5 bg-gradient-to-r from-emerald-800 to-emerald-950 hover:from-emerald-700 hover:to-emerald-900 text-white rounded-2xl shadow-xl shadow-emerald-900/30 transition-all transform hover:scale-105 flex items-center gap-2.5 border border-emerald-600/40 group ${
+        className={`fixed bottom-6 right-6 z-50 px-4 py-3.5 bg-gradient-to-r from-emerald-800 via-emerald-900 to-teal-950 hover:from-emerald-700 hover:to-emerald-900 text-white rounded-2xl shadow-2xl shadow-emerald-950/50 transition-all transform hover:scale-105 flex items-center gap-2.5 border-2 border-emerald-500/60 group cursor-pointer ${
           isOpen ? 'hidden' : 'flex'
         }`}
-        title="Pusat Bantuan AI Desa Jombe"
+        title="Klik untuk Membuka Asisten AI & Tutorial Desa Jombe"
       >
         <div className="relative">
           <Sparkles className="w-5 h-5 text-amber-300 animate-pulse" />
           <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-emerald-400 rounded-full border-2 border-emerald-900 animate-ping" />
         </div>
         <div className="text-left">
-          <div className="text-xs font-bold leading-none text-white">Bantuan & Tutorial AI</div>
-          <div className="text-[10px] text-emerald-300 leading-none mt-1">CS Pintar 24 Jam</div>
+          <div className="text-xs font-black leading-none text-white flex items-center gap-1.5">
+            <span>Asisten AI</span>
+            <span className="px-1.5 py-0.5 rounded text-[8px] bg-amber-400 text-emerald-950 font-black">BARU</span>
+          </div>
+          <div className="text-[10px] text-emerald-200 leading-none mt-1">Tanya & Tutorial Web</div>
         </div>
       </button>
 
